@@ -1,109 +1,80 @@
 #ifndef COMMONS_H
 #define COMMONS_H
 
-/* ================================================================
-   COMMONS.H — Header central del proyecto
-   Todos los .c incluyen este archivo y solo este.
-   Agrega aquí solo lo que sea necesario en múltiples módulos.
-   ================================================================ */
 
-/* ================================================================
-   INCLUDES (librerias)
-   ================================================================ */
-
+//==========Librerias=========//
 #include <stdio.h>
 #include <stdbool.h>
+#include <allegro5/allegro.h>
+#include <allegro5/display.h>
+#include <allegro5/allegro_font.h>
+#include <allegro5/allegro_ttf.h>
+#include <allegro5/events.h>
+#include <allegro5/timer.h>
+#include <allegro5/color.h>
+#include <allegro5/allegro_primitives.h>
+#include <allegro5/allegro_image.h>
 
-/* ================================================================
-   DEFINE (constantes)
-   ================================================================ */
 
-#define TARGET_FPS      60
+//==========Defines==========//
+#define SCREEN_X 1280
+#define SCREEN_Y 720
+#define FPS 60
 
-/* ================================================================
-   ENUMS (manejo de estados)
-   ================================================================ */
+
+//==========Estructuras==========//
+
+//==Structs Assets==//
+typedef struct{
+
+    ALLEGRO_FONT* shingekiFont;
+    ALLEGRO_FONT* minimalistTemplateFont;    
+
+} s_Assets;
+
+//==============================//
+
+typedef struct
+{
+    int milisegundos;
+    int segundos;
+    int minutos;
+    int validacion;
+} s_Temporizador;
 
 typedef enum {
-    SCREEN_MENU,
-    SCREEN_PLAYING,
-    SCREEN_GAMEOVER
-} Screen;
+    PANTALLA_MENU,
+    PANTALLA_JUGANDO,
+    PANTALLA_GAME_OVER
+} s_Pantalla;
 
-/* ================================================================
-   ESTRUCTURAS
-   ================================================================ */
+typedef struct { //input.c actualiza a través de la variable s_GameState, update.c lo lee y reacciona.
+    bool keyW;
+    bool keyS;
+    bool keyD;
+    bool keyA;
+} s_InputState;
 
-/* ----------------------------------------------------------------
-   input.c actualiza a través de la variable GameState, update.c lo lee y reacciona.
-   ---------------------------------------------------------------- */
+
+//====s_GameState====//
 typedef struct {
-    bool keyUp;
-    bool keyDown;
-    // Puedes agregar más teclas o combinaciones de teclas
-} InputState;
+    s_Temporizador tiempoJugado;
+    s_Pantalla pantalla;      /* pantalla activa */
+    s_InputState input;    /* estado del input */  
+    int nivel; /*nivel actual*/
 
-
-/* ----------------------------------------------------------------
-   Estado del juego
-   La estructura central del proyecto. Representa todo lo que
-   está pasando en el juego en un momento dado.
-   Casi todos los módulos la leen. Solo update.c la modifica.
-   ---------------------------------------------------------------- */
-typedef struct {
-    Screen screen;      /* pantalla activa */
-    InputState input;    /* estado del input */  
-    int level; /*nivel actual*/
-
-    bool running; /* mantiene el juego corriendo */
+    bool ejecutando; /* mantiene el juego corriendo */
     /* Agrega los campos que necesite tu juego */
-} GameState;
-
-/* ================================================================
-   PROTOTIPOS (de funciones). 
-   Concentra los prototipos de todos los archivos .c
-   ================================================================ */
+} s_GameState;
 
 
-/* ----------------------------------------------------------------
-   game.c
-   ---------------------------------------------------------------- */
-void game_init(GameState *gs);
+//==========Prototipos de funciones==========//
+void game_init(s_GameState *gs);
+void input_update(s_InputState *input, ALLEGRO_EVENT* evento);
+void update(s_GameState *gs, s_InputState *input);
+void render_gameview(s_GameState *gs);
+void render_ui(s_GameState *gs, s_Assets *assets);
+void assets_load(s_Assets *assets);
 
-/* ----------------------------------------------------------------
-   input.c
-   ---------------------------------------------------------------- */
-void input_update(InputState *input);
-
-
-/* ----------------------------------------------------------------
-   update.c
-   ---------------------------------------------------------------- */
-void update(GameState *gs, InputState *input);
-
-
-/* ----------------------------------------------------------------
-   renderer.c
-   ---------------------------------------------------------------- */
-void render_gameview(GameState *gs);
-
-
-/* ----------------------------------------------------------------
-   ui.c
-   ---------------------------------------------------------------- */
-void render_ui(GameState *gs);
-
-
-/* ----------------------------------------------------------------
-   assets.c
-   ---------------------------------------------------------------- */
-void assets_load(void);
-
-/* ----------------------------------------------------------------
-   entities.c
-   ---------------------------------------------------------------- */
-/* void enemy_update(GameState *gs, int enemy_index);            */
-/* void player_jump(GameState *gs);                              */
-/* bool check_collision(float x1, float y1, float x2, float y2); */
 
 #endif

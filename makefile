@@ -25,13 +25,13 @@ OBJ_DIR = obj
 # Cambia esta lista si agregas o eliminas módulos.
 # ─────────────────────────────────────────────
 SRCS = main.c     \
-       game.c     \
        input.c    \
-       entities.c \
        update.c   \
        renderer.c \
-       ui.c       \
-       assets.c
+       assets.c   \
+       ui.c       
+       #entities.c \
+       game.c     \
 
 # Construir rutas completas: src/main.c, src/game.c, ...
 SRCS_FULL = $(addprefix $(SRC_DIR)/, $(SRCS))
