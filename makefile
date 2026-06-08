@@ -29,9 +29,9 @@ SRCS = main.c     \
        update.c   \
        renderer.c \
        assets.c   \
-       ui.c       
+       ui.c       \
+       game.c     
        #entities.c \
-       game.c     \
 
 # Construir rutas completas: src/main.c, src/game.c, ...
 SRCS_FULL = $(addprefix $(SRC_DIR)/, $(SRCS))

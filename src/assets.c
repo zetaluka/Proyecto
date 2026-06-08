@@ -1,29 +1,54 @@
 #include "commons.h"
 
 //====Prototipos====//
-int carga_fuentes(s_Assets* fuentes);
-
+int carga_fuentes(s_Assets *assets);
+int carga_sprites_levi(s_Assets *assets);
+int carga_fondo(s_Assets *assets);
 
 //====Funcion principal====//
 void assets_load(s_Assets *assets)
 {
     carga_fuentes(assets);
+    carga_sprites_levi(assets);
+    carga_fondo(assets);
 
     return;
 }
 
 //====Funciones====//
-int carga_fuentes(s_Assets* assets)
+int carga_fuentes(s_Assets *assets)
 {
     assets->shingekiFont = al_load_font("assets/fonts/Ditty.ttf", 30, 0);
     if(!assets->shingekiFont) {
         printf("Error cargando shingekiFont\n");
-        return 1;
+        exit(1);
     }
 
     assets->minimalistTemplateFont = al_load_font("assets/fonts/MinimalistTemplate.otf", 50, 0);
     if(!assets->minimalistTemplateFont) {
         printf("Error cargando minimalistTemplateFont\n");
+        exit(1);
+    }
+
+    return 0;
+}
+
+int carga_sprites_levi(s_Assets *assets)
+{
+    assets->levi.levi_parado = al_load_bitmap("assets/imgs/levi_parado.png");
+    if(!assets->levi.levi_parado){
+        printf("Error cargando levi_parado");
+        exit(1);
+    }
+
+    return 0;
+}
+
+int carga_fondo(s_Assets *assets)
+{
+    assets->assetsPantalla[0].fondo_base = al_load_bitmap("assets/imgs/fondo_base.png");
+    if(!assets->assetsPantalla[0].fondo_base){
+        printf("Error cargando fondo_base");
         return 1;
     }
 
