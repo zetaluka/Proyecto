@@ -5,12 +5,14 @@ void levi_sprites(s_GameState *gs, s_Assets *assets);
 void pantalla_0(s_Assets *assets, s_GameState *gs);
 void jugando(s_Assets *assets, s_GameState *gs);
 void pantalla_1(s_Assets *assets, s_GameState *gs);
+void muestra_hitbox(s_GameState *gs, s_Assets *assets);
 
 
 //====Funcion principal====//
 void render_gameview(s_GameState *gs, s_Assets *assets)
 {
     al_clear_to_color(al_map_rgb(0,0,0));
+    
     switch (gs->estadoPantalla)
     {
         case PANTALLA_MENU:
@@ -44,6 +46,7 @@ void jugando(s_Assets *assets, s_GameState *gs)
             pantalla_1(assets,gs);
             break;
     }
+    muestra_hitbox(gs,assets);
 }
 
 void pantalla_0(s_Assets *assets, s_GameState *gs)
@@ -58,9 +61,22 @@ void pantalla_0(s_Assets *assets, s_GameState *gs)
 void pantalla_1(s_Assets *assets, s_GameState *gs)
 {
 
-    al_draw_scaled_bitmap(assets->assetsPantalla[0].fondo_base, 0, 0, al_get_bitmap_width(assets->assetsPantalla[0].fondo_base),
-    al_get_bitmap_height(assets->assetsPantalla[0].fondo_base), 0, 0, al_get_bitmap_width(assets->assetsPantalla[0].fondo_base)*2*gs->escala,
-    al_get_bitmap_height(assets->assetsPantalla[0].fondo_base)*2*gs->escala, 0);
-    al_draw_filled_rectangle( 200, 200, 400, 400, al_map_rgb(0, 0, 0));
+    al_draw_scaled_bitmap(assets->assetsPantalla[1].fondo_base, 0, 0, al_get_bitmap_width(assets->assetsPantalla[1].fondo_base),
+    al_get_bitmap_height(assets->assetsPantalla[1].fondo_base), 0, 0, al_get_bitmap_width(assets->assetsPantalla[1].fondo_base)*2*gs->escala,
+    al_get_bitmap_height(assets->assetsPantalla[1].fondo_base)*2*gs->escala, 0);
     
+}
+
+void muestra_hitbox(s_GameState *gs, s_Assets *assets)
+{
+    if(gs->input.keyH == 1)
+        {
+            al_draw_rectangle(gs->levi.hitbox.x*gs->escala, gs->levi.hitbox.y*gs->escala, (gs->levi.hitbox.x+gs->levi.hitbox.ancho)*gs->escala,
+            (gs->levi.hitbox.y+gs->levi.hitbox.alto)*gs->escala, BLANCO,2);
+
+            al_draw_rectangle(gs->pantalla[0].hitbox[0].x*gs->escala, gs->pantalla[0].hitbox[0].y*gs->escala,
+            (gs->pantalla[0].hitbox[0].x+gs->pantalla[0].hitbox[0].ancho)*gs->escala, (gs->pantalla[0].hitbox[0].y+gs->pantalla[0].hitbox[0].alto)*gs->escala, 
+            BLANCO, 2);
+        }
+
 }

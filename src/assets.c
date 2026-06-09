@@ -46,11 +46,20 @@ int carga_sprites_levi(s_Assets *assets)
 
 int carga_fondo(s_Assets *assets)
 {
+    //Pantalla 0
     assets->assetsPantalla[0].fondo_base = al_load_bitmap("assets/imgs/fondo_base.png");
     if(!assets->assetsPantalla[0].fondo_base){
         printf("Error cargando fondo_base");
         return 1;
     }
+
+    //Pantalla 1
+    assets->assetsPantalla[1].fondo_base = al_load_bitmap("assets/imgs/fondo_base_titan_colosal.png");
+    if(!assets->assetsPantalla[1].fondo_base){
+        printf("Error cargando fondo_basetitan_colosal");
+        return 1;
+    }
+
 
     return 0;
 }

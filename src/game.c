@@ -6,7 +6,7 @@ void hitbox_init(s_GameState *gs);
 void game_init(s_GameState *gs)
 {
     gs->escala = 1.0f; //Variable que multiplica fondos, elementos, hitbox, etc. Para si en un futuro quiero cambiar de resolucion, redefino la variable y se escala todo.
-    gs->ejecutando = 1;
+    gs->ejecutando =1;
     gs->estadoPantalla = PANTALLA_JUGANDO;
     gs->pantalla_actual = 0;
     gs->nivel = 1;
@@ -27,7 +27,7 @@ void hitbox_init(s_GameState *gs)
 {
     //====Pantalla 0====//
 
-    //gs->pantalla[0].hitbox[0] = {0 , 654*gs->escala, SCREEN_X*gs->escala, 0};
+    gs->pantalla[0].hitbox[0] = (s_Hitbox){0 , (SCREEN_Y - 66), SCREEN_X, 66}; //Suelo
 
     //==================//
 }

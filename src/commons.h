@@ -23,6 +23,7 @@
 #define GRAVEDAD 1
 #define MAXPANTALLAS 50
 #define MAXHITBOX 50
+#define BLANCO al_map_rgb(220, 220, 220)
 
 
 //==========Estructuras==========//
@@ -100,6 +101,7 @@ typedef struct { //input.c actualiza a través de la variable s_GameState, updat
     bool keySpace;
     bool keyLShift;
     bool keyL; //Para saber posicion de levi
+    bool keyH; //Para visualizar hitbox de levi
 } s_InputState;
 
 
@@ -120,8 +122,8 @@ typedef struct {
 
 //==========Prototipos de funciones==========//
 void game_init(s_GameState *gs);
-void input_update(s_InputState *input, ALLEGRO_EVENT* evento);
-void update(s_GameState *gs, s_InputState *input, s_Assets *assets);
+void input_update(s_GameState *gs, ALLEGRO_EVENT* evento);
+void update(s_GameState *gs, s_Assets *assets);
 void render_gameview(s_GameState *gs, s_Assets *assets);
 void render_ui(s_GameState *gs, s_Assets *assets);
 void assets_load(s_Assets *assets);

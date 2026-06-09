@@ -1,14 +1,15 @@
 #include "commons.h"
 
 //====Prototipos====//
-void update_jugando(s_GameState *gs, s_InputState *input, s_Assets *assets);
+void update_jugando(s_GameState *gs, s_Assets *assets);
 void update_tiempo_jugado(s_GameState* gs);
-void update_levi_movimiento(s_GameState *gs, s_InputState *input, s_Assets *assets);
+void update_levi_movimiento(s_GameState *gs, s_Assets *assets);
 void valida_levi_suelo(s_Assets *assets, s_GameState *gs);
-void transicion_pantalla(s_GameState *gs, s_InputState *input, s_Assets *assets);
+void transicion_pantalla(s_GameState *gs, s_Assets *assets);
+void hitbox_levi(s_GameState *gs, s_Assets *assets);
 
 //====Funcion principal====//
-void update(s_GameState *gs, s_InputState *input, s_Assets *assets)
+void update(s_GameState *gs, s_Assets *assets)
 {
     switch(gs->estadoPantalla)
     {
@@ -16,7 +17,7 @@ void update(s_GameState *gs, s_InputState *input, s_Assets *assets)
             break;
 
         case PANTALLA_JUGANDO:
-            update_jugando(gs,input,assets);
+            update_jugando(gs,assets);
             break;
 
         case PANTALLA_GAME_OVER:
@@ -26,10 +27,10 @@ void update(s_GameState *gs, s_InputState *input, s_Assets *assets)
 }
 
 
-void update_jugando(s_GameState *gs, s_InputState *input, s_Assets *assets)
+void update_jugando(s_GameState *gs, s_Assets *assets)
 {
     update_tiempo_jugado(gs);
-    update_levi_movimiento(gs, input, assets);
+    update_levi_movimiento(gs, assets);
 
     return;
 }
@@ -48,40 +49,39 @@ void update_tiempo_jugado(s_GameState* gs)
     }
 }
 
-void update_levi_movimiento(s_GameState *gs, s_InputState *input, s_Assets *assets)
+void update_levi_movimiento(s_GameState *gs, s_Assets *assets)
 {
     
     if(gs->levi.y == SCREEN_Y - 66 - al_get_bitmap_height(assets->levi.levi_parado)*2)
         gs->levi.doble_salto = 0;
 
-    if(input->keyA == 1) //Camina izquierda
-    gs->levi.x -= 3;
-    if(input->keyD == 1) //Camina derecha
-    gs->levi.x += 3;
-    /*if(input->keyW == 1)
+
+    if(gs->input.keyLShift == 1 && gs->input.keyD == 1)
+        gs->levi.x += 4.5f;
+    else if(gs->input.keyLShift == 1 && gs->input.keyA == 1)
+        gs->levi.x -= 4.5f;
+    else if(gs->input.keyA == 1) //Camina izquierda
+        gs->levi.x -= 3;
+    else if(gs->input.keyD == 1) //Camina derecha
+        gs->levi.x += 3;
+    /*if(gs->input.keyW == 1)
     gs->levi.y -= 2;
-    if(input->keyS == 1) 
+    if(gs->input.keyS == 1) 
     gs->levi.y += 2;*/
 
     //====Doble salto====//
-    if(input->keySpace == 1 && gs->levi.y == SCREEN_Y - 66 - al_get_bitmap_height(assets->levi.levi_parado)*2) //Salto
+    if(gs->input.keySpace == 1 && gs->levi.y == SCREEN_Y - 66 - al_get_bitmap_height(assets->levi.levi_parado)*2) //Salto
         {
             gs->levi.velocidadY = -11;
             gs->levi.doble_salto = 1;
-            input->keySpace = 0;
+            gs->input.keySpace = 0;
         }
 
-    if(input->keySpace == 1 && gs->levi.doble_salto == 1)
+    if(gs->input.keySpace == 1 && gs->levi.doble_salto == 1)
     {
         gs->levi.velocidadY = -8;
         gs->levi.doble_salto = 0;
     }
-
-    if(input->keyLShift == 1 && input->keyD == 1)
-    {
-        printf("LShift presionado");
-    }
-    
 
     //========================================================//
 
@@ -101,18 +101,20 @@ void update_levi_movimiento(s_GameState *gs, s_InputState *input, s_Assets *asse
 
     if(gs->levi.y <= -30) //Limite superior del mapa
         gs->levi.y = -30;
-
-    transicion_pantalla(gs, input, assets);
     
-    if(input->keyL == 1)
+    hitbox_levi(gs,assets);
+
+    transicion_pantalla(gs, assets);
+    
+    if(gs->input.keyL == 1)
     {
         printf("levi.x = %.0f, levi.y = %.0f\n",gs->levi.x, gs->levi.y);
         printf("pantalla actual: %d\n",gs->pantalla_actual);
-        input->keyL = 0;
+        gs->input.keyL = 0;
     }
 }
 
-void transicion_pantalla(s_GameState *gs, s_InputState *input, s_Assets *assets)
+void transicion_pantalla(s_GameState *gs, s_Assets *assets)
 {
     if(gs->levi.x+40 >= SCREEN_X && gs->pantalla_actual == 0)
     {
@@ -127,4 +129,11 @@ void transicion_pantalla(s_GameState *gs, s_InputState *input, s_Assets *assets)
     }
 }
 
+void hitbox_levi(s_GameState *gs, s_Assets *assets)
+{
+    gs->levi.hitbox.alto = 64;
+    gs->levi.hitbox.ancho = 35;
+    gs->levi.hitbox.x = gs->levi.x + 33;
+    gs->levi.hitbox.y = gs->levi.y;
+}
 

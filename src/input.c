@@ -2,32 +2,41 @@
 
 
 //====Funcion principal====//
-void input_update(s_InputState *input, ALLEGRO_EVENT* evento)
+void input_update(s_GameState *gs, ALLEGRO_EVENT* evento)
 {
     if(evento->type == ALLEGRO_EVENT_KEY_DOWN)
     {
         switch(evento->keyboard.keycode)
         {
         case ALLEGRO_KEY_W:
-            input->keyW = true;
+            gs->input.keyW = true;
             break;
         case ALLEGRO_KEY_S:
-            input->keyS = true;
+            gs->input.keyS = true;
             break;
         case ALLEGRO_KEY_A:
-            input->keyA = true;
+            gs->input.keyA = true;
             break;
         case ALLEGRO_KEY_D:
-            input->keyD = true;
+            gs->input.keyD = true;
             break;
         case ALLEGRO_KEY_SPACE:
-            input->keySpace = true;
+            gs->input.keySpace = true;
             break;
         case ALLEGRO_KEY_LSHIFT:
-            input->keyLShift = true;
+            gs->input.keyLShift = true;
             break;
         case ALLEGRO_KEY_L:
-            input->keyL = true;
+            gs->input.keyL = true;
+            break;
+        case ALLEGRO_KEY_H:
+            if(!gs->input.keyH)
+                gs->input.keyH = true;
+            else if(gs->input.keyH)
+                gs->input.keyH = false;
+            printf("%d",gs->input.keyH);
+
+            break;
         }
     }
 
@@ -36,25 +45,29 @@ void input_update(s_InputState *input, ALLEGRO_EVENT* evento)
         switch(evento->keyboard.keycode)
         {
             case ALLEGRO_KEY_W:
-                input->keyW = false;
+                gs->input.keyW = false;
                 break;
             case ALLEGRO_KEY_S:
-                input->keyS = false;
+                gs->input.keyS = false;
                 break;
             case ALLEGRO_KEY_A:
-                input->keyA = false;
+                gs->input.keyA = false;
                 break;
             case ALLEGRO_KEY_D:
-                input->keyD = false;
+                gs->input.keyD = false;
                 break;
             case ALLEGRO_KEY_SPACE:
-                input->keySpace = false;
+                gs->input.keySpace = false;
                 break;
             case ALLEGRO_KEY_LSHIFT:
-                input->keyLShift = false;
+                gs->input.keyLShift = false;
                 break;
             case ALLEGRO_KEY_L:
-                input->keyL = false;
+                gs->input.keyL = false;
+                break;
+            /*case ALLEGRO_KEY_H:
+                gs->input.keyH = false;
+                break;*/
         }
     }
 
