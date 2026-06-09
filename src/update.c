@@ -7,6 +7,7 @@ void update_levi_movimiento(s_GameState *gs, s_Assets *assets);
 void valida_levi_suelo(s_Assets *assets, s_GameState *gs);
 void transicion_pantalla(s_GameState *gs, s_Assets *assets);
 void hitbox_levi(s_GameState *gs, s_Assets *assets);
+bool colision(s_GameState *gs);
 
 //====Funcion principal====//
 void update(s_GameState *gs, s_Assets *assets)
@@ -102,6 +103,7 @@ void update_levi_movimiento(s_GameState *gs, s_Assets *assets)
     if(gs->levi.y <= -30) //Limite superior del mapa
         gs->levi.y = -30;
     
+    colision(gs);
     hitbox_levi(gs,assets);
 
     transicion_pantalla(gs, assets);
@@ -137,3 +139,13 @@ void hitbox_levi(s_GameState *gs, s_Assets *assets)
     gs->levi.hitbox.y = gs->levi.y;
 }
 
+bool colision(s_GameState *gs)
+{
+    if(gs->levi.hitbox.x + gs->levi.hitbox.ancho >= gs->pantalla[0].hitbox[3].x
+    && gs->levi.hitbox.y + gs->levi.hitbox.alto >= gs->pantalla[0].hitbox[3].y 
+    && gs->levi.hitbox.x <= gs->pantalla[0].hitbox[3].x + gs->pantalla[0].hitbox[3].ancho
+    && gs->levi.hitbox.y <= gs->pantalla[0].hitbox[3].y + gs->pantalla[0].hitbox[3].alto)
+        if(gs->levi.x < gs->pantalla[0].hitbox[3].x + gs->pantalla[0].hitbox[3].ancho)
+            gs->levi.x = (int)gs->pantalla[0].hitbox[3].x - (int)gs->levi.hitbox.ancho - (int)gs->pantalla[0].hitbox[3].ancho;
+
+}

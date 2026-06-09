@@ -72,11 +72,23 @@ void muestra_hitbox(s_GameState *gs, s_Assets *assets)
     if(gs->input.keyH == 1)
         {
             al_draw_rectangle(gs->levi.hitbox.x*gs->escala, gs->levi.hitbox.y*gs->escala, (gs->levi.hitbox.x+gs->levi.hitbox.ancho)*gs->escala,
-            (gs->levi.hitbox.y+gs->levi.hitbox.alto)*gs->escala, BLANCO,2);
+            (gs->levi.hitbox.y+gs->levi.hitbox.alto)*gs->escala, BLANCO,2); //Levi
 
             al_draw_rectangle(gs->pantalla[0].hitbox[0].x*gs->escala, gs->pantalla[0].hitbox[0].y*gs->escala,
             (gs->pantalla[0].hitbox[0].x+gs->pantalla[0].hitbox[0].ancho)*gs->escala, (gs->pantalla[0].hitbox[0].y+gs->pantalla[0].hitbox[0].alto)*gs->escala, 
+            BLANCO, 2); //Suelo
+
+            al_draw_rectangle(gs->pantalla[0].hitbox[1].x*gs->escala, gs->pantalla[0].hitbox[1].y*gs->escala,
+            (gs->pantalla[0].hitbox[1].x+gs->pantalla[0].hitbox[1].ancho)*gs->escala, (gs->pantalla[0].hitbox[1].y+gs->pantalla[0].hitbox[1].alto)*gs->escala, 
+            BLANCO, 2); //Limite izquerdo de la pantalla
+
+            al_draw_rectangle(gs->pantalla[0].hitbox[2].x*gs->escala, gs->pantalla[0].hitbox[2].y*gs->escala,
+            (gs->pantalla[0].hitbox[2].x+gs->pantalla[0].hitbox[2].ancho)*gs->escala, (gs->pantalla[0].hitbox[2].y+gs->pantalla[0].hitbox[2].alto)*gs->escala, 
             BLANCO, 2);
+
+            al_draw_filled_rectangle(gs->pantalla[0].hitbox[3].x*gs->escala, gs->pantalla[0].hitbox[3].y*gs->escala,
+            (gs->pantalla[0].hitbox[3].x+gs->pantalla[0].hitbox[3].ancho)*gs->escala, (gs->pantalla[0].hitbox[3].y+gs->pantalla[0].hitbox[3].alto)*gs->escala, 
+            al_map_rgb(25, 80, 120));
         }
 
 }

@@ -14,8 +14,8 @@ void game_init(s_GameState *gs)
     hitbox_init(gs);
 
     //Inicializacion de levi
-    gs->levi.x = 1100;
-    gs->levi.y = 200;
+    gs->levi.x = 700;
+    gs->levi.y = 100;
     gs->levi.velocidadX = 0;
     gs->levi.velocidadY = 0;
     gs->levi.doble_salto = 0;
@@ -28,6 +28,9 @@ void hitbox_init(s_GameState *gs)
     //====Pantalla 0====//
 
     gs->pantalla[0].hitbox[0] = (s_Hitbox){0 , (SCREEN_Y - 66), SCREEN_X, 66}; //Suelo
+    gs->pantalla[0].hitbox[1] = (s_Hitbox){(-4), 0, 4, SCREEN_Y}; //Limite izquierdo de la pantalla
+    gs->pantalla[0].hitbox[2] = (s_Hitbox){0, -2, SCREEN_X, 4 }; //Limite superior de la pantalla
+    gs->pantalla[0].hitbox[3] = (s_Hitbox){866, 600, 40, 40};
 
     //==================//
 }

@@ -23,6 +23,7 @@
 #define GRAVEDAD 1
 #define MAXPANTALLAS 50
 #define MAXHITBOX 50
+#define MAXENTIDADES 50
 #define BLANCO al_map_rgb(220, 220, 220)
 
 
@@ -55,6 +56,19 @@ typedef struct{
 
 typedef struct 
 {
+    int x;
+    int y;
+    int velocidadX;
+    int velocidadY;
+    int radioDeteccion;
+    int vida;
+    int ataque;
+    bool activo;
+} s_Entidades;
+
+
+typedef struct 
+{
     float x;
     float y;
     float ancho;
@@ -64,6 +78,7 @@ typedef struct
 typedef struct
 {
     s_Hitbox hitbox[MAXHITBOX];
+    s_Entidades entidades[MAXENTIDADES];
     int num_hitbox;
     
 } s_Pantalla;
@@ -127,6 +142,7 @@ void update(s_GameState *gs, s_Assets *assets);
 void render_gameview(s_GameState *gs, s_Assets *assets);
 void render_ui(s_GameState *gs, s_Assets *assets);
 void assets_load(s_Assets *assets);
+void genera_entidades(s_GameState *gs);
 
 
 #endif
