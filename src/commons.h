@@ -91,7 +91,7 @@ typedef struct
     float y;
     float velocidadX;
     float velocidadY;
-    float doble_salto;
+    bool doble_salto;
     bool levi_suelo;
     s_Hitbox hitbox;
 } s_Levi;

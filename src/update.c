@@ -7,12 +7,13 @@ void update_levi_movimiento(s_GameState *gs, s_Assets *assets);
 void valida_levi_suelo(s_Assets *assets, s_GameState *gs);
 void transicion_pantalla(s_GameState *gs, s_Assets *assets);
 void hitbox_levi(s_GameState *gs, s_Assets *assets);
-bool colision(s_GameState *gs);
+void comprueba_colision(s_GameState *gs);
+bool colision(s_GameState *gs, int i);
 
 //====Funcion principal====//
 void update(s_GameState *gs, s_Assets *assets)
 {
-    switch(gs->estadoPantalla)
+    switch(gs->estadoPantalla) //Detecta en que estado esta, ejemplo: Menu, jugando, pausa, etc.
     {
         case PANTALLA_MENU:
             break;
@@ -28,7 +29,7 @@ void update(s_GameState *gs, s_Assets *assets)
 }
 
 
-void update_jugando(s_GameState *gs, s_Assets *assets)
+void update_jugando(s_GameState *gs, s_Assets *assets) //Funcion si para cuando se este en la pantalla de juego
 {
     update_tiempo_jugado(gs);
     update_levi_movimiento(gs, assets);
@@ -36,7 +37,7 @@ void update_jugando(s_GameState *gs, s_Assets *assets)
     return;
 }
 
-void update_tiempo_jugado(s_GameState* gs)
+void update_tiempo_jugado(s_GameState* gs) //Funcion para hacer funcionar el cronometro de tiempo jugado
 {
     if(gs->tiempoJugado.validacion == 1)
     {
@@ -51,15 +52,11 @@ void update_tiempo_jugado(s_GameState* gs)
 }
 
 void update_levi_movimiento(s_GameState *gs, s_Assets *assets)
-{
-    
-    if(gs->levi.y == SCREEN_Y - 66 - al_get_bitmap_height(assets->levi.levi_parado)*2)
-        gs->levi.doble_salto = 0;
+{ 
 
-
-    if(gs->input.keyLShift == 1 && gs->input.keyD == 1)
+    if(gs->input.keyLShift == 1 && gs->input.keyD == 1) //Si mantiene el LShift corre
         gs->levi.x += 4.5f;
-    else if(gs->input.keyLShift == 1 && gs->input.keyA == 1)
+    else if(gs->input.keyLShift == 1 && gs->input.keyA == 1) //Si mantiene el LShift corre
         gs->levi.x -= 4.5f;
     else if(gs->input.keyA == 1) //Camina izquierda
         gs->levi.x -= 3;
@@ -70,46 +67,35 @@ void update_levi_movimiento(s_GameState *gs, s_Assets *assets)
     if(gs->input.keyS == 1) 
     gs->levi.y += 2;*/
 
-    //====Doble salto====//
-    if(gs->input.keySpace == 1 && gs->levi.y == SCREEN_Y - 66 - al_get_bitmap_height(assets->levi.levi_parado)*2) //Salto
-        {
-            gs->levi.velocidadY = -11;
-            gs->levi.doble_salto = 1;
-            gs->input.keySpace = 0;
-        }
-
-    if(gs->input.keySpace == 1 && gs->levi.doble_salto == 1)
-    {
-        gs->levi.velocidadY = -8;
-        gs->levi.doble_salto = 0;
-    }
-
-    //========================================================//
-
     //Gravedad
     gs->levi.velocidadY += 0.5; //Lo hace moverse todo el rato hacia abajo
     gs->levi.y = gs->levi.y + gs->levi.velocidadY;
 
-    //Limites del mapa
-    /*if(gs->levi.y >= SCREEN_Y - (al_get_bitmap_height(assets->levi.levi_parado)*2)) //Limite inferior del mapa con respecto al personaje
-        gs->levi.y = SCREEN_Y - (al_get_bitmap_height(assets->levi.levi_parado)*2);*/
-
-    if(gs->levi.y >= (SCREEN_Y - 66 - al_get_bitmap_height(assets->levi.levi_parado)*2)) //Limite suelo
-        gs->levi.y = (SCREEN_Y - 66 - al_get_bitmap_height(assets->levi.levi_parado)*2);
-
-    if(gs->levi.x <= -35) //Limite izquierdo del mapa con respecto al personaje
-        gs->levi.x = -35;
-
-    if(gs->levi.y <= -30) //Limite superior del mapa
-        gs->levi.y = -30;
-    
-   
+    gs->levi.levi_suelo = false;
     hitbox_levi(gs,assets);
-    colision(gs);
+    comprueba_colision(gs);
+
+    //====Doble salto====//
+    if(gs->input.keySpace == 1 && gs->levi.levi_suelo) //Salto y habilita doble salto
+        {
+            gs->levi.velocidadY = -11;
+            gs->levi.doble_salto = true;
+            gs->input.keySpace = 0;
+        }
+
+    if(gs->input.keySpace == 1 && gs->levi.doble_salto) //Confirma se doble salto esta habilitado
+    {
+        gs->levi.velocidadY = -8;
+        gs->levi.doble_salto = false;
+        gs->input.keySpace = 0;
+    }
+
+
+    //========================================================//
 
     transicion_pantalla(gs, assets);
     
-    if(gs->input.keyL == 1)
+    if(gs->input.keyL == 1) //**Para debuggear: indica la posicion del personaje y la pantalla en la que se encuentra
     {
         printf("levi.x = %.0f, levi.y = %.0f\n",gs->levi.x, gs->levi.y);
         printf("pantalla actual: %d\n",gs->pantalla_actual);
@@ -117,7 +103,7 @@ void update_levi_movimiento(s_GameState *gs, s_Assets *assets)
     }
 }
 
-void transicion_pantalla(s_GameState *gs, s_Assets *assets)
+void transicion_pantalla(s_GameState *gs, s_Assets *assets) //Efecto de transicion por pantallas
 {
     if(gs->levi.x+40 >= SCREEN_X && gs->pantalla_actual == 0)
     {
@@ -132,7 +118,7 @@ void transicion_pantalla(s_GameState *gs, s_Assets *assets)
     }
 }
 
-void hitbox_levi(s_GameState *gs, s_Assets *assets)
+void hitbox_levi(s_GameState *gs, s_Assets *assets) //Actualiza la hitbox del personaje principal
 {
     gs->levi.hitbox.alto = al_get_bitmap_height(assets->levi.levi_parado)*2;
     gs->levi.hitbox.ancho = LEVI_HB_RECORTE - 10;
@@ -140,31 +126,55 @@ void hitbox_levi(s_GameState *gs, s_Assets *assets)
     gs->levi.hitbox.y = gs->levi.y;
 }
 
-bool colision(s_GameState *gs)
+bool colision(s_GameState *gs, int i) // Detecta si la hitbox del personaje choca con alguna otra
 {
-    float distancia_izquierda = (gs->levi.hitbox.x + gs->levi.hitbox.ancho) - gs->pantalla[0].hitbox[3].x;
-    float distancia_derecha = (gs->pantalla[0].hitbox[3].x + gs->pantalla[0].hitbox[3].ancho) - gs->levi.hitbox.x;
-    float distancia_arriba = (gs->levi.hitbox.y + gs->levi.hitbox.alto) - gs->pantalla[0].hitbox[3].y;
-    float distancia_abajo = (gs->pantalla[0].hitbox[3].y + gs->pantalla[0].hitbox[3].alto) - gs->levi.hitbox.y;
+    int pA = gs->pantalla_actual;
 
-    switch(gs->pantalla_actual)
+    if(gs->levi.hitbox.x + gs->levi.hitbox.ancho >= gs->pantalla[pA].hitbox[i].x
+    && gs->levi.hitbox.y + gs->levi.hitbox.alto >= gs->pantalla[pA].hitbox[i].y 
+    && gs->levi.hitbox.x <= gs->pantalla[pA].hitbox[i].x + gs->pantalla[pA].hitbox[i].ancho
+    && gs->levi.hitbox.y <= gs->pantalla[pA].hitbox[i].y + gs->pantalla[pA].hitbox[i].alto)
+        return true;
+    
+    return false;
+}
+
+void comprueba_colision(s_GameState *gs) //Comprueba si la hitbox del personaje choca con alguna otra y actua conforme por cual lado choco
+{   
+    int i, pA = gs->pantalla_actual;
+    float distancia_izquierda = 0, distancia_derecha = 0, distancia_arriba = 0, distancia_abajo = 0;
+
+    for(i=0;i<gs->pantalla[pA].num_hitbox;i++) //Bucle para comparar hitbox y encontrar la coincidente
     {
-        case 0:
-            if(gs->levi.hitbox.x + gs->levi.hitbox.ancho >= gs->pantalla[0].hitbox[3].x
-            && gs->levi.hitbox.y + gs->levi.hitbox.alto >= gs->pantalla[0].hitbox[3].y 
-            && gs->levi.hitbox.x <= gs->pantalla[0].hitbox[3].x + gs->pantalla[0].hitbox[3].ancho
-            && gs->levi.hitbox.y <= gs->pantalla[0].hitbox[3].y + gs->pantalla[0].hitbox[3].alto)
-                if(distancia_izquierda < distancia_derecha && distancia_izquierda < distancia_arriba && distancia_izquierda < distancia_abajo)
-                    gs->levi.x = gs->pantalla[0].hitbox[3].x - gs->levi.hitbox.ancho - LEVI_HB_RECORTE;
-                else if(distancia_derecha < distancia_izquierda && distancia_derecha < distancia_arriba && distancia_derecha < distancia_abajo)
-                    gs->levi.x = gs->pantalla[0].hitbox[3].x + gs->pantalla[0].hitbox[3].ancho - LEVI_HB_RECORTE;
-                else if(distancia_abajo < distancia_arriba && distancia_abajo < distancia_izquierda && distancia_abajo < distancia_derecha)
-                    gs->levi.y = gs->pantalla[0].hitbox[3].y + gs->pantalla[0].hitbox[3].alto;
-                else if(distancia_arriba < distancia_abajo && distancia_arriba < distancia_izquierda && distancia_arriba < distancia_derecha)
-                {
-                    gs->levi.y = gs->pantalla[0].hitbox[3].y - gs->levi.hitbox.alto;
-                    gs->levi.velocidadY = 0;
-                }
+        if(colision(gs, i))
+        {
+            //Define las distancias con las paredes
+            distancia_izquierda = (gs->levi.hitbox.x + gs->levi.hitbox.ancho) - gs->pantalla[pA].hitbox[i].x;
+            distancia_derecha = (gs->pantalla[pA].hitbox[i].x + gs->pantalla[pA].hitbox[i].ancho) - gs->levi.hitbox.x;
+            distancia_arriba = (gs->levi.hitbox.y + gs->levi.hitbox.alto) - gs->pantalla[pA].hitbox[i].y;
+            distancia_abajo = (gs->pantalla[pA].hitbox[i].y + gs->pantalla[pA].hitbox[i].alto) - gs->levi.hitbox.y;
+
+            //Comprueba la menor distancia entre las paredes para detectar por donde choco
+            if(distancia_izquierda < distancia_derecha && distancia_izquierda < distancia_arriba && distancia_izquierda < distancia_abajo)
+            {
+                gs->levi.x = gs->pantalla[pA].hitbox[i].x - gs->levi.hitbox.ancho - LEVI_HB_RECORTE;
+            }
+            else if(distancia_derecha < distancia_izquierda && distancia_derecha < distancia_arriba && distancia_derecha < distancia_abajo)
+            {
+                gs->levi.x = gs->pantalla[pA].hitbox[i].x + gs->pantalla[pA].hitbox[i].ancho - LEVI_HB_RECORTE;
+            }
+            else if(distancia_abajo < distancia_arriba && distancia_abajo < distancia_izquierda && distancia_abajo < distancia_derecha)
+            {
+                gs->levi.y = gs->pantalla[pA].hitbox[i].y + gs->pantalla[pA].hitbox[i].alto;
+            }
+            else if(distancia_arriba < distancia_abajo && distancia_arriba < distancia_izquierda && distancia_arriba < distancia_derecha)
+            {
+                gs->levi.y = gs->pantalla[pA].hitbox[i].y - gs->levi.hitbox.alto;
+                gs->levi.velocidadY = 0;
+                gs->levi.levi_suelo = true; //Habilita levi_suelo, lo que hace que lo habilite a dar un salto
+            }
+
+        }
     }
 
 }

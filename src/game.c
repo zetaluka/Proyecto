@@ -17,7 +17,8 @@ void game_init(s_GameState *gs)
     gs->levi.y = 100;
     gs->levi.velocidadX = 0;
     gs->levi.velocidadY = 0;
-    gs->levi.doble_salto = 0;
+    gs->levi.doble_salto = true;
+    gs->levi.levi_suelo = false;
 
     return;
 }
