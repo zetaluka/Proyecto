@@ -103,8 +103,9 @@ void update_levi_movimiento(s_GameState *gs, s_Assets *assets)
     if(gs->levi.y <= -30) //Limite superior del mapa
         gs->levi.y = -30;
     
-    colision(gs);
+   
     hitbox_levi(gs,assets);
+    colision(gs);
 
     transicion_pantalla(gs, assets);
     
@@ -133,19 +134,37 @@ void transicion_pantalla(s_GameState *gs, s_Assets *assets)
 
 void hitbox_levi(s_GameState *gs, s_Assets *assets)
 {
-    gs->levi.hitbox.alto = 64;
-    gs->levi.hitbox.ancho = 35;
-    gs->levi.hitbox.x = gs->levi.x + 33;
+    gs->levi.hitbox.alto = al_get_bitmap_height(assets->levi.levi_parado)*2;
+    gs->levi.hitbox.ancho = LEVI_HB_RECORTE - 10;
+    gs->levi.hitbox.x = gs->levi.x + LEVI_HB_RECORTE;
     gs->levi.hitbox.y = gs->levi.y;
 }
 
 bool colision(s_GameState *gs)
 {
-    if(gs->levi.hitbox.x + gs->levi.hitbox.ancho >= gs->pantalla[0].hitbox[3].x
-    && gs->levi.hitbox.y + gs->levi.hitbox.alto >= gs->pantalla[0].hitbox[3].y 
-    && gs->levi.hitbox.x <= gs->pantalla[0].hitbox[3].x + gs->pantalla[0].hitbox[3].ancho
-    && gs->levi.hitbox.y <= gs->pantalla[0].hitbox[3].y + gs->pantalla[0].hitbox[3].alto)
-        if(gs->levi.x < gs->pantalla[0].hitbox[3].x + gs->pantalla[0].hitbox[3].ancho)
-            gs->levi.x = (int)gs->pantalla[0].hitbox[3].x - (int)gs->levi.hitbox.ancho - (int)gs->pantalla[0].hitbox[3].ancho;
+    float distancia_izquierda = (gs->levi.hitbox.x + gs->levi.hitbox.ancho) - gs->pantalla[0].hitbox[3].x;
+    float distancia_derecha = (gs->pantalla[0].hitbox[3].x + gs->pantalla[0].hitbox[3].ancho) - gs->levi.hitbox.x;
+    float distancia_arriba = (gs->levi.hitbox.y + gs->levi.hitbox.alto) - gs->pantalla[0].hitbox[3].y;
+    float distancia_abajo = (gs->pantalla[0].hitbox[3].y + gs->pantalla[0].hitbox[3].alto) - gs->levi.hitbox.y;
+
+    switch(gs->pantalla_actual)
+    {
+        case 0:
+            if(gs->levi.hitbox.x + gs->levi.hitbox.ancho >= gs->pantalla[0].hitbox[3].x
+            && gs->levi.hitbox.y + gs->levi.hitbox.alto >= gs->pantalla[0].hitbox[3].y 
+            && gs->levi.hitbox.x <= gs->pantalla[0].hitbox[3].x + gs->pantalla[0].hitbox[3].ancho
+            && gs->levi.hitbox.y <= gs->pantalla[0].hitbox[3].y + gs->pantalla[0].hitbox[3].alto)
+                if(distancia_izquierda < distancia_derecha && distancia_izquierda < distancia_arriba && distancia_izquierda < distancia_abajo)
+                    gs->levi.x = gs->pantalla[0].hitbox[3].x - gs->levi.hitbox.ancho - LEVI_HB_RECORTE;
+                else if(distancia_derecha < distancia_izquierda && distancia_derecha < distancia_arriba && distancia_derecha < distancia_abajo)
+                    gs->levi.x = gs->pantalla[0].hitbox[3].x + gs->pantalla[0].hitbox[3].ancho - LEVI_HB_RECORTE;
+                else if(distancia_abajo < distancia_arriba && distancia_abajo < distancia_izquierda && distancia_abajo < distancia_derecha)
+                    gs->levi.y = gs->pantalla[0].hitbox[3].y + gs->pantalla[0].hitbox[3].alto;
+                else if(distancia_arriba < distancia_abajo && distancia_arriba < distancia_izquierda && distancia_arriba < distancia_derecha)
+                {
+                    gs->levi.y = gs->pantalla[0].hitbox[3].y - gs->levi.hitbox.alto;
+                    gs->levi.velocidadY = 0;
+                }
+    }
 
 }

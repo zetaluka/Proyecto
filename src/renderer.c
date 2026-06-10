@@ -18,7 +18,7 @@ void render_gameview(s_GameState *gs, s_Assets *assets)
         case PANTALLA_MENU:
             break;
         case PANTALLA_JUGANDO:
-            jugando(assets, gs);
+            jugando(assets, gs); 
             break;
         case PANTALLA_GAME_OVER:
             break;
@@ -69,26 +69,18 @@ void pantalla_1(s_Assets *assets, s_GameState *gs)
 
 void muestra_hitbox(s_GameState *gs, s_Assets *assets)
 {
+    int i, pA = gs->pantalla_actual;
+
     if(gs->input.keyH == 1)
+    {
+        al_draw_rectangle(gs->levi.hitbox.x*gs->escala, gs->levi.hitbox.y*gs->escala, (gs->levi.hitbox.x+gs->levi.hitbox.ancho)*gs->escala,
+        (gs->levi.hitbox.y+gs->levi.hitbox.alto)*gs->escala, BLANCO,2); //Levi
+        for(i=0; i<gs->pantalla[pA].num_hitbox; i++)
         {
-            al_draw_rectangle(gs->levi.hitbox.x*gs->escala, gs->levi.hitbox.y*gs->escala, (gs->levi.hitbox.x+gs->levi.hitbox.ancho)*gs->escala,
-            (gs->levi.hitbox.y+gs->levi.hitbox.alto)*gs->escala, BLANCO,2); //Levi
-
-            al_draw_rectangle(gs->pantalla[0].hitbox[0].x*gs->escala, gs->pantalla[0].hitbox[0].y*gs->escala,
-            (gs->pantalla[0].hitbox[0].x+gs->pantalla[0].hitbox[0].ancho)*gs->escala, (gs->pantalla[0].hitbox[0].y+gs->pantalla[0].hitbox[0].alto)*gs->escala, 
-            BLANCO, 2); //Suelo
-
-            al_draw_rectangle(gs->pantalla[0].hitbox[1].x*gs->escala, gs->pantalla[0].hitbox[1].y*gs->escala,
-            (gs->pantalla[0].hitbox[1].x+gs->pantalla[0].hitbox[1].ancho)*gs->escala, (gs->pantalla[0].hitbox[1].y+gs->pantalla[0].hitbox[1].alto)*gs->escala, 
-            BLANCO, 2); //Limite izquerdo de la pantalla
-
-            al_draw_rectangle(gs->pantalla[0].hitbox[2].x*gs->escala, gs->pantalla[0].hitbox[2].y*gs->escala,
-            (gs->pantalla[0].hitbox[2].x+gs->pantalla[0].hitbox[2].ancho)*gs->escala, (gs->pantalla[0].hitbox[2].y+gs->pantalla[0].hitbox[2].alto)*gs->escala, 
-            BLANCO, 2);
-
-            al_draw_filled_rectangle(gs->pantalla[0].hitbox[3].x*gs->escala, gs->pantalla[0].hitbox[3].y*gs->escala,
-            (gs->pantalla[0].hitbox[3].x+gs->pantalla[0].hitbox[3].ancho)*gs->escala, (gs->pantalla[0].hitbox[3].y+gs->pantalla[0].hitbox[3].alto)*gs->escala, 
-            al_map_rgb(25, 80, 120));
+            al_draw_rectangle(gs->pantalla[pA].hitbox[i].x*gs->escala, gs->pantalla[pA].hitbox[i].y*gs->escala,
+            (gs->pantalla[pA].hitbox[i].x+gs->pantalla[pA].hitbox[i].ancho)*gs->escala, (gs->pantalla[pA].hitbox[i].y+gs->pantalla[pA].hitbox[i].alto)*gs->escala, 
+            gs->pantalla[pA].hitbox[i].color, 2); //Dibuja las hitbox de cada mapa
         }
-
+    }
 }
+

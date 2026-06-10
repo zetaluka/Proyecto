@@ -24,6 +24,7 @@
 #define MAXPANTALLAS 50
 #define MAXHITBOX 50
 #define MAXENTIDADES 50
+#define LEVI_HB_RECORTE 37
 #define BLANCO al_map_rgb(220, 220, 220)
 
 
@@ -73,6 +74,7 @@ typedef struct
     float y;
     float ancho;
     float alto;
+    ALLEGRO_COLOR color;
 } s_Hitbox;
 
 typedef struct
@@ -129,6 +131,7 @@ typedef struct {
     s_Pantalla pantalla[MAXPANTALLAS];
     int pantalla_actual;
     int nivel; 
+    int lado_colision;
     float escala;
 
     bool ejecutando; 
