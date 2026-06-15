@@ -78,5 +78,7 @@ int carga_sprites_titanes(s_Assets *assets)
         printf("Error cargando titanbizarro");
         return 1;
     }
+
+    return 0;
 }
 

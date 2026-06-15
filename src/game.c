@@ -2,6 +2,7 @@
 
 void hitbox_init(s_GameState *gs);
 void entities_init(s_GameState *gs, s_Assets *assets);
+void mapa1(s_GameState *gs, s_Assets *asssets);
 
 //====Funcion principal====//
 void game_init(s_GameState *gs, s_Assets *assets)
@@ -22,6 +23,7 @@ void game_init(s_GameState *gs, s_Assets *assets)
     gs->levi.levi_suelo = false;
 
     entities_init(gs, assets);
+    mapa1(gs, assets);
 
     return;
 }
@@ -57,5 +59,27 @@ void entities_init(s_GameState *gs, s_Assets *assets)
     gs->pantalla[0].entidades[0] = (s_Entidades){1100, SCREEN_Y - gs->pantalla[0].hitbox[0].alto - al_get_bitmap_height(assets->titanes.titan_bizarro), 2, 0, 500, 500, {0}, {0}, false};
 
     gs->pantalla[0].num_entidades = 1;
+
+}
+
+void mapa1(s_GameState *gs, s_Assets *asssets)
+{
+    int i, j;
+    FILE *fdata;
+
+    if ((fdata = fopen("mapa1.txt","r")) == NULL)
+    {
+        printf("Error al abrir el archivo");
+        exit(1);
+    }
+
+    for(i=0;i<MAXFIL;i++)
+        for(j=0;j<MAXCOL;j++)
+        {
+            if(fscanf(fdata, "%c", &gs->mapas.mapa1[i][j]) != 1)
+                break;
+            printf("%c", gs->mapas.mapa1[i][j]);
+            
+        }
 
 }

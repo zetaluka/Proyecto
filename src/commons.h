@@ -23,6 +23,8 @@
 #define GRAVEDAD 1
 #define MAXPANTALLAS 50
 #define MAXHITBOX 50
+#define MAXFIL 50
+#define MAXCOL 50
 #define MAXENTIDADES 50
 #define LEVI_HB_RECORTE 37
 #define BLANCO al_map_rgb(220, 220, 220)
@@ -139,7 +141,10 @@ typedef struct
 
 } s_Variables;
 
-
+typedef struct 
+{
+    char mapa1[MAXFIL][MAXCOL];
+} s_Mapas;
 
 //====s_GameState====//
 typedef struct {
@@ -149,6 +154,7 @@ typedef struct {
     s_Levi levi;    
     s_Pantalla pantalla[MAXPANTALLAS];
     s_Variables variables;
+    s_Mapas mapas;
     int pantalla_actual;
     int nivel; 
     int lado_colision;
