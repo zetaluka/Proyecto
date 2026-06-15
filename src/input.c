@@ -35,6 +35,12 @@ void input_update(s_GameState *gs, ALLEGRO_EVENT* evento)
             else if(gs->input.keyH)
                 gs->input.keyH = false;
             printf("%d",gs->input.keyH);
+        case ALLEGRO_KEY_G:
+            if(!gs->input.keyG)
+                gs->input.keyG = true;
+            else if(gs->input.keyG)
+                gs->input.keyG = false;
+            printf("%d",gs->input.keyG);
 
             break;
         }

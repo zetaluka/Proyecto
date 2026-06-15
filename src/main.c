@@ -33,7 +33,7 @@ int main(void) {
    s_GameState gs = {0};
    s_Assets assets;
    assets_load(&assets);
-   game_init(&gs);
+   game_init(&gs, &assets);
 
    while (gs.ejecutando) 
    {
@@ -49,7 +49,7 @@ int main(void) {
             gs.tiempoJugado.validacion = 1;
          if(evento.timer.source == timer_fps)
          {
-            genera_entidades(&gs);
+            genera_entidades(&gs, &assets);
             update(&gs, &assets);
             render_gameview(&gs,&assets);
             render_ui(&gs, &assets);

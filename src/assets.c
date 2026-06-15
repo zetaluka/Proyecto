@@ -4,6 +4,7 @@
 int carga_fuentes(s_Assets *assets);
 int carga_sprites_levi(s_Assets *assets);
 int carga_fondo(s_Assets *assets);
+int carga_sprites_titanes(s_Assets *assets);
 
 //====Funcion principal====//
 void assets_load(s_Assets *assets)
@@ -11,6 +12,7 @@ void assets_load(s_Assets *assets)
     carga_fuentes(assets);
     carga_sprites_levi(assets);
     carga_fondo(assets);
+    carga_sprites_titanes(assets);
 
     return;
 }
@@ -53,13 +55,28 @@ int carga_fondo(s_Assets *assets)
         return 1;
     }
 
+    assets->assetsPantalla[0].cubo = al_load_bitmap("assets/imgs/cubo.png");
+    if(!assets->assetsPantalla[0].cubo){
+        printf("Error cargando cubo");
+        return 1;
+    }
+
     //Pantalla 1
     assets->assetsPantalla[1].fondo_base = al_load_bitmap("assets/imgs/fondo_base_titan_colosal.png");
     if(!assets->assetsPantalla[1].fondo_base){
-        printf("Error cargando fondo_basetitan_colosal");
+        printf("Error cargando fondo_base_titan_colosal");
         return 1;
     }
 
 
     return 0;
 }
+int carga_sprites_titanes(s_Assets *assets)
+{
+    assets->titanes.titan_bizarro = al_load_bitmap("assets/imgs/titanbizarro.png");
+    if(!assets->titanes.titan_bizarro){
+        printf("Error cargando titanbizarro");
+        return 1;
+    }
+}
+

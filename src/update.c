@@ -8,7 +8,9 @@ void valida_levi_suelo(s_Assets *assets, s_GameState *gs);
 void transicion_pantalla(s_GameState *gs, s_Assets *assets);
 void hitbox_levi(s_GameState *gs, s_Assets *assets);
 void comprueba_colision(s_GameState *gs);
+void cuadrado_prueba (s_GameState *gs);
 bool colision(s_GameState *gs, int i);
+
 
 //====Funcion principal====//
 void update(s_GameState *gs, s_Assets *assets)
@@ -72,6 +74,7 @@ void update_levi_movimiento(s_GameState *gs, s_Assets *assets)
     gs->levi.y = gs->levi.y + gs->levi.velocidadY;
 
     gs->levi.levi_suelo = false;
+    cuadrado_prueba(gs);
     hitbox_levi(gs,assets);
     comprueba_colision(gs);
 
@@ -102,6 +105,8 @@ void update_levi_movimiento(s_GameState *gs, s_Assets *assets)
         gs->input.keyL = 0;
     }
 }
+
+
 
 void transicion_pantalla(s_GameState *gs, s_Assets *assets) //Efecto de transicion por pantallas
 {
@@ -176,5 +181,19 @@ void comprueba_colision(s_GameState *gs) //Comprueba si la hitbox del personaje 
 
         }
     }
+
+}
+
+void cuadrado_prueba (s_GameState *gs)
+{
+    if(gs->variables.cambioSentido == false)
+        gs->pantalla[0].hitbox[3].y -= 2;
+    else if(gs->variables.cambioSentido == true)
+        gs->pantalla[0].hitbox[3].y += 2;
+
+    if(gs->pantalla[0].hitbox[3].y >= (SCREEN_Y - gs->pantalla[0].hitbox[0].alto - 50))
+        gs->variables.cambioSentido = false;
+    if(gs->pantalla[0].hitbox[3].y <= 500)
+        gs->variables.cambioSentido = true;
 
 }

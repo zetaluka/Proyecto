@@ -35,6 +35,7 @@
 typedef struct 
 {
     ALLEGRO_BITMAP* fondo_base;
+    ALLEGRO_BITMAP* cubo;
 
 } s_AssetsPantalla;
 
@@ -44,29 +45,24 @@ typedef struct{
 
 } s_LeviSprites;
 
+typedef struct 
+{
+    ALLEGRO_BITMAP* titan_bizarro;
+
+} s_TitanesSprites;
+
+
 typedef struct{
 
     ALLEGRO_FONT* shingekiFont;
     ALLEGRO_FONT* minimalistTemplateFont;    
     s_AssetsPantalla assetsPantalla[MAXPANTALLAS];
     s_LeviSprites levi;
+    s_TitanesSprites titanes;
 
 } s_Assets;
 
 //==============================//
-
-typedef struct 
-{
-    int x;
-    int y;
-    int velocidadX;
-    int velocidadY;
-    int radioDeteccion;
-    int vida;
-    int ataque;
-    bool activo;
-} s_Entidades;
-
 
 typedef struct 
 {
@@ -77,10 +73,24 @@ typedef struct
     ALLEGRO_COLOR color;
 } s_Hitbox;
 
+typedef struct 
+{
+    int x;
+    int y;
+    int velocidadX;
+    int velocidadY;
+    int vida;
+    int ataque;
+    s_Hitbox hitboxTitan;
+    s_Hitbox hitboxDeteccion;
+    bool activo;
+} s_Entidades;
+
 typedef struct
 {
     s_Hitbox hitbox[MAXHITBOX];
     s_Entidades entidades[MAXENTIDADES];
+    int num_entidades;
     int num_hitbox;
     
 } s_Pantalla;
@@ -119,7 +129,16 @@ typedef struct { //input.c actualiza a través de la variable s_GameState, updat
     bool keyLShift;
     bool keyL; //Para saber posicion de levi
     bool keyH; //Para visualizar hitbox de levi
+    bool keyG; //Detener entidades
 } s_InputState;
+
+typedef struct 
+{
+    bool cambioSentido;
+    bool detenerEntidades;
+
+} s_Variables;
+
 
 
 //====s_GameState====//
@@ -129,6 +148,7 @@ typedef struct {
     s_InputState input;  
     s_Levi levi;    
     s_Pantalla pantalla[MAXPANTALLAS];
+    s_Variables variables;
     int pantalla_actual;
     int nivel; 
     int lado_colision;
@@ -139,13 +159,13 @@ typedef struct {
 
 
 //==========Prototipos de funciones==========//
-void game_init(s_GameState *gs);
+void game_init(s_GameState *gs, s_Assets *assets);
 void input_update(s_GameState *gs, ALLEGRO_EVENT* evento);
 void update(s_GameState *gs, s_Assets *assets);
 void render_gameview(s_GameState *gs, s_Assets *assets);
 void render_ui(s_GameState *gs, s_Assets *assets);
 void assets_load(s_Assets *assets);
-void genera_entidades(s_GameState *gs);
+void genera_entidades(s_GameState *gs, s_Assets *assets);
 
 
 #endif
