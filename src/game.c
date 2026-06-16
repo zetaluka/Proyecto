@@ -2,7 +2,9 @@
 
 void hitbox_init(s_GameState *gs);
 void entities_init(s_GameState *gs, s_Assets *assets);
-void mapa1(s_GameState *gs, s_Assets *asssets);
+void mapa1(s_GameState *gs, s_Assets *assets);
+void genera_titan(s_GameState *gs, s_Assets *assets, int *j);
+
 
 //====Funcion principal====//
 void game_init(s_GameState *gs, s_Assets *assets)
@@ -56,13 +58,13 @@ void entities_init(s_GameState *gs, s_Assets *assets)
 
     //Pantalla 0
 
-    gs->pantalla[0].entidades[0] = (s_Entidades){1100, SCREEN_Y - gs->pantalla[0].hitbox[0].alto - al_get_bitmap_height(assets->titanes.titan_bizarro), 2, 0, 500, 500, {0}, {0}, false};
+    //gs->pantalla[0].entidades[0] = (s_Entidades){1100, SCREEN_Y - gs->pantalla[0].hitbox[0].alto - al_get_bitmap_height(assets->titanes.titan_bizarro), 2, 0, 500, 500, {0}, {0}, false};
 
-    gs->pantalla[0].num_entidades = 1;
+    gs->pantalla[0].num_entidades = 0;
 
 }
 
-void mapa1(s_GameState *gs, s_Assets *asssets)
+void mapa1(s_GameState *gs, s_Assets *assets)
 {
     int i, j;
     FILE *fdata;
@@ -79,7 +81,31 @@ void mapa1(s_GameState *gs, s_Assets *asssets)
             if(fscanf(fdata, "%c", &gs->mapas.mapa1[i][j]) != 1)
                 break;
             printf("%c", gs->mapas.mapa1[i][j]);
-            
+
+            switch(gs->mapas.mapa1[i][j])
+            {
+                case 'T':
+                    genera_titan(gs, assets, &j);
+                    break;
+
+            }
         }
+    printf("\n");
+
+}
+
+void genera_titan(s_GameState *gs, s_Assets *assets, int *j)
+{
+    int pA = gs->pantalla_actual;
+    int nE = gs->pantalla[pA].num_entidades;
+
+    gs->pantalla[pA].entidades[nE].x = *j*TAM_CELDA;
+    gs->pantalla[pA].entidades[nE].y = SCREEN_Y - gs->pantalla[0].hitbox[0].alto - al_get_bitmap_height(assets->titanes.titan_bizarro);
+    gs->pantalla[pA].entidades[nE].velocidadX = 2;
+    gs->pantalla[pA].entidades[nE].velocidadY = 0;
+    gs->pantalla[pA].entidades[nE].vida = 500;
+    gs->pantalla[pA].entidades[nE].ataque = 500;
+    gs->pantalla[pA].entidades[nE].activo = false;
+    gs->pantalla[pA].num_entidades++;
 
 }

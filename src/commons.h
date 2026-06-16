@@ -23,8 +23,9 @@
 #define GRAVEDAD 1
 #define MAXPANTALLAS 50
 #define MAXHITBOX 50
-#define MAXFIL 50
-#define MAXCOL 50
+#define TAM_CELDA 32
+#define MAXFIL 22
+#define MAXCOL 40
 #define MAXENTIDADES 50
 #define LEVI_HB_RECORTE 37
 #define BLANCO al_map_rgb(220, 220, 220)
@@ -138,6 +139,7 @@ typedef struct
 {
     bool cambioSentido;
     bool detenerEntidades;
+    s_Hitbox titan1;
 
 } s_Variables;
 

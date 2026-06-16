@@ -19,7 +19,7 @@ void genera_entidades(s_GameState *gs, s_Assets *assets)
 
 void pantalla_0_entidades(s_GameState *gs)
 {
-    int i;
+    int i, j;
 
     for(i=0 ; i<gs->pantalla[0].num_entidades ; i++) //Activa todas las entidades de la pantalla
         gs->pantalla[0].entidades[i].activo = true;
@@ -37,12 +37,23 @@ void pantalla_0_entidades(s_GameState *gs)
 
 void hitbox_entidades(s_GameState *gs, s_Assets *assets)
 {
-    //Pantalla 0
-    if(gs->pantalla[0].entidades[0].activo == true)
-    {
-        gs->pantalla[0].entidades[0].hitboxTitan = (s_Hitbox){gs->pantalla[0].entidades[0].x + 30, gs->pantalla[0].entidades[0].y, 
-        al_get_bitmap_width(assets->titanes.titan_bizarro)-55, al_get_bitmap_height(assets->titanes.titan_bizarro)};
-    }
+    int i, j, pA = gs->pantalla_actual;
+    int nE = gs->pantalla[pA].num_entidades;
+
+    for(i=0;i<MAXFIL;i++)
+        for(j=0;j<MAXCOL;j++)
+        {
+            switch(gs->mapas.mapa1[i][j])
+            {
+                case 'T':
+                    if(gs->pantalla[pA].entidades[nE].activo == true)
+                        {
+                            gs->pantalla[pA].entidades[nE].hitboxTitan = (s_Hitbox){gs->pantalla[pA].entidades[nE].x + 30, gs->pantalla[pA].entidades[nE].y, 
+                            al_get_bitmap_width(assets->titanes.titan_bizarro)-55, al_get_bitmap_height(assets->titanes.titan_bizarro)};
+                        }
+                    break;
+            }
+        }
     
 
     //==========//
