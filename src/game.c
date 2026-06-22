@@ -2,8 +2,8 @@
 
 void hitbox_init(s_GameState *gs);
 void entities_init(s_GameState *gs, s_Assets *assets);
-void mapa1(s_GameState *gs, s_Assets *assets);
 void genera_titan(s_GameState *gs, s_Assets *assets, int *j);
+void pos_levi(s_GameState *gs, s_Assets *assets, int *i, int *j);
 
 
 //====Funcion principal====//
@@ -24,6 +24,15 @@ void game_init(s_GameState *gs, s_Assets *assets)
     gs->levi.doble_salto = true;
     gs->levi.levi_suelo = false;
 
+    //Inicia fdata
+
+    if ((gs->variables.fdata = fopen("mapa1.txt","r")) == NULL)
+    {
+        printf("Error al abrir el archivo");
+        exit(1);
+    }
+
+
     entities_init(gs, assets);
     mapa1(gs, assets);
 
@@ -32,24 +41,36 @@ void game_init(s_GameState *gs, s_Assets *assets)
 
 void hitbox_init(s_GameState *gs)
 {
-    //====Pantalla 0====//
+    int pA = gs->pantalla_actual;
 
     //Orden de variables: x, y, ancho, alto, color
 
-    gs->pantalla[0].hitbox[0] = (s_Hitbox){0 , (SCREEN_Y - 66), SCREEN_X, 66, BLANCO}; //Suelo
-    gs->pantalla[0].hitbox[1] = (s_Hitbox){(-4), 0, 4, SCREEN_Y, BLANCO}; //Limite izquierdo de la pantalla
-    gs->pantalla[0].hitbox[2] = (s_Hitbox){0, -2, SCREEN_X, 4, BLANCO }; //Limite superior de la pantalla
-    gs->pantalla[0].hitbox[3] = (s_Hitbox){50, 600, 32, 32, BLANCO}; //Cuadrado de prueba
-    gs->pantalla[0].num_hitbox = 4;
+    switch(gs->pantalla_actual)
+    {
+        case 0:
+            gs->pantalla[pA].hitbox[0] = (s_Hitbox){0 , (SCREEN_Y - 66), SCREEN_X, 66, BLANCO}; //Suelo
+            gs->pantalla[pA].hitbox[1] = (s_Hitbox){(-4), 0, 4, SCREEN_Y, BLANCO}; //Limite izquierdo de la pantalla
+            gs->pantalla[pA].hitbox[2] = (s_Hitbox){0, -2, SCREEN_X, 4, BLANCO }; //Limite superior de la pantalla
+            gs->pantalla[pA].hitbox[3] = (s_Hitbox){50, 600, 32, 32, BLANCO}; //Cuadrado de prueba
+            gs->pantalla[pA].num_hitbox = 4;
+            break;
 
-    //====Pantalla 1====//
+        case (MAXPANTALLAS - 1):
+            gs->pantalla[pA].hitbox[0] = (s_Hitbox){0 , (SCREEN_Y - 66), SCREEN_X, 66, BLANCO}; //Suelo
+            gs->pantalla[pA].hitbox[1] = (s_Hitbox){(-4), 0, 4, SCREEN_Y, BLANCO}; //Limite izquierdo de la pantalla
+            gs->pantalla[pA].hitbox[2] = (s_Hitbox){0, -2, SCREEN_X, 4, BLANCO }; //Limite superior de la pantalla
+            gs->pantalla[pA].hitbox[3] = (s_Hitbox){SCREEN_X, 0, 4, SCREEN_Y, BLANCO}; //Limite derecho de la pantalla
+            gs->pantalla[pA].num_hitbox = 4;
+            break;
+        
+        default:
+            gs->pantalla[pA].hitbox[0] = (s_Hitbox){0 , (SCREEN_Y - 66), SCREEN_X, 66, BLANCO}; //Suelo
+            gs->pantalla[pA].hitbox[1] = (s_Hitbox){(-4), 0, 4, SCREEN_Y, BLANCO}; //Limite izquierdo de la pantalla
+            gs->pantalla[pA].hitbox[2] = (s_Hitbox){0, -2, SCREEN_X, 4, BLANCO }; //Limite superior de la pantalla
+            gs->pantalla[pA].num_hitbox = 3;
+            break;
+    }
 
-    gs->pantalla[1] = gs->pantalla[0];
-    gs->pantalla[1].hitbox[3] = (s_Hitbox){0, 0, 0, 0, BLANCO};
-    gs->pantalla[1].num_hitbox = 3;
-
-
-    //==================//
 }
 
 void entities_init(s_GameState *gs, s_Assets *assets)
@@ -67,18 +88,13 @@ void entities_init(s_GameState *gs, s_Assets *assets)
 void mapa1(s_GameState *gs, s_Assets *assets)
 {
     int i, j;
-    FILE *fdata;
 
-    if ((fdata = fopen("mapa1.txt","r")) == NULL)
-    {
-        printf("Error al abrir el archivo");
-        exit(1);
-    }
+    printf("\n");
 
     for(i=0;i<MAXFIL;i++)
         for(j=0;j<MAXCOL;j++)
         {
-            if(fscanf(fdata, "%c", &gs->mapas.mapa1[i][j]) != 1)
+            if(fscanf(gs->variables.fdata, "%c", &gs->mapas.mapa1[i][j]) != 1)
                 break;
             printf("%c", gs->mapas.mapa1[i][j]);
 
@@ -87,9 +103,13 @@ void mapa1(s_GameState *gs, s_Assets *assets)
                 case 'T':
                     genera_titan(gs, assets, &j);
                     break;
+                case 'L':
+                    pos_levi(gs, assets, &i, &j);
+                    break;
 
             }
         }
+  
     printf("\n");
 
 }
@@ -107,5 +127,14 @@ void genera_titan(s_GameState *gs, s_Assets *assets, int *j)
     gs->pantalla[pA].entidades[nE].ataque = 500;
     gs->pantalla[pA].entidades[nE].activo = false;
     gs->pantalla[pA].num_entidades++;
+
+}
+
+void pos_levi(s_GameState *gs, s_Assets *assets, int *i, int *j)
+{
+    int pA = gs->pantalla_actual;
+
+    gs->levi.x = *j*TAM_CELDA;
+    gs->levi.y = *i*TAM_CELDA;
 
 }

@@ -21,7 +21,7 @@
 #define SCREEN_Y 720
 #define FPS 60
 #define GRAVEDAD 1
-#define MAXPANTALLAS 50
+#define MAXPANTALLAS 4
 #define MAXHITBOX 50
 #define TAM_CELDA 32
 #define MAXFIL 22
@@ -95,6 +95,7 @@ typedef struct
     s_Entidades entidades[MAXENTIDADES];
     int num_entidades;
     int num_hitbox;
+    int num_pantallas;
     
 } s_Pantalla;
 
@@ -137,6 +138,8 @@ typedef struct { //input.c actualiza a través de la variable s_GameState, updat
 
 typedef struct 
 {
+    int carga_pantalla;
+    FILE *fdata;
     bool cambioSentido;
     bool detenerEntidades;
     s_Hitbox titan1;
@@ -146,6 +149,8 @@ typedef struct
 typedef struct 
 {
     char mapa1[MAXFIL][MAXCOL];
+    int num_pantallas;
+
 } s_Mapas;
 
 //====s_GameState====//
@@ -174,6 +179,10 @@ void render_gameview(s_GameState *gs, s_Assets *assets);
 void render_ui(s_GameState *gs, s_Assets *assets);
 void assets_load(s_Assets *assets);
 void genera_entidades(s_GameState *gs, s_Assets *assets);
+
+//==========Prototipos de funciones no principales======//
+void mapa1(s_GameState *gs, s_Assets *assets);
+void hitbox_init(s_GameState *gs);
 
 
 #endif

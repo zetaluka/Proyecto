@@ -102,7 +102,7 @@ void update_levi_movimiento(s_GameState *gs, s_Assets *assets)
     {
         printf("levi.x = %.0f, levi.y = %.0f\n",gs->levi.x, gs->levi.y);
         printf("pantalla actual: %d\n",gs->pantalla_actual);
-        gs->input.keyL = 0;
+        //gs->input.keyL = 0;
     }
 }
 
@@ -110,17 +110,27 @@ void update_levi_movimiento(s_GameState *gs, s_Assets *assets)
 
 void transicion_pantalla(s_GameState *gs, s_Assets *assets) //Efecto de transicion por pantallas
 {
-    if(gs->levi.x+40 >= SCREEN_X && gs->pantalla_actual == 0)
+
+    if(gs->levi.x+40 >= SCREEN_X && gs->pantalla_actual < MAXPANTALLAS - 1)
     {
-        gs->pantalla_actual=1;
+        gs->pantalla_actual++;
         gs->levi.x = -20; 
     }
 
-    if(gs->levi.x+35 <= 0 && gs->pantalla_actual == 1)
+    if(gs->levi.x+35 <= 0 && gs->pantalla_actual > 0)
     {
-        gs->pantalla_actual = 0;
-        gs->levi.x = SCREEN_X - 70; 
+        gs->pantalla_actual--;
+        gs->levi.x = SCREEN_X - 70;
+        hitbox_init(gs);
     }
+
+     if(gs->pantalla_actual > gs->variables.carga_pantalla)
+    {
+        mapa1(gs, assets);
+        gs->variables.carga_pantalla++;
+        hitbox_init(gs);
+    }
+
 }
 
 void hitbox_levi(s_GameState *gs, s_Assets *assets) //Actualiza la hitbox del personaje principal

@@ -43,9 +43,16 @@ void jugando(s_Assets *assets, s_GameState *gs)
         case 0:
             pantalla_0(assets, gs);
             titanes_sprites(gs, assets);
+            al_draw_bitmap(assets->assetsPantalla[0].cubo, gs->pantalla[0].hitbox[3].x, gs->pantalla[0].hitbox[3].y, 0);
             break;
+
         case 1:
             pantalla_1(assets,gs);
+            titanes_sprites(gs, assets);
+            break;
+        default:
+            pantalla_0(assets, gs);
+            titanes_sprites(gs, assets);
             break;
     }
     muestra_hitbox(gs,assets);
@@ -72,8 +79,6 @@ void pantalla_0(s_Assets *assets, s_GameState *gs)
     al_draw_scaled_bitmap(assets->assetsPantalla[0].fondo_base, 0, 0, al_get_bitmap_width(assets->assetsPantalla[0].fondo_base),
     al_get_bitmap_height(assets->assetsPantalla[0].fondo_base), 0, 0, al_get_bitmap_width(assets->assetsPantalla[0].fondo_base)*2*gs->escala,
     al_get_bitmap_height(assets->assetsPantalla[0].fondo_base)*2*gs->escala, 0);
-
-    al_draw_bitmap(assets->assetsPantalla[0].cubo, gs->pantalla[0].hitbox[3].x, gs->pantalla[0].hitbox[3].y, 0);
 }
 
 void pantalla_1(s_Assets *assets, s_GameState *gs)
@@ -107,7 +112,7 @@ void muestra_hitbox(s_GameState *gs, s_Assets *assets) //Muestra las hitbox de l
             {
                 al_draw_rectangle(gs->pantalla[pA].entidades[i].hitboxTitan.x*gs->escala, gs->pantalla[pA].entidades[i].hitboxTitan.y*gs->escala,
                 (gs->pantalla[pA].entidades[i].hitboxTitan.x + gs->pantalla[pA].entidades[i].hitboxTitan.ancho)*gs->escala,
-                (gs->pantalla[pA].entidades[i].hitboxTitan.y + gs->pantalla[pA].entidades[i].hitboxTitan.alto)*gs->escala, gs->pantalla[pA].hitbox[0].color, 2);
+                (gs->pantalla[pA].entidades[i].hitboxTitan.y + gs->pantalla[pA].entidades[i].hitboxTitan.alto)*gs->escala, BLANCO, 2);
             }
     }
 }
