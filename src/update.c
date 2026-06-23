@@ -9,6 +9,8 @@ void transicion_pantalla(s_GameState *gs, s_Assets *assets);
 void hitbox_levi(s_GameState *gs, s_Assets *assets);
 void comprueba_colision(s_GameState *gs);
 void cuadrado_prueba (s_GameState *gs);
+void ataque_levi(s_GameState *gs, s_Assets *assets);
+bool colision_ataque(s_GameState *gs, int i);
 bool colision(s_GameState *gs, int i);
 
 
@@ -57,13 +59,27 @@ void update_levi_movimiento(s_GameState *gs, s_Assets *assets)
 { 
 
     if(gs->input.keyLShift == 1 && gs->input.keyD == 1) //Si mantiene el LShift corre
+    {
         gs->levi.x += 4.5f;
+        gs->levi.viendoDerecha = 1;
+    }
     else if(gs->input.keyLShift == 1 && gs->input.keyA == 1) //Si mantiene el LShift corre
+    {
         gs->levi.x -= 4.5f;
+        gs->levi.viendoDerecha = 1;
+    }
     else if(gs->input.keyA == 1) //Camina izquierda
+    {
         gs->levi.x -= 3;
+        gs->levi.viendoDerecha = 0;
+        printf("viendo izquierda: %d\n",gs->levi.viendoDerecha);
+    }
     else if(gs->input.keyD == 1) //Camina derecha
+    {
         gs->levi.x += 3;
+        gs->levi.viendoDerecha = 0;
+    }
+
     /*if(gs->input.keyW == 1)
     gs->levi.y -= 2;
     if(gs->input.keyS == 1) 
@@ -77,6 +93,7 @@ void update_levi_movimiento(s_GameState *gs, s_Assets *assets)
     cuadrado_prueba(gs);
     hitbox_levi(gs,assets);
     comprueba_colision(gs);
+    ataque_levi(gs,assets);
 
     //====Doble salto====//
     if(gs->input.keySpace == 1 && gs->levi.levi_suelo) //Salto y habilita doble salto
@@ -102,11 +119,11 @@ void update_levi_movimiento(s_GameState *gs, s_Assets *assets)
     {
         printf("levi.x = %.0f, levi.y = %.0f\n",gs->levi.x, gs->levi.y);
         printf("pantalla actual: %d\n",gs->pantalla_actual);
+        printf("Hitbox levi: x: [%.1f][%.1f][%.1f][%.1f]\nHitbox espada: (%.1f)(%.1f)(%.1f)(%.1f)\n", gs->levi.hitbox.x, gs->levi.hitbox.y, gs->levi.hitbox.ancho,gs->levi.hitbox.alto, gs->levi.hitboxAtaque.x, gs->levi.hitboxAtaque.y, gs->levi.hitboxAtaque.ancho, gs->levi.hitboxAtaque.alto);
+        printf("Viendo derecha: %d",gs->levi.viendoDerecha);
         //gs->input.keyL = 0;
     }
 }
-
-
 
 void transicion_pantalla(s_GameState *gs, s_Assets *assets) //Efecto de transicion por pantallas
 {
@@ -206,4 +223,45 @@ void cuadrado_prueba (s_GameState *gs)
     if(gs->pantalla[0].hitbox[3].y <= 500)
         gs->variables.cambioSentido = true;
 
+}
+
+void ataque_levi(s_GameState *gs, s_Assets *assets)
+{
+    int i, pA = gs->pantalla_actual;
+
+    if(gs->levi.viendoDerecha == 1)
+    {
+        gs->levi.hitboxAtaque.x = gs->levi.hitbox.x + gs->levi.hitbox.ancho;
+        gs->levi.hitboxAtaque.y = gs->levi.hitbox.y + gs->levi.hitbox.alto/2;
+        gs->levi.hitboxAtaque.alto = 5;
+        gs->levi.hitboxAtaque.ancho = 40;
+    }
+    else if(gs->levi.viendoDerecha == 0)
+    {
+        gs->levi.hitboxAtaque.x = gs->levi.x/2; 
+        gs->levi.hitboxAtaque.y = gs->levi.y/2;
+        gs->levi.hitboxAtaque.alto = 50;
+        gs->levi.hitboxAtaque.ancho = 40;
+    }
+
+    if(gs->input.ClickIzq)
+        for(i=0;i<gs->pantalla[pA].num_entidades;i++)
+            if(colision_ataque(gs,i))
+            {
+                printf("colisiono");
+            }
+
+}
+
+bool colision_ataque(s_GameState *gs, int i) // Detecta si la hitbox de la espada choca
+{
+    int pA = gs->pantalla_actual;
+    
+    if(gs->levi.hitboxAtaque.x + gs->levi.hitboxAtaque.ancho >= gs->pantalla[pA].entidades[i].hitboxTitan.x
+    && gs->levi.hitboxAtaque.y + gs->levi.hitboxAtaque.alto >= gs->pantalla[pA].entidades[i].hitboxTitan.y 
+    && gs->levi.hitboxAtaque.x <= gs->pantalla[pA].entidades[i].hitboxTitan.x + gs->pantalla[pA].entidades[i].hitboxTitan.ancho
+    && gs->levi.hitboxAtaque.y <= gs->pantalla[pA].entidades[i].hitboxTitan.y + gs->pantalla[pA].entidades[i].hitboxTitan.alto)
+        return true;
+
+    return false;
 }

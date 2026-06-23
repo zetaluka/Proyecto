@@ -84,6 +84,7 @@ typedef struct
     int velocidadY;
     int vida;
     int ataque;
+    s_Hitbox hitboxAtaque;
     s_Hitbox hitboxTitan;
     s_Hitbox hitboxDeteccion;
     bool activo;
@@ -101,6 +102,7 @@ typedef struct
 
 typedef struct
 {
+    int viendoDerecha;
     float x;
     float y;
     float velocidadX;
@@ -108,6 +110,7 @@ typedef struct
     bool doble_salto;
     bool levi_suelo;
     s_Hitbox hitbox;
+    s_Hitbox hitboxAtaque;
 } s_Levi;
 
 typedef struct
@@ -134,6 +137,7 @@ typedef struct { //input.c actualiza a través de la variable s_GameState, updat
     bool keyL; //Para saber posicion de levi
     bool keyH; //Para visualizar hitbox de levi
     bool keyG; //Detener entidades
+    bool ClickIzq;
 } s_InputState;
 
 typedef struct 

@@ -44,6 +44,7 @@ void input_update(s_GameState *gs, ALLEGRO_EVENT* evento)
             printf("%d",gs->input.keyG);
             break;
         }
+
     }
 
     else if(evento->type == ALLEGRO_EVENT_KEY_UP)
@@ -76,6 +77,22 @@ void input_update(s_GameState *gs, ALLEGRO_EVENT* evento)
                 break;*/
         }
     }
+
+    else if(evento->type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN)
+        switch(evento->mouse.button)
+        {
+            case ALLEGRO_MOUSE_BUTTON_LEFT:
+                gs->input.ClickIzq = true;
+                break;
+        }
+    
+    else if(evento->type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
+        switch(evento->mouse.button)
+        {
+            case ALLEGRO_MOUSE_BUTTON_LEFT:
+                gs->input.ClickIzq = false;
+                break;
+        }
 
     if(evento->type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
         printf("Mouse x = %d, Mouse y = %d\n", evento->mouse.x, evento->mouse.y);

@@ -33,9 +33,9 @@ void pantalla_0_entidades(s_GameState *gs)
         for(i=0;i<gs->pantalla[pA].num_entidades;i++)
         {
             if(gs->pantalla[pA].entidades[i].x + 50 < gs->levi.hitbox.x)
-                gs->pantalla[pA].entidades[i].x += gs->pantalla->entidades->velocidadX;
+                gs->pantalla[pA].entidades[i].x += gs->pantalla[pA].entidades[i].velocidadX;
             else if(gs->pantalla[pA].entidades[i].x  + 50> gs->levi.hitbox.x)
-                gs->pantalla[pA].entidades[i].x -= gs->pantalla->entidades->velocidadX;
+                gs->pantalla[pA].entidades[i].x -= gs->pantalla[pA].entidades[i].velocidadX;
         }
 
 }
@@ -79,7 +79,7 @@ void comprueba_colision_titan(s_GameState *gs)
     {
         if(colision_titan(gs, i))
         {
-            printf("colisiono");
+           continue;    
 
         }
     }

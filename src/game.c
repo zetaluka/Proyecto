@@ -2,7 +2,8 @@
 
 void hitbox_init(s_GameState *gs);
 void entities_init(s_GameState *gs, s_Assets *assets);
-void genera_titan(s_GameState *gs, s_Assets *assets, int *j);
+void genera_titan1(s_GameState *gs, s_Assets *assets, int *j);
+void genera_titan2(s_GameState *gs, s_Assets *assets, int *j);
 void pos_levi(s_GameState *gs, s_Assets *assets, int *i, int *j);
 
 
@@ -23,6 +24,7 @@ void game_init(s_GameState *gs, s_Assets *assets)
     gs->levi.velocidadY = 0;
     gs->levi.doble_salto = true;
     gs->levi.levi_suelo = false;
+    gs->levi.viendoDerecha = 1;
 
     //Inicia fdata
 
@@ -101,7 +103,10 @@ void mapa1(s_GameState *gs, s_Assets *assets)
             switch(gs->mapas.mapa1[i][j])
             {
                 case 'T':
-                    genera_titan(gs, assets, &j);
+                    genera_titan1(gs, assets, &j);
+                    break;
+                case 't':
+                    genera_titan2(gs, assets, &j);
                     break;
                 case 'L':
                     pos_levi(gs, assets, &i, &j);
@@ -114,7 +119,7 @@ void mapa1(s_GameState *gs, s_Assets *assets)
 
 }
 
-void genera_titan(s_GameState *gs, s_Assets *assets, int *j)
+void genera_titan1(s_GameState *gs, s_Assets *assets, int *j)
 {
     int pA = gs->pantalla_actual;
     int nE = gs->pantalla[pA].num_entidades;
@@ -125,6 +130,22 @@ void genera_titan(s_GameState *gs, s_Assets *assets, int *j)
     gs->pantalla[pA].entidades[nE].velocidadY = 0;
     gs->pantalla[pA].entidades[nE].vida = 500;
     gs->pantalla[pA].entidades[nE].ataque = 500;
+    gs->pantalla[pA].entidades[nE].activo = false;
+    gs->pantalla[pA].num_entidades++;
+
+}
+
+void genera_titan2(s_GameState *gs, s_Assets *assets, int *j)
+{
+    int pA = gs->pantalla_actual;
+    int nE = gs->pantalla[pA].num_entidades;
+
+    gs->pantalla[pA].entidades[nE].x = *j*TAM_CELDA;
+    gs->pantalla[pA].entidades[nE].y = SCREEN_Y - gs->pantalla[0].hitbox[0].alto - al_get_bitmap_height(assets->titanes.titan_bizarro);
+    gs->pantalla[pA].entidades[nE].velocidadX = 3;
+    gs->pantalla[pA].entidades[nE].velocidadY = 0;
+    gs->pantalla[pA].entidades[nE].vida = 200;
+    gs->pantalla[pA].entidades[nE].ataque = 300;
     gs->pantalla[pA].entidades[nE].activo = false;
     gs->pantalla[pA].num_entidades++;
 
