@@ -103,6 +103,7 @@ typedef struct
 typedef struct
 {
     int viendoDerecha;
+    float cooldownAtaque;
     float x;
     float y;
     float velocidadX;
@@ -138,6 +139,8 @@ typedef struct { //input.c actualiza a través de la variable s_GameState, updat
     bool keyH; //Para visualizar hitbox de levi
     bool keyG; //Detener entidades
     bool ClickIzq;
+    float mouseX;
+    float mouseY;
 } s_InputState;
 
 typedef struct 

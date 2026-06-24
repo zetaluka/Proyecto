@@ -94,6 +94,12 @@ void input_update(s_GameState *gs, ALLEGRO_EVENT* evento)
                 break;
         }
 
+    else if(evento->type == ALLEGRO_EVENT_MOUSE_AXES)
+    {
+        gs->input.mouseX = evento->mouse.x;
+        gs->input.mouseY = evento->mouse.y;
+    }
+
     if(evento->type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
         printf("Mouse x = %d, Mouse y = %d\n", evento->mouse.x, evento->mouse.y);
          

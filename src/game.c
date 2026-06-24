@@ -25,6 +25,7 @@ void game_init(s_GameState *gs, s_Assets *assets)
     gs->levi.doble_salto = true;
     gs->levi.levi_suelo = false;
     gs->levi.viendoDerecha = 1;
+    gs->levi.cooldownAtaque = 0;
 
     //Inicia fdata
 

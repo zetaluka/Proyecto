@@ -59,26 +59,16 @@ void update_levi_movimiento(s_GameState *gs, s_Assets *assets)
 { 
 
     if(gs->input.keyLShift == 1 && gs->input.keyD == 1) //Si mantiene el LShift corre
-    {
         gs->levi.x += 4.5f;
-        gs->levi.viendoDerecha = 1;
-    }
+        
     else if(gs->input.keyLShift == 1 && gs->input.keyA == 1) //Si mantiene el LShift corre
-    {
         gs->levi.x -= 4.5f;
-        gs->levi.viendoDerecha = 1;
-    }
+
     else if(gs->input.keyA == 1) //Camina izquierda
-    {
         gs->levi.x -= 3;
-        gs->levi.viendoDerecha = 0;
-        printf("viendo izquierda: %d\n",gs->levi.viendoDerecha);
-    }
+
     else if(gs->input.keyD == 1) //Camina derecha
-    {
         gs->levi.x += 3;
-        gs->levi.viendoDerecha = 0;
-    }
 
     /*if(gs->input.keyW == 1)
     gs->levi.y -= 2;
@@ -229,6 +219,14 @@ void ataque_levi(s_GameState *gs, s_Assets *assets)
 {
     int i, pA = gs->pantalla_actual;
 
+    if(gs->levi.cooldownAtaque > 0)
+        gs->levi.cooldownAtaque -= 1.0f/FPS;
+
+    if(gs->input.mouseX >= (gs->levi.hitbox.x + gs->levi.hitbox.ancho/2) * gs->escala)
+        gs->levi.viendoDerecha = 1;
+    else
+        gs->levi.viendoDerecha = 0;
+
     if(gs->levi.viendoDerecha == 1)
     {
         gs->levi.hitboxAtaque.x = gs->levi.hitbox.x + gs->levi.hitbox.ancho;
@@ -238,18 +236,21 @@ void ataque_levi(s_GameState *gs, s_Assets *assets)
     }
     else if(gs->levi.viendoDerecha == 0)
     {
-        gs->levi.hitboxAtaque.x = gs->levi.x/2; 
-        gs->levi.hitboxAtaque.y = gs->levi.y/2;
-        gs->levi.hitboxAtaque.alto = 50;
+        gs->levi.hitboxAtaque.x = gs->levi.x; 
+        gs->levi.hitboxAtaque.y = gs->levi.y + gs->levi.hitbox.alto/2;
+        gs->levi.hitboxAtaque.alto = 5;
         gs->levi.hitboxAtaque.ancho = 40;
     }
 
-    if(gs->input.ClickIzq)
+    if(gs->input.ClickIzq && gs->levi.cooldownAtaque <= 0)
+    {
+        gs->levi.cooldownAtaque = 0.75f;
         for(i=0;i<gs->pantalla[pA].num_entidades;i++)
             if(colision_ataque(gs,i))
             {
                 printf("colisiono");
             }
+    }
 
 }
 
