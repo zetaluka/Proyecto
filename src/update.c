@@ -7,12 +7,10 @@ void update_levi_movimiento(s_GameState *gs, s_Assets *assets);
 void valida_levi_suelo(s_Assets *assets, s_GameState *gs);
 void transicion_pantalla(s_GameState *gs, s_Assets *assets);
 void hitbox_levi(s_GameState *gs, s_Assets *assets);
-void comprueba_colision(s_GameState *gs);
 void cuadrado_prueba (s_GameState *gs);
-void ataque_levi(s_GameState *gs, s_Assets *assets);
-bool colision_ataque(s_GameState *gs, int i);
-bool colision(s_GameState *gs, int i);
-
+void colision_levi_ataque(s_GameState *gs);
+void colision_levi_mapa(s_GameState *gs);
+void colision_ODM(s_GameState *gs);
 
 //====Funcion principal====//
 void update(s_GameState *gs, s_Assets *assets)
@@ -83,7 +81,6 @@ void update_levi_movimiento(s_GameState *gs, s_Assets *assets)
     cuadrado_prueba(gs);
     hitbox_levi(gs,assets);
     comprueba_colision(gs);
-    ataque_levi(gs,assets);
 
     //====Doble salto====//
     if(gs->input.keySpace == 1 && gs->levi.levi_suelo) //Salto y habilita doble salto
@@ -148,59 +145,6 @@ void hitbox_levi(s_GameState *gs, s_Assets *assets) //Actualiza la hitbox del pe
     gs->levi.hitbox.y = gs->levi.y;
 }
 
-bool colision(s_GameState *gs, int i) // Detecta si la hitbox del personaje choca con alguna otra
-{
-    int pA = gs->pantalla_actual;
-
-    if(gs->levi.hitbox.x + gs->levi.hitbox.ancho >= gs->pantalla[pA].hitbox[i].x
-    && gs->levi.hitbox.y + gs->levi.hitbox.alto >= gs->pantalla[pA].hitbox[i].y 
-    && gs->levi.hitbox.x <= gs->pantalla[pA].hitbox[i].x + gs->pantalla[pA].hitbox[i].ancho
-    && gs->levi.hitbox.y <= gs->pantalla[pA].hitbox[i].y + gs->pantalla[pA].hitbox[i].alto)
-        return true;
-    
-    return false;
-}
-
-void comprueba_colision(s_GameState *gs) //Comprueba si la hitbox del personaje choca con alguna otra y actua conforme por cual lado choco
-{   
-    int i, pA = gs->pantalla_actual;
-    float distancia_izquierda = 0, distancia_derecha = 0, distancia_arriba = 0, distancia_abajo = 0;
-
-    for(i=0;i<gs->pantalla[pA].num_hitbox;i++) //Bucle para comparar hitbox y encontrar la coincidente
-    {
-        if(colision(gs, i))
-        {
-            //Define las distancias con las paredes
-            distancia_izquierda = (gs->levi.hitbox.x + gs->levi.hitbox.ancho) - gs->pantalla[pA].hitbox[i].x;
-            distancia_derecha = (gs->pantalla[pA].hitbox[i].x + gs->pantalla[pA].hitbox[i].ancho) - gs->levi.hitbox.x;
-            distancia_arriba = (gs->levi.hitbox.y + gs->levi.hitbox.alto) - gs->pantalla[pA].hitbox[i].y;
-            distancia_abajo = (gs->pantalla[pA].hitbox[i].y + gs->pantalla[pA].hitbox[i].alto) - gs->levi.hitbox.y;
-
-            //Comprueba la menor distancia entre las paredes para detectar por donde choco
-            if(distancia_izquierda < distancia_derecha && distancia_izquierda < distancia_arriba && distancia_izquierda < distancia_abajo)
-            {
-                gs->levi.x = gs->pantalla[pA].hitbox[i].x - gs->levi.hitbox.ancho - LEVI_HB_RECORTE;
-            }
-            else if(distancia_derecha < distancia_izquierda && distancia_derecha < distancia_arriba && distancia_derecha < distancia_abajo)
-            {
-                gs->levi.x = gs->pantalla[pA].hitbox[i].x + gs->pantalla[pA].hitbox[i].ancho - LEVI_HB_RECORTE;
-            }
-            else if(distancia_abajo < distancia_arriba && distancia_abajo < distancia_izquierda && distancia_abajo < distancia_derecha)
-            {
-                gs->levi.y = gs->pantalla[pA].hitbox[i].y + gs->pantalla[pA].hitbox[i].alto;
-            }
-            else if(distancia_arriba < distancia_abajo && distancia_arriba < distancia_izquierda && distancia_arriba < distancia_derecha)
-            {
-                gs->levi.y = gs->pantalla[pA].hitbox[i].y - gs->levi.hitbox.alto;
-                gs->levi.velocidadY = 0;
-                gs->levi.levi_suelo = true; //Habilita levi_suelo, lo que hace que lo habilite a dar un salto
-            }
-
-        }
-    }
-
-}
-
 void cuadrado_prueba (s_GameState *gs)
 {
     if(gs->variables.cambioSentido == false)
@@ -215,7 +159,32 @@ void cuadrado_prueba (s_GameState *gs)
 
 }
 
-void ataque_levi(s_GameState *gs, s_Assets *assets)
+bool colision(s_GameState *gs, s_Hitbox h1, s_Hitbox h2)
+{
+    int pA = gs->pantalla_actual;
+
+    if( h1.x + h1.ancho >= h2.x && 
+        h1.y + h1.alto >= h2.y &&
+        h1.x <= h2.x + h2.ancho && 
+        h1.y <= h2.y + h2.alto )
+        return true;
+    
+    return false;
+
+}
+
+void comprueba_colision(s_GameState *gs) //Comprueba si la hitbox del personaje choca con alguna otra y actua conforme al caso
+{   
+
+    colision_levi_mapa(gs);
+    colision_levi_titan(gs); //Funcion en entities.c
+    colision_levi_ataque(gs);
+    colision_ODM(gs);
+    //Hacer funcion de detectar colision entre titan y estructuras para ponerles gravedad
+
+}
+
+void colision_levi_ataque(s_GameState *gs)
 {
     int i, pA = gs->pantalla_actual;
 
@@ -247,23 +216,75 @@ void ataque_levi(s_GameState *gs, s_Assets *assets)
         gs->levi.cooldownAtaque = 0.75f;
         printf("Ataque\n");
         for(i=0;i<gs->pantalla[pA].num_entidades;i++)
-            if(colision_ataque(gs,i))
+        {
+            if(colision(gs, gs->levi.hitboxAtaque, gs->pantalla[pA].entidades[i].hitboxNuca)) //Comprueba si pega en la nuca, si es asi rompe el bucle
+            {
+                printf("Colision en la nuca\n");
+                continue;
+            }
+
+            if(colision(gs, gs->levi.hitboxAtaque, gs->pantalla[pA].entidades[i].hitboxTitan)) //Comprueba si pega en cualquier parte de la hitbox del titan
             {
                 printf("Colisiono\n");
             }
+        }
     }
 
 }
 
-bool colision_ataque(s_GameState *gs, int i) // Detecta si la hitbox de la espada choca
+void colision_levi_mapa(s_GameState *gs)
 {
-    int pA = gs->pantalla_actual;
-    
-    if(gs->levi.hitboxAtaque.x + gs->levi.hitboxAtaque.ancho >= gs->pantalla[pA].entidades[i].hitboxTitan.x
-    && gs->levi.hitboxAtaque.y + gs->levi.hitboxAtaque.alto >= gs->pantalla[pA].entidades[i].hitboxTitan.y 
-    && gs->levi.hitboxAtaque.x <= gs->pantalla[pA].entidades[i].hitboxTitan.x + gs->pantalla[pA].entidades[i].hitboxTitan.ancho
-    && gs->levi.hitboxAtaque.y <= gs->pantalla[pA].entidades[i].hitboxTitan.y + gs->pantalla[pA].entidades[i].hitboxTitan.alto)
-        return true;
+    int i, pA = gs->pantalla_actual;
+    float distancia_izquierda = 0, distancia_derecha = 0, distancia_arriba = 0, distancia_abajo = 0;
 
-    return false;
+    for(i=0;i<gs->pantalla[pA].num_hitbox;i++) //Bucle para comparar hitbox y encontrar la coincidente
+        {
+            if(colision(gs, gs->levi.hitbox, gs->pantalla[pA].hitbox[i]))
+            {
+                //Define las distancias con las paredes
+                distancia_izquierda = (gs->levi.hitbox.x + gs->levi.hitbox.ancho) - gs->pantalla[pA].hitbox[i].x;
+                distancia_derecha = (gs->pantalla[pA].hitbox[i].x + gs->pantalla[pA].hitbox[i].ancho) - gs->levi.hitbox.x;
+                distancia_arriba = (gs->levi.hitbox.y + gs->levi.hitbox.alto) - gs->pantalla[pA].hitbox[i].y;
+                distancia_abajo = (gs->pantalla[pA].hitbox[i].y + gs->pantalla[pA].hitbox[i].alto) - gs->levi.hitbox.y;
+
+                //Comprueba la menor distancia entre las paredes para detectar por donde choco
+                if(distancia_izquierda < distancia_derecha && distancia_izquierda < distancia_arriba && distancia_izquierda < distancia_abajo)
+                    gs->levi.x = gs->pantalla[pA].hitbox[i].x - gs->levi.hitbox.ancho - LEVI_HB_RECORTE;
+
+                else if(distancia_derecha < distancia_izquierda && distancia_derecha < distancia_arriba && distancia_derecha < distancia_abajo)
+                    gs->levi.x = gs->pantalla[pA].hitbox[i].x + gs->pantalla[pA].hitbox[i].ancho - LEVI_HB_RECORTE;
+
+                else if(distancia_abajo < distancia_arriba && distancia_abajo < distancia_izquierda && distancia_abajo < distancia_derecha)
+                    gs->levi.y = gs->pantalla[pA].hitbox[i].y + gs->pantalla[pA].hitbox[i].alto;
+
+                else if(distancia_arriba < distancia_abajo && distancia_arriba < distancia_izquierda && distancia_arriba < distancia_derecha)
+                {
+                    gs->levi.y = gs->pantalla[pA].hitbox[i].y - gs->levi.hitbox.alto;
+                    gs->levi.velocidadY = 0;
+                    gs->levi.levi_suelo = true; //Habilita levi_suelo, lo que hace que lo habilite a dar un salto
+                }
+
+            }
+        }
+}
+
+void colision_ODM(s_GameState *gs)
+{
+    int pA = gs->pantalla_actual, i;
+
+    gs->levi.hitboxODM.x = gs->input.mouseX / gs->escala;
+    gs->levi.hitboxODM.y = gs->input.mouseY / gs->escala;
+    gs->levi.hitboxODM.ancho = 5;
+    gs->levi.hitboxODM.alto = 5;
+
+    if(gs->input.ClickDer)
+    {
+        for(i=0;i<gs->pantalla[pA].num_entidades;i++)
+            if(colision(gs, gs->levi.hitboxODM, gs->pantalla[pA].entidades[i].hitboxTitan))
+            {
+                gs->levi.x = (gs->input.mouseX / gs->escala) - LEVI_HB_RECORTE - gs->levi.hitbox.ancho/2;
+                gs->levi.y = gs->input.mouseY / gs->escala;
+            }
+        gs->input.ClickDer = false;
+    }
 }

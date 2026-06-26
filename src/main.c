@@ -49,8 +49,8 @@ int main(void) {
             gs.tiempoJugado.validacion = 1;
          if(evento.timer.source == timer_fps)
          {
-            update(&gs, &assets);
             genera_entidades(&gs, &assets);
+            update(&gs, &assets);
             render_gameview(&gs,&assets);
             render_ui(&gs, &assets);
          }

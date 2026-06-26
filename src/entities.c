@@ -2,8 +2,6 @@
 
 void pantalla_0_entidades(s_GameState *gs);
 void hitbox_entidades(s_GameState *gs, s_Assets *assets);
-void comprueba_colision_titan(s_GameState *gs);
-bool colision_titan(s_GameState *gs, int i);
 
 
 void genera_entidades(s_GameState *gs, s_Assets *assets)
@@ -11,7 +9,6 @@ void genera_entidades(s_GameState *gs, s_Assets *assets)
 
     pantalla_0_entidades(gs);
     hitbox_entidades(gs, assets);
-    comprueba_colision_titan(gs);
 
 }
 
@@ -48,40 +45,33 @@ void hitbox_entidades(s_GameState *gs, s_Assets *assets)
     for(i=0;i<nE;i++) //Arreglar esto
         if(gs->pantalla[pA].entidades[i].activo == true)
             {
+                //Hitbox normal
                 gs->pantalla[pA].entidades[i].hitboxTitan = (s_Hitbox){gs->pantalla[pA].entidades[i].x + 30, gs->pantalla[pA].entidades[i].y, 
                 al_get_bitmap_width(assets->titanes.titan_bizarro)-55, al_get_bitmap_height(assets->titanes.titan_bizarro)};
+
+                //Hitbox nuca
+                gs->pantalla[pA].entidades[i].hitboxNuca = (s_Hitbox){gs->pantalla[pA].entidades[i].hitboxTitan.x, gs->pantalla[pA].entidades[i].hitboxTitan.y + 130,
+                gs->pantalla[pA].entidades[i].hitboxTitan.ancho, 30};
+                
             }
     
-
     //==========//
 
 
 }
 
-bool colision_titan(s_GameState *gs, int i) // Detecta si la hitbox del personaje choca con alguna otra
-{
-    int pA = gs->pantalla_actual;
-
-    if(gs->levi.hitbox.x + gs->levi.hitbox.ancho >= gs->pantalla[pA].entidades[i].hitboxTitan.x
-    && gs->levi.hitbox.y + gs->levi.hitbox.alto >= gs->pantalla[pA].entidades[i].hitboxTitan.y 
-    && gs->levi.hitbox.x <= gs->pantalla[pA].entidades[i].hitboxTitan.x + gs->pantalla[pA].entidades[i].hitboxTitan.ancho
-    && gs->levi.hitbox.y <= gs->pantalla[pA].entidades[i].hitboxTitan.y + gs->pantalla[pA].entidades[i].hitboxTitan.alto)
-        return true;
-    
-    return false;
-}
-
-void comprueba_colision_titan(s_GameState *gs)
+void colision_levi_titan(s_GameState *gs)
 {
     int i, pA = gs->pantalla_actual;
 
     for(i=0;i<gs->pantalla[pA].num_entidades;i++) //Bucle para comparar hitbox y encontrar la coincidente
     {
-        if(colision_titan(gs, i))
+        if(colision(gs, gs->levi.hitbox, gs->pantalla[pA].entidades[i].hitboxTitan))
         {
-           continue;    
+            continue;    
 
         }
     }
 
 }
+

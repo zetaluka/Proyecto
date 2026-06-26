@@ -87,6 +87,7 @@ typedef struct
     s_Hitbox hitboxAtaque;
     s_Hitbox hitboxTitan;
     s_Hitbox hitboxDeteccion;
+    s_Hitbox hitboxNuca;
     bool activo;
 } s_Entidades;
 
@@ -112,6 +113,7 @@ typedef struct
     bool levi_suelo;
     s_Hitbox hitbox;
     s_Hitbox hitboxAtaque;
+    s_Hitbox hitboxODM;
 } s_Levi;
 
 typedef struct
@@ -139,6 +141,7 @@ typedef struct { //input.c actualiza a través de la variable s_GameState, updat
     bool keyH; //Para visualizar hitbox de levi
     bool keyG; //Detener entidades
     bool ClickIzq;
+    bool ClickDer;
     float mouseX;
     float mouseY;
 } s_InputState;
@@ -190,6 +193,9 @@ void genera_entidades(s_GameState *gs, s_Assets *assets);
 //==========Prototipos de funciones no principales======//
 void mapa1(s_GameState *gs, s_Assets *assets);
 void hitbox_init(s_GameState *gs);
+void comprueba_colision(s_GameState *gs);
+void colision_levi_titan(s_GameState *gs);
+bool colision(s_GameState *gs, s_Hitbox h1, s_Hitbox h2);
 
 
 #endif

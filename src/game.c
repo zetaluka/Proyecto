@@ -123,7 +123,6 @@ void mapa1(s_GameState *gs, s_Assets *assets)
 
             }
         }
-
         printf("\n");
     }
 

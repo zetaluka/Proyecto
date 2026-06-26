@@ -84,6 +84,9 @@ void input_update(s_GameState *gs, ALLEGRO_EVENT* evento)
             case ALLEGRO_MOUSE_BUTTON_LEFT:
                 gs->input.ClickIzq = true;
                 break;
+            case ALLEGRO_MOUSE_BUTTON_RIGHT:
+                gs->input.ClickDer = true;
+                break;
         }
     
     else if(evento->type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
@@ -91,6 +94,9 @@ void input_update(s_GameState *gs, ALLEGRO_EVENT* evento)
         {
             case ALLEGRO_MOUSE_BUTTON_LEFT:
                 gs->input.ClickIzq = false;
+                break;
+            case ALLEGRO_MOUSE_BUTTON_RIGHT:
+                gs->input.ClickDer = false;
                 break;
         }
 
