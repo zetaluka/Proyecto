@@ -88,14 +88,14 @@ void update_levi_movimiento(s_GameState *gs, s_Assets *assets)
     //====Doble salto====//
     if(gs->input.keySpace == 1 && gs->levi.levi_suelo) //Salto y habilita doble salto
         {
-            gs->levi.velocidadY = -11;
+            gs->levi.velocidadY = -8;
             gs->levi.doble_salto = true;
             gs->input.keySpace = 0;
         }
 
     if(gs->input.keySpace == 1 && gs->levi.doble_salto) //Confirma se doble salto esta habilitado
     {
-        gs->levi.velocidadY = -8;
+        gs->levi.velocidadY = -10;
         gs->levi.doble_salto = false;
         gs->input.keySpace = 0;
     }
@@ -245,10 +245,11 @@ void ataque_levi(s_GameState *gs, s_Assets *assets)
     if(gs->input.ClickIzq && gs->levi.cooldownAtaque <= 0)
     {
         gs->levi.cooldownAtaque = 0.75f;
+        printf("Ataque\n");
         for(i=0;i<gs->pantalla[pA].num_entidades;i++)
             if(colision_ataque(gs,i))
             {
-                printf("colisiono");
+                printf("Colisiono\n");
             }
     }
 

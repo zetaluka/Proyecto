@@ -91,14 +91,22 @@ void entities_init(s_GameState *gs, s_Assets *assets)
 void mapa1(s_GameState *gs, s_Assets *assets)
 {
     int i, j;
-
-    printf("\n");
+    char linea[MAXCOL + 5];
 
     for(i=0;i<MAXFIL;i++)
-        for(j=0;j<MAXCOL;j++)
+    {
+        if(fgets(linea, sizeof(linea), gs->variables.fdata) == NULL)
+                exit(1);
+
+        if(linea[0] == '/' || linea[0] == '\0')
         {
-            if(fscanf(gs->variables.fdata, "%c", &gs->mapas.mapa1[i][j]) != 1)
-                break;
+            i--;
+            continue;
+        }
+
+        for(j=0 ; j<MAXCOL && linea[j] != '\n' && linea[j] != '\0' && linea[j] != '\r' ; j++)
+        {
+            gs->mapas.mapa1[i][j] = linea[j]; 
             printf("%c", gs->mapas.mapa1[i][j]);
 
             switch(gs->mapas.mapa1[i][j])
@@ -115,8 +123,9 @@ void mapa1(s_GameState *gs, s_Assets *assets)
 
             }
         }
-  
-    printf("\n");
+
+        printf("\n");
+    }
 
 }
 

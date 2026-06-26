@@ -100,7 +100,7 @@ void muestra_hitbox(s_GameState *gs, s_Assets *assets) //Muestra las hitbox de l
         (gs->levi.hitbox.y+gs->levi.hitbox.alto)*gs->escala, BLANCO,2); //Levi
 
         al_draw_rectangle(gs->levi.hitboxAtaque.x*gs->escala, gs->levi.hitboxAtaque.y*gs->escala, (gs->levi.hitboxAtaque.x+gs->levi.hitboxAtaque.ancho)*gs->escala,
-        (gs->levi.hitboxAtaque.y+gs->levi.hitboxAtaque.alto)*gs->escala, BLANCO,2);
+        (gs->levi.hitboxAtaque.y+gs->levi.hitboxAtaque.alto)*gs->escala, al_map_rgb(255, 0, 0) ,2);
 
         for(i=0; i<gs->pantalla[pA].num_hitbox; i++)
         {
