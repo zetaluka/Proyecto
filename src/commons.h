@@ -5,6 +5,8 @@
 //==========Librerias=========//
 #include <stdio.h>
 #include <stdbool.h>
+#include <math.h>
+#include <string.h>
 #include <allegro5/allegro.h>
 #include <allegro5/display.h>
 #include <allegro5/allegro_font.h>
@@ -104,11 +106,19 @@ typedef struct
 typedef struct
 {
     int viendoDerecha;
+    float gravedad;
     float cooldownAtaque;
     float x;
     float y;
     float velocidadX;
     float velocidadY;
+    float dashX;
+    float dashY;
+    float dashCooldown;
+    float distanciaRestante;
+    float dashRecuperacion;
+    bool dashFrameActivacion;
+    bool dashActivo;
     bool doble_salto;
     bool levi_suelo;
     s_Hitbox hitbox;
@@ -140,6 +150,7 @@ typedef struct { //input.c actualiza a través de la variable s_GameState, updat
     bool keyL; //Para saber posicion de levi
     bool keyH; //Para visualizar hitbox de levi
     bool keyG; //Detener entidades
+    bool keyF; //Dash de levi
     bool ClickIzq;
     bool ClickDer;
     float mouseX;

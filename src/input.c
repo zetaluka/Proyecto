@@ -43,6 +43,10 @@ void input_update(s_GameState *gs, ALLEGRO_EVENT* evento)
                 gs->input.keyG = false;
             printf("%d",gs->input.keyG);
             break;
+        case ALLEGRO_KEY_F:
+            gs->input.keyF = true;
+            break;
+            
         }
 
     }
@@ -72,6 +76,10 @@ void input_update(s_GameState *gs, ALLEGRO_EVENT* evento)
             case ALLEGRO_KEY_L:
                 gs->input.keyL = false;
                 break;
+            case ALLEGRO_KEY_F:
+            gs->input.keyF = false;
+            break;
+            
             /*case ALLEGRO_KEY_H:
                 gs->input.keyH = false;
                 break;*/
@@ -104,6 +112,7 @@ void input_update(s_GameState *gs, ALLEGRO_EVENT* evento)
     {
         gs->input.mouseX = evento->mouse.x;
         gs->input.mouseY = evento->mouse.y;
+        //printf("MOUSE_AXES detectado: x=%d y=%d\n", evento->mouse.x, evento->mouse.y);
     }
 
     /*if(evento->type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
