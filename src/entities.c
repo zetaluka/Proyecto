@@ -23,7 +23,8 @@ void pantalla_0_entidades(s_GameState *gs)
     }
 
     for(i=0 ; i<gs->pantalla[pA].num_entidades ; i++) //Activa todas las entidades de la pantalla
-        gs->pantalla[pA].entidades[i].activo = true;
+        if(gs->pantalla[pA].entidades[i].vida > 0)
+            gs->pantalla[pA].entidades[i].activo = true;
 
 
     if(gs->input.keyG == false)    

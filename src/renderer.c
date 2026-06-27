@@ -65,9 +65,12 @@ void titanes_sprites(s_GameState *gs, s_Assets *assets)
     {
         if(gs->pantalla[pA].entidades[i].activo == true)
         {
-            al_draw_scaled_bitmap(assets->titanes.titan_bizarro,0, 0,al_get_bitmap_width(assets->titanes.titan_bizarro),
-            al_get_bitmap_height(assets->titanes.titan_bizarro),gs->pantalla[pA].entidades[i].x * gs->escala,gs->pantalla[pA].entidades[i].y * gs->escala,
-            al_get_bitmap_width(assets->titanes.titan_bizarro) * gs->escala,al_get_bitmap_height(assets->titanes.titan_bizarro) * gs->escala,0);
+            if(gs->pantalla[pA].entidades[i].vida > 0)
+            {
+                al_draw_scaled_bitmap(assets->titanes.titan_bizarro,0, 0,al_get_bitmap_width(assets->titanes.titan_bizarro),
+                al_get_bitmap_height(assets->titanes.titan_bizarro),gs->pantalla[pA].entidades[i].x * gs->escala,gs->pantalla[pA].entidades[i].y * gs->escala,
+                al_get_bitmap_width(assets->titanes.titan_bizarro) * gs->escala,al_get_bitmap_height(assets->titanes.titan_bizarro) * gs->escala,0);
+            }
         }
     }
 }
