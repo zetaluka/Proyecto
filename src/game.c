@@ -137,7 +137,7 @@ void genera_titan1(s_GameState *gs, s_Assets *assets, int *j)
     gs->pantalla[pA].entidades[nE].y = SCREEN_Y - gs->pantalla[0].hitbox[0].alto - al_get_bitmap_height(assets->titanes.titan_bizarro);
     gs->pantalla[pA].entidades[nE].velocidadX = 2;
     gs->pantalla[pA].entidades[nE].velocidadY = 0;
-    gs->pantalla[pA].entidades[nE].vida = 500;
+    gs->pantalla[pA].entidades[nE].vida = 700;
     gs->pantalla[pA].entidades[nE].ataque = 500;
     gs->pantalla[pA].entidades[nE].activo = false;
     gs->pantalla[pA].num_entidades++;
@@ -153,7 +153,7 @@ void genera_titan2(s_GameState *gs, s_Assets *assets, int *j)
     gs->pantalla[pA].entidades[nE].y = SCREEN_Y - gs->pantalla[0].hitbox[0].alto - al_get_bitmap_height(assets->titanes.titan_bizarro);
     gs->pantalla[pA].entidades[nE].velocidadX = 3;
     gs->pantalla[pA].entidades[nE].velocidadY = 0;
-    gs->pantalla[pA].entidades[nE].vida = 200;
+    gs->pantalla[pA].entidades[nE].vida = 300;
     gs->pantalla[pA].entidades[nE].ataque = 300;
     gs->pantalla[pA].entidades[nE].activo = false;
     gs->pantalla[pA].num_entidades++;

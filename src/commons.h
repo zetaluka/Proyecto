@@ -103,6 +103,35 @@ typedef struct
     
 } s_Pantalla;
 
+typedef struct 
+{
+    float dashX;
+    float dashY;
+    float cooldown;
+    float distanciaRestante;
+    float tiempoRecuperacionDash;
+    bool frameActivacion;
+    bool activo;
+    s_Hitbox hitboxDash;
+
+} s_Dash;
+
+typedef struct 
+{
+    float dirX;
+    float dirY;
+    float cooldown;
+    float tiempoRecuperacionODM;
+    float velocidadODM;
+    float distanciaRestante;
+    float distanciaODM;
+    float puntoEngancheX;
+    float puntoEngancheY;
+    bool frameActivacion;
+    bool activo;
+} s_ODM;
+
+
 typedef struct
 {
     int viendoDerecha;
@@ -112,15 +141,10 @@ typedef struct
     float y;
     float velocidadX;
     float velocidadY;
-    float dashX;
-    float dashY;
-    float dashCooldown;
-    float distanciaRestante;
-    float dashRecuperacion;
-    bool dashFrameActivacion;
-    bool dashActivo;
     bool doble_salto;
     bool levi_suelo;
+    s_Dash dash;
+    s_ODM ODM;
     s_Hitbox hitbox;
     s_Hitbox hitboxAtaque;
     s_Hitbox hitboxODM;

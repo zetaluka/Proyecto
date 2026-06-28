@@ -104,6 +104,10 @@ void muestra_hitbox(s_GameState *gs, s_Assets *assets) //Muestra las hitbox de l
 
         al_draw_rectangle(gs->levi.hitboxAtaque.x*gs->escala, gs->levi.hitboxAtaque.y*gs->escala, (gs->levi.hitboxAtaque.x+gs->levi.hitboxAtaque.ancho)*gs->escala,
         (gs->levi.hitboxAtaque.y+gs->levi.hitboxAtaque.alto)*gs->escala, al_map_rgb(255, 0, 0) ,2); //Espadas
+
+        if(gs->levi.dash.activo)
+            al_draw_rectangle(gs->levi.dash.hitboxDash.x*gs->escala, gs->levi.dash.hitboxDash.y*gs->escala, (gs->levi.dash.hitboxDash.x+gs->levi.dash.hitboxDash.ancho)*gs->escala,
+            (gs->levi.dash.hitboxDash.y+gs->levi.dash.hitboxDash.alto)*gs->escala, al_map_rgb(0, 0, 255) ,2); //Dash
         
         al_draw_rectangle(gs->levi.hitboxODM.x*gs->escala, gs->levi.hitboxODM.y*gs->escala, (gs->levi.hitboxODM.x+gs->levi.hitboxODM.ancho)*gs->escala,
         (gs->levi.hitboxODM.y+gs->levi.hitboxODM.alto)*gs->escala, al_map_rgb(255, 0, 0) ,2); //ODM (Posicion del mouse)
