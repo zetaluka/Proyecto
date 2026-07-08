@@ -78,10 +78,19 @@ void titanes_sprites(s_GameState *gs, s_Assets *assets)
 
 void pantalla_0(s_Assets *assets, s_GameState *gs)
 {
+    int pA = gs->pantalla_actual, nO = gs->pantalla[pA].num_hitboxObjetos;
+
     //Agrega el fondo de la pantalla 0
     al_draw_scaled_bitmap(assets->assetsPantalla[0].fondo_base, 0, 0, al_get_bitmap_width(assets->assetsPantalla[0].fondo_base),
     al_get_bitmap_height(assets->assetsPantalla[0].fondo_base), 0, 0, al_get_bitmap_width(assets->assetsPantalla[0].fondo_base)*2*gs->escala,
     al_get_bitmap_height(assets->assetsPantalla[0].fondo_base)*2*gs->escala, 0);
+
+
+    for(int i = 0; i<nO; i++)
+        if(gs->pantalla[pA].hitboxObjetos[i].tipo == 1)
+            al_draw_scaled_bitmap(assets->assetsPantalla[0].grieta, 0, 0, al_get_bitmap_width(assets->assetsPantalla[0].grieta),
+            al_get_bitmap_height(assets->assetsPantalla[0].grieta), gs->pantalla[pA].hitboxObjetos[i].x - 7, gs->pantalla[pA].hitboxObjetos[i].y - 5,
+            al_get_bitmap_width(assets->assetsPantalla[0].grieta) * 1.5 * gs->escala, al_get_bitmap_height(assets->assetsPantalla[0].grieta) * 1.5 * gs->escala, 0);
 }
 
 void pantalla_1(s_Assets *assets, s_GameState *gs)
@@ -118,6 +127,14 @@ void muestra_hitbox(s_GameState *gs, s_Assets *assets) //Muestra las hitbox de l
             (gs->pantalla[pA].hitbox[i].x+gs->pantalla[pA].hitbox[i].ancho)*gs->escala, (gs->pantalla[pA].hitbox[i].y+gs->pantalla[pA].hitbox[i].alto)*gs->escala, 
             gs->pantalla[pA].hitbox[i].color, 2); //Dibuja las hitbox de cada mapa
         }
+
+         for(i=0; i<gs->pantalla[pA].num_hitboxObjetos; i++)
+        {
+            al_draw_rectangle(gs->pantalla[pA].hitboxObjetos[i].x*gs->escala, gs->pantalla[pA].hitboxObjetos[i].y*gs->escala,
+            (gs->pantalla[pA].hitboxObjetos[i].x+gs->pantalla[pA].hitboxObjetos[i].ancho)*gs->escala, (gs->pantalla[pA].hitboxObjetos[i].y+gs->pantalla[pA].hitboxObjetos[i].alto)*gs->escala, 
+            gs->pantalla[pA].hitboxObjetos[i].color, 2); //Dibuja las hitbox de cada mapa
+        }
+        
         
 
         for(i=0; i<gs->pantalla[pA].num_entidades; i++)
@@ -131,6 +148,7 @@ void muestra_hitbox(s_GameState *gs, s_Assets *assets) //Muestra las hitbox de l
                 (gs->pantalla[pA].entidades[i].hitboxNuca.x + gs->pantalla[pA].entidades[i].hitboxNuca.ancho)*gs->escala,
                 (gs->pantalla[pA].entidades[i].hitboxNuca.y + gs->pantalla[pA].entidades[i].hitboxNuca.alto)*gs->escala, al_map_rgb(255, 165, 0), 2);
             }
+            
     }
 }
 

@@ -5,6 +5,7 @@ int carga_fuentes(s_Assets *assets);
 int carga_sprites_levi(s_Assets *assets);
 int carga_fondo(s_Assets *assets);
 int carga_sprites_titanes(s_Assets *assets);
+int carga_objetos(s_Assets *assets);
 
 //====Funcion principal====//
 void assets_load(s_Assets *assets)
@@ -13,6 +14,7 @@ void assets_load(s_Assets *assets)
     carga_sprites_levi(assets);
     carga_fondo(assets);
     carga_sprites_titanes(assets);
+    carga_objetos(assets);
 
     return;
 }
@@ -80,5 +82,17 @@ int carga_sprites_titanes(s_Assets *assets)
     }
 
     return 0;
+}
+
+int carga_objetos(s_Assets *assets)
+{
+    assets->assetsPantalla[0].grieta = al_load_bitmap("assets/imgs/grieta.png");
+    if(!assets->assetsPantalla[0].grieta){
+        printf("Error cargando grieta");
+        return 1;
+    }
+
+    return 0;
+
 }
 

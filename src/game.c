@@ -2,9 +2,10 @@
 
 void hitbox_init(s_GameState *gs);
 void entities_init(s_GameState *gs, s_Assets *assets);
-void genera_titan1(s_GameState *gs, s_Assets *assets, int *j);
-void genera_titan2(s_GameState *gs, s_Assets *assets, int *j);
-void pos_levi(s_GameState *gs, s_Assets *assets, int *i, int *j);
+void genera_titan1(s_GameState *gs, s_Assets *assets, int j);
+void genera_titan2(s_GameState *gs, s_Assets *assets, int j);
+void pos_levi(s_GameState *gs, s_Assets *assets, int i, int j);
+void grieta_ODM(s_GameState *gs, int i, int j);
 
 
 //====Funcion principal====//
@@ -52,24 +53,24 @@ void hitbox_init(s_GameState *gs)
     {
         case 0:
             gs->pantalla[pA].hitbox[0] = (s_Hitbox){0 , (SCREEN_Y - 66), SCREEN_X, 66, BLANCO}; //Suelo
-            gs->pantalla[pA].hitbox[1] = (s_Hitbox){(-4), 0, 4, SCREEN_Y, BLANCO}; //Limite izquierdo de la pantalla
-            gs->pantalla[pA].hitbox[2] = (s_Hitbox){0, -2, SCREEN_X, 4, BLANCO }; //Limite superior de la pantalla
+            gs->pantalla[pA].hitbox[1] = (s_Hitbox){(-4), (-200), 4, (SCREEN_Y + 200), BLANCO}; //Limite izquierdo de la pantalla
+            gs->pantalla[pA].hitbox[2] = (s_Hitbox){0, (-200), SCREEN_X, 12, BLANCO }; //Limite superior de la pantalla
             gs->pantalla[pA].hitbox[3] = (s_Hitbox){50, 600, 32, 32, BLANCO}; //Cuadrado de prueba
             gs->pantalla[pA].num_hitbox = 4;
             break;
 
         case (MAXPANTALLAS - 1):
             gs->pantalla[pA].hitbox[0] = (s_Hitbox){0 , (SCREEN_Y - 66), SCREEN_X, 66, BLANCO}; //Suelo
-            gs->pantalla[pA].hitbox[1] = (s_Hitbox){(-4), 0, 4, SCREEN_Y, BLANCO}; //Limite izquierdo de la pantalla
-            gs->pantalla[pA].hitbox[2] = (s_Hitbox){0, -2, SCREEN_X, 4, BLANCO }; //Limite superior de la pantalla
-            gs->pantalla[pA].hitbox[3] = (s_Hitbox){SCREEN_X, 0, 4, SCREEN_Y, BLANCO}; //Limite derecho de la pantalla
+            gs->pantalla[pA].hitbox[1] = (s_Hitbox){(-4), (-200), 4, (SCREEN_Y + 200), BLANCO}; //Limite izquierdo de la pantalla
+            gs->pantalla[pA].hitbox[2] = (s_Hitbox){0, (-200), SCREEN_X, 16, BLANCO }; //Limite superior de la pantalla
+            gs->pantalla[pA].hitbox[3] = (s_Hitbox){SCREEN_X, (-100), 4, (SCREEN_Y + 100), BLANCO}; //Limite derecho de la pantalla
             gs->pantalla[pA].num_hitbox = 4;
             break;
         
         default:
             gs->pantalla[pA].hitbox[0] = (s_Hitbox){0 , (SCREEN_Y - 66), SCREEN_X, 66, BLANCO}; //Suelo
-            gs->pantalla[pA].hitbox[1] = (s_Hitbox){(-4), 0, 4, SCREEN_Y, BLANCO}; //Limite izquierdo de la pantalla
-            gs->pantalla[pA].hitbox[2] = (s_Hitbox){0, -2, SCREEN_X, 4, BLANCO }; //Limite superior de la pantalla
+            gs->pantalla[pA].hitbox[1] = (s_Hitbox){(-4), (-200), 4, (SCREEN_Y + 200), BLANCO}; //Limite izquierdo de la pantalla
+            gs->pantalla[pA].hitbox[2] = (s_Hitbox){0, (-200), SCREEN_X, 12, BLANCO }; //Limite superior de la pantalla
             gs->pantalla[pA].num_hitbox = 3;
             break;
     }
@@ -96,7 +97,7 @@ void mapa1(s_GameState *gs, s_Assets *assets)
     for(i=0;i<MAXFIL;i++)
     {
         if(fgets(linea, sizeof(linea), gs->variables.fdata) == NULL)
-                exit(1);
+            exit(1);
 
         if(linea[0] == '/' || linea[0] == '\0')
         {
@@ -104,21 +105,24 @@ void mapa1(s_GameState *gs, s_Assets *assets)
             continue;
         }
 
-        for(j=0 ; j<MAXCOL && linea[j] != '\n' && linea[j] != '\0' && linea[j] != '\r' ; j++)
+        for(j=0 ; j<MAXCOL && linea[j] != '\n' && linea[j] != '\0' ; j++)
         {
             gs->mapas.mapa1[i][j] = linea[j]; 
             printf("%c", gs->mapas.mapa1[i][j]);
 
-            switch(gs->mapas.mapa1[i][j])
+            switch(gs->mapas.mapa1[i][j]) //Confirmar que hay espacio en el arreglo
             {
                 case 'T':
-                    genera_titan1(gs, assets, &j);
+                    genera_titan1(gs, assets, j);
                     break;
                 case 't':
-                    genera_titan2(gs, assets, &j);
+                    genera_titan2(gs, assets, j);
                     break;
                 case 'L':
-                    pos_levi(gs, assets, &i, &j);
+                    pos_levi(gs, assets, i, j);
+                    break;
+                case 'g':
+                    grieta_ODM(gs, i, j);
                     break;
 
             }
@@ -128,12 +132,12 @@ void mapa1(s_GameState *gs, s_Assets *assets)
 
 }
 
-void genera_titan1(s_GameState *gs, s_Assets *assets, int *j)
+void genera_titan1(s_GameState *gs, s_Assets *assets, int j)
 {
     int pA = gs->pantalla_actual;
     int nE = gs->pantalla[pA].num_entidades;
 
-    gs->pantalla[pA].entidades[nE].x = *j*TAM_CELDA;
+    gs->pantalla[pA].entidades[nE].x = j*TAM_CELDA;
     gs->pantalla[pA].entidades[nE].y = SCREEN_Y - gs->pantalla[0].hitbox[0].alto - al_get_bitmap_height(assets->titanes.titan_bizarro);
     gs->pantalla[pA].entidades[nE].velocidadX = 2;
     gs->pantalla[pA].entidades[nE].velocidadY = 0;
@@ -141,15 +145,16 @@ void genera_titan1(s_GameState *gs, s_Assets *assets, int *j)
     gs->pantalla[pA].entidades[nE].ataque = 500;
     gs->pantalla[pA].entidades[nE].activo = false;
     gs->pantalla[pA].num_entidades++;
+    gs->pantalla[pA].entidades[nE].hitboxTitan.tipo = 1;
 
 }
 
-void genera_titan2(s_GameState *gs, s_Assets *assets, int *j)
+void genera_titan2(s_GameState *gs, s_Assets *assets, int j)
 {
     int pA = gs->pantalla_actual;
     int nE = gs->pantalla[pA].num_entidades;
 
-    gs->pantalla[pA].entidades[nE].x = *j*TAM_CELDA;
+    gs->pantalla[pA].entidades[nE].x = j*TAM_CELDA;
     gs->pantalla[pA].entidades[nE].y = SCREEN_Y - gs->pantalla[0].hitbox[0].alto - al_get_bitmap_height(assets->titanes.titan_bizarro);
     gs->pantalla[pA].entidades[nE].velocidadX = 3;
     gs->pantalla[pA].entidades[nE].velocidadY = 0;
@@ -157,14 +162,29 @@ void genera_titan2(s_GameState *gs, s_Assets *assets, int *j)
     gs->pantalla[pA].entidades[nE].ataque = 300;
     gs->pantalla[pA].entidades[nE].activo = false;
     gs->pantalla[pA].num_entidades++;
+    gs->pantalla[pA].entidades[nE].hitboxTitan.tipo = 1;
 
 }
 
-void pos_levi(s_GameState *gs, s_Assets *assets, int *i, int *j)
+void pos_levi(s_GameState *gs, s_Assets *assets, int i, int j)
 {
     int pA = gs->pantalla_actual;
 
-    gs->levi.x = *j*TAM_CELDA;
-    gs->levi.y = *i*TAM_CELDA;
+    gs->levi.x = j*TAM_CELDA;
+    gs->levi.y = i*TAM_CELDA;
 
+}
+
+void grieta_ODM(s_GameState *gs, int i, int j)
+{
+    int pA = gs->pantalla_actual, cont;
+    int nE = gs->pantalla[pA].num_hitboxObjetos;
+
+    gs->pantalla[pA].hitboxObjetos[nE].x = j*TAM_CELDA;
+    gs->pantalla[pA].hitboxObjetos[nE].y = i*TAM_CELDA;
+    gs->pantalla[pA].hitboxObjetos[nE].alto = TAM_CELDA;
+    gs->pantalla[pA].hitboxObjetos[nE].ancho = TAM_CELDA;
+    gs->pantalla[pA].hitboxObjetos[nE].color = al_map_rgb(0,0,255);
+    gs->pantalla[pA].hitboxObjetos[nE].tipo = 1;
+    gs->pantalla[pA].num_hitboxObjetos++;
 }

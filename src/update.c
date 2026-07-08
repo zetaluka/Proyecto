@@ -62,11 +62,12 @@ void update_tiempo_jugado(s_GameState* gs) //Funcion para hacer funcionar el cro
 void update_levi_movimiento(s_GameState *gs)
 { 
     bool bloqueaDerecha = false, bloqueaIzquierda = false;
+    //printf("%f",gs->levi.velocidadY);
 
     if(gs->levi.dash.activo || gs->levi.ODM.activo)
         return;
 
-    if(gs->levi.dash.tiempoRecuperacionDash > 0)
+    if(gs->levi.dash.tiempoRecuperacionDash >= 0)
     {
         gs->levi.dash.tiempoRecuperacionDash -= 1.0f/FPS;    
         gs->levi.velocidadX *= 0.9f; //Va bajando gradualmente la inercia horizontal
@@ -106,25 +107,27 @@ void update_levi_movimiento(s_GameState *gs)
     //====Doble salto====//
     if(gs->input.keySpace == 1 && gs->levi.levi_suelo) //Salto y habilita doble salto
         {
-            gs->levi.velocidadY = -8;
+            gs->levi.velocidadY = -10;
             gs->levi.levi_suelo = false;
             gs->levi.doble_salto = true;
             gs->input.keySpace = 0;
+            gs->levi.dash.tiempoRecuperacionDash = 0;
             gs->levi.ODM.activo = false;
         }
 
-    if(gs->input.keySpace == 1 && gs->levi.doble_salto) //Confirma se doble salto esta habilitado
+    if(gs->input.keySpace == 1 && gs->levi.doble_salto) //Confirma si doble salto esta habilitado
     {
-        gs->levi.velocidadY = -10;
+        gs->levi.velocidadY = -15;
         gs->levi.doble_salto = false;
         gs->input.keySpace = 0;
+        gs->levi.dash.tiempoRecuperacionDash = 0;
         gs->levi.ODM.activo = false;
     }
 
     //Gravedad
     if(!gs->levi.dash.activo && !gs->levi.ODM.activo)
     {
-        gs->levi.velocidadY += 0.5; //Lo hace moverse todo el rato hacia abajo
+        gs->levi.velocidadY += 0.8f; //Lo hace moverse todo el rato hacia abajo
         gs->levi.y = gs->levi.y + gs->levi.velocidadY;
     }
     
@@ -143,14 +146,24 @@ void transicion_pantalla(s_GameState *gs, s_Assets *assets) //Efecto de transici
     {
         gs->pantalla_actual--;
         gs->levi.x = SCREEN_X - 70;
-        hitbox_init(gs);
+
+        if(gs->pantalla[gs->pantalla_actual].pantallaCargada == false)
+        {
+            hitbox_init(gs);
+            gs->pantalla[gs->pantalla_actual].pantallaCargada = true;
+        }
     }
 
      if(gs->pantalla_actual > gs->variables.carga_pantalla)
     {
         mapa1(gs, assets);
         gs->variables.carga_pantalla++;
-        hitbox_init(gs);
+        
+        if(gs->pantalla[gs->pantalla_actual].pantallaCargada == false)
+        {
+            hitbox_init(gs);
+            gs->pantalla[gs->pantalla_actual].pantallaCargada = true;
+        }
     }
 
 }
@@ -202,7 +215,7 @@ void comprueba_colision(s_GameState *gs) //Comprueba si la hitbox del personaje 
     colision_ODM(gs);
     if(gs->levi.dash.activo == true)
         colision_levi_dash(gs);
-    //Hacer funcion de detectar colision entre titan y estructuras para ponerles gravedad
+    //Hacer funcion de detectar colision entre titan y estructuras(del mapa) para ponerles gravedad
 
 }
 
@@ -281,7 +294,7 @@ void colision_levi_mapa(s_GameState *gs)
 
     for(i=0;i<gs->pantalla[pA].num_hitbox;i++) //Bucle para comparar hitbox y encontrar la coincidente
         {
-            if(colision(gs, gs->levi.hitbox, gs->pantalla[pA].hitbox[i]))
+            if(colision(gs, gs->levi.hitbox, gs->pantalla[pA].hitbox[i]) && gs->pantalla[pA].hitbox[i].tipo == 0)
             {
                 //Define las distancias con las paredes
                 distancia_izquierda = (gs->levi.hitbox.x + gs->levi.hitbox.ancho) - gs->pantalla[pA].hitbox[i].x;
@@ -308,6 +321,34 @@ void colision_levi_mapa(s_GameState *gs)
                 }
 
             }
+
+            else if(gs->pantalla[pA].hitbox[i].tipo == 1)
+            {
+                //Define las distancias con las paredes
+                distancia_izquierda = (gs->levi.hitbox.x + gs->levi.hitbox.ancho) - gs->pantalla[pA].hitbox[i].x;
+                distancia_derecha = (gs->pantalla[pA].hitbox[i].x + gs->pantalla[pA].hitbox[i].ancho) - gs->levi.hitbox.x;
+                distancia_arriba = (gs->levi.hitbox.y + gs->levi.hitbox.alto) - gs->pantalla[pA].hitbox[i].y;
+                distancia_abajo = (gs->pantalla[pA].hitbox[i].y + gs->pantalla[pA].hitbox[i].alto) - gs->levi.hitbox.y;
+
+                //Comprueba la menor distancia entre las paredes para detectar por donde choco
+                /*if(distancia_izquierda < distancia_derecha && distancia_izquierda < distancia_arriba && distancia_izquierda < distancia_abajo)
+                    gs->levi.x = gs->pantalla[pA].hitbox[i].x - gs->levi.hitbox.ancho - LEVI_HB_RECORTE;
+
+                else if(distancia_derecha < distancia_izquierda && distancia_derecha < distancia_arriba && distancia_derecha < distancia_abajo)
+                    gs->levi.x = gs->pantalla[pA].hitbox[i].x + gs->pantalla[pA].hitbox[i].ancho - LEVI_HB_RECORTE;
+
+                else if(distancia_abajo < distancia_arriba && distancia_abajo < distancia_izquierda && distancia_abajo < distancia_derecha)
+                    gs->levi.y = gs->pantalla[pA].hitbox[i].y + gs->pantalla[pA].hitbox[i].alto;*/
+
+                if(distancia_arriba < distancia_abajo && distancia_arriba < distancia_izquierda && distancia_arriba < distancia_derecha)
+                {
+                    gs->levi.y = gs->pantalla[pA].hitbox[i].y - gs->levi.hitbox.alto;
+                    gs->levi.velocidadY = 0;
+                    gs->levi.levi_suelo = true; //Habilita levi_suelo, lo que hace que lo habilite a dar un salto
+                    gs->levi.doble_salto = true;
+                }
+            }
+
         }
 }
 
@@ -337,7 +378,22 @@ void colision_ODM(s_GameState *gs)
                 gs->levi.ODM.dirX = cx/gs->levi.ODM.distanciaRestante;
                 gs->levi.ODM.dirY = cy/gs->levi.ODM.distanciaRestante;
                 gs->levi.ODM.velocidadODM = 1;
-                i = gs->pantalla[pA].num_entidades;
+            }
+
+        for(i = 0; i < gs->pantalla[pA].num_hitboxObjetos; i++)
+            if(gs->pantalla[pA].hitboxObjetos[i].tipo == 1 && colision(gs, gs->levi.hitboxODM, gs->pantalla[pA].hitboxObjetos[i]))
+            {
+                /*gs->levi.x = (gs->input.mouseX / gs->escala) - LEVI_HB_RECORTE - gs->levi.hitbox.ancho/2;
+                gs->levi.y = gs->input.mouseY / gs->escala;*/
+
+                cx = (gs->input.mouseX/gs->escala) - (gs->levi.x + gs->levi.hitbox.ancho); //Calcula cateto x 
+                cy = (gs->input.mouseY/gs->escala) - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
+                gs->levi.ODM.distanciaRestante = sqrt(cx*cx + cy*cy); //Calcula la hipotenusa (distancia de levi al punto)
+
+                gs->levi.ODM.activo = true;
+                gs->levi.ODM.dirX = cx/gs->levi.ODM.distanciaRestante;
+                gs->levi.ODM.dirY = cy/gs->levi.ODM.distanciaRestante;
+                gs->levi.ODM.velocidadODM = 1;
             }
         
         gs->input.ClickDer = false;
@@ -345,6 +401,8 @@ void colision_ODM(s_GameState *gs)
 
     if(gs->levi.ODM.activo)
         {
+            printf("ODM Activo\n");
+            printf("Levi y = %.2f\n", gs->levi.y);
             gs->levi.x += gs->levi.ODM.dirX * gs->levi.ODM.velocidadODM;
             gs->levi.y += gs->levi.ODM.dirY * gs->levi.ODM.velocidadODM;
             gs->levi.ODM.distanciaRestante -= gs->levi.ODM.velocidadODM;
@@ -355,7 +413,7 @@ void colision_ODM(s_GameState *gs)
                 gs->levi.ODM.activo = false;
                 gs->levi.velocidadX = gs->levi.ODM.dirX * gs->levi.ODM.velocidadODM;
                 gs->levi.velocidadY = gs->levi.ODM.dirY * gs->levi.ODM.velocidadODM;
-                gs->levi.dash.tiempoRecuperacionDash = 2.5f;
+                gs->levi.dash.tiempoRecuperacionDash = 1;
             }
         }
 }

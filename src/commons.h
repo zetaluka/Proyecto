@@ -41,6 +41,7 @@ typedef struct
 {
     ALLEGRO_BITMAP* fondo_base;
     ALLEGRO_BITMAP* cubo;
+    ALLEGRO_BITMAP* grieta;
 
 } s_AssetsPantalla;
 
@@ -76,6 +77,7 @@ typedef struct
     float ancho;
     float alto;
     ALLEGRO_COLOR color;
+    int tipo; //agregar variable para saber si esta activo, nose en que struct
 } s_Hitbox;
 
 typedef struct 
@@ -96,7 +98,10 @@ typedef struct
 typedef struct
 {
     s_Hitbox hitbox[MAXHITBOX];
+    s_Hitbox hitboxObjetos[MAXHITBOX];
     s_Entidades entidades[MAXENTIDADES];
+    bool pantallaCargada;
+    int num_hitboxObjetos;
     int num_entidades;
     int num_hitbox;
     int num_pantallas;
@@ -143,6 +148,7 @@ typedef struct
     float velocidadY;
     bool doble_salto;
     bool levi_suelo;
+    bool levi_vuelo;
     s_Dash dash;
     s_ODM ODM;
     s_Hitbox hitbox;
