@@ -31,19 +31,31 @@ void render_gameview(s_GameState *gs, s_Assets *assets)
 
 void levi_sprites(s_GameState *gs, s_Assets *assets)
 {
-    al_draw_scaled_bitmap(assets->levi.levi_parado, 0, 0, al_get_bitmap_width(assets->levi.levi_parado),
+    int leviX = round(gs->levi.x)*gs->escala;
+    int leviY = round(gs->levi.y)*gs->escala;
+
+    /*al_draw_scaled_bitmap(assets->levi.levi_parado, 0, 0, al_get_bitmap_width(assets->levi.levi_parado),
     al_get_bitmap_height(assets->levi.levi_parado),gs->levi.x*gs->escala, gs->levi.y*gs->escala, al_get_bitmap_width(assets->levi.levi_parado)*2*gs->escala,
-    al_get_bitmap_height(assets->levi.levi_parado)*2*gs->escala, 0);
+    al_get_bitmap_height(assets->levi.levi_parado)*2*gs->escala, 0);*/
+
+    al_draw_scaled_bitmap(assets->levi.levi, 0, 0, al_get_bitmap_width(assets->levi.levi),
+    al_get_bitmap_height(assets->levi.levi), leviX, leviY, al_get_bitmap_width(assets->levi.levi)*gs->escala,
+    al_get_bitmap_height(assets->levi.levi)*gs->escala, 0);
 }
 
 void jugando(s_Assets *assets, s_GameState *gs)
 {
+    ALLEGRO_TRANSFORM transform;
+    al_identity_transform(&transform);
+    al_translate_transform(&transform, -gs->camara.x, 0);
+    al_use_transform(&transform);
+
     switch(gs->pantalla_actual)
     {
         case 0:
             pantalla_0(assets, gs);
             titanes_sprites(gs, assets);
-            al_draw_bitmap(assets->assetsPantalla[0].cubo, gs->pantalla[0].hitbox[3].x, gs->pantalla[0].hitbox[3].y, 0);
+            al_draw_bitmap(assets->assetsPantalla.cubo, gs->pantalla[0].hitbox[3].x, gs->pantalla[0].hitbox[3].y, 0);
             break;
 
         case 1:
@@ -61,14 +73,19 @@ void jugando(s_Assets *assets, s_GameState *gs)
 void titanes_sprites(s_GameState *gs, s_Assets *assets)
 {
     int i, pA = gs->pantalla_actual;
+    int titanX, titanY;
+
     for(i = 0; i < gs->pantalla[pA].num_entidades; i++)
     {
+        titanX = round(gs->pantalla[pA].entidades[i].x);
+        titanY = round(gs->pantalla[pA].entidades[i].y);
+
         if(gs->pantalla[pA].entidades[i].activo == true)
         {
             if(gs->pantalla[pA].entidades[i].vida > 0)
             {
-                al_draw_scaled_bitmap(assets->titanes.titan_bizarro,0, 0,al_get_bitmap_width(assets->titanes.titan_bizarro),
-                al_get_bitmap_height(assets->titanes.titan_bizarro),gs->pantalla[pA].entidades[i].x * gs->escala,gs->pantalla[pA].entidades[i].y * gs->escala,
+                al_draw_scaled_bitmap(assets->titanes.titan_bizarro,0, 0, al_get_bitmap_width(assets->titanes.titan_bizarro),
+                al_get_bitmap_height(assets->titanes.titan_bizarro), titanX * gs->escala, titanY * gs->escala,
                 al_get_bitmap_width(assets->titanes.titan_bizarro) * gs->escala,al_get_bitmap_height(assets->titanes.titan_bizarro) * gs->escala,0);
             }
         }
@@ -78,27 +95,50 @@ void titanes_sprites(s_GameState *gs, s_Assets *assets)
 
 void pantalla_0(s_Assets *assets, s_GameState *gs)
 {
-    int pA = gs->pantalla_actual, nO = gs->pantalla[pA].num_hitboxObjetos;
+    int pA = gs->pantalla_actual, nE = gs->pantalla[pA].num_elementos;
 
     //Agrega el fondo de la pantalla 0
-    al_draw_scaled_bitmap(assets->assetsPantalla[0].fondo_base, 0, 0, al_get_bitmap_width(assets->assetsPantalla[0].fondo_base),
-    al_get_bitmap_height(assets->assetsPantalla[0].fondo_base), 0, 0, al_get_bitmap_width(assets->assetsPantalla[0].fondo_base)*2*gs->escala,
-    al_get_bitmap_height(assets->assetsPantalla[0].fondo_base)*2*gs->escala, 0);
+    al_draw_scaled_bitmap(assets->assetsPantalla.fondo_base, 0, 0, al_get_bitmap_width(assets->assetsPantalla.fondo_base),
+    al_get_bitmap_height(assets->assetsPantalla.fondo_base), 0, 0, al_get_bitmap_width(assets->assetsPantalla.fondo_base)*2*gs->escala,
+    al_get_bitmap_height(assets->assetsPantalla.fondo_base)*2*gs->escala, 0);
 
 
-    for(int i = 0; i<nO; i++)
-        if(gs->pantalla[pA].hitboxObjetos[i].tipo == 1)
-            al_draw_scaled_bitmap(assets->assetsPantalla[0].grieta, 0, 0, al_get_bitmap_width(assets->assetsPantalla[0].grieta),
-            al_get_bitmap_height(assets->assetsPantalla[0].grieta), gs->pantalla[pA].hitboxObjetos[i].x - 7, gs->pantalla[pA].hitboxObjetos[i].y - 5,
-            al_get_bitmap_width(assets->assetsPantalla[0].grieta) * 1.5 * gs->escala, al_get_bitmap_height(assets->assetsPantalla[0].grieta) * 1.5 * gs->escala, 0);
+    for(int i = 0; i<nE; i++)
+    {
+        if(gs->pantalla[pA].elementos[i].tipo == 1)
+            al_draw_scaled_bitmap(assets->assetsPantalla.grieta, 0, 0, al_get_bitmap_width(assets->assetsPantalla.grieta),
+            al_get_bitmap_height(assets->assetsPantalla.grieta), gs->pantalla[pA].elementos[i].x * gs->escala, gs->pantalla[pA].elementos[i].y * gs->escala,
+            al_get_bitmap_width(assets->assetsPantalla.grieta) * 1.5 * gs->escala, al_get_bitmap_height(assets->assetsPantalla.grieta) * 1.5 * gs->escala, 0);
+
+        else if(gs->pantalla[pA].elementos[i].tipo == 2 && gs->pantalla[pA].elementos[i].activo == true)
+            al_draw_scaled_bitmap(assets->assetsPantalla.escudoLegion, 0, 0, al_get_bitmap_width(assets->assetsPantalla.escudoLegion),
+            al_get_bitmap_height(assets->assetsPantalla.escudoLegion), gs->pantalla[pA].elementos[i].x * gs->escala, gs->pantalla[pA].elementos[i].y * gs->escala,
+            al_get_bitmap_width(assets->assetsPantalla.escudoLegion)* gs->escala, al_get_bitmap_height(assets->assetsPantalla.escudoLegion)* gs->escala, 0);
+    }
+
 }
 
 void pantalla_1(s_Assets *assets, s_GameState *gs)
 {
+    int pA = gs->pantalla_actual, nE = gs->pantalla[pA].num_elementos;
+
     //Agrega el fondo de la pantalla 1
-    al_draw_scaled_bitmap(assets->assetsPantalla[1].fondo_base, 0, 0, al_get_bitmap_width(assets->assetsPantalla[1].fondo_base),
-    al_get_bitmap_height(assets->assetsPantalla[1].fondo_base), 0, 0, al_get_bitmap_width(assets->assetsPantalla[1].fondo_base)*2*gs->escala,
-    al_get_bitmap_height(assets->assetsPantalla[1].fondo_base)*2*gs->escala, 0);
+    al_draw_scaled_bitmap(assets->assetsPantalla.fondo_titan_colosal, 0, 0, al_get_bitmap_width(assets->assetsPantalla.fondo_titan_colosal),
+    al_get_bitmap_height(assets->assetsPantalla.fondo_titan_colosal), 0, 0, al_get_bitmap_width(assets->assetsPantalla.fondo_titan_colosal)*2*gs->escala,
+    al_get_bitmap_height(assets->assetsPantalla.fondo_titan_colosal)*2*gs->escala, 0);
+
+    for(int i = 0; i<nE; i++)
+    {
+        if(gs->pantalla[pA].elementos[i].tipo == 1)
+            al_draw_scaled_bitmap(assets->assetsPantalla.grieta, 0, 0, al_get_bitmap_width(assets->assetsPantalla.grieta),
+            al_get_bitmap_height(assets->assetsPantalla.grieta), gs->pantalla[pA].elementos[i].x * gs->escala, gs->pantalla[pA].elementos[i].y * gs->escala,
+            al_get_bitmap_width(assets->assetsPantalla.grieta) * 1.5 * gs->escala, al_get_bitmap_height(assets->assetsPantalla.grieta) * 1.5 * gs->escala, 0);
+
+        else if(gs->pantalla[pA].elementos[i].tipo == 2 && gs->pantalla[pA].elementos[i].activo == true)
+            al_draw_scaled_bitmap(assets->assetsPantalla.escudoLegion, 0, 0, al_get_bitmap_width(assets->assetsPantalla.escudoLegion),
+            al_get_bitmap_height(assets->assetsPantalla.escudoLegion), gs->pantalla[pA].elementos[i].x * gs->escala, gs->pantalla[pA].elementos[i].y * gs->escala,
+            al_get_bitmap_width(assets->assetsPantalla.escudoLegion)* gs->escala, al_get_bitmap_height(assets->assetsPantalla.escudoLegion)* gs->escala, 0);
+    }
     
 }
 
@@ -128,12 +168,14 @@ void muestra_hitbox(s_GameState *gs, s_Assets *assets) //Muestra las hitbox de l
             gs->pantalla[pA].hitbox[i].color, 2); //Dibuja las hitbox de cada mapa
         }
 
-         for(i=0; i<gs->pantalla[pA].num_hitboxObjetos; i++)
-        {
-            al_draw_rectangle(gs->pantalla[pA].hitboxObjetos[i].x*gs->escala, gs->pantalla[pA].hitboxObjetos[i].y*gs->escala,
-            (gs->pantalla[pA].hitboxObjetos[i].x+gs->pantalla[pA].hitboxObjetos[i].ancho)*gs->escala, (gs->pantalla[pA].hitboxObjetos[i].y+gs->pantalla[pA].hitboxObjetos[i].alto)*gs->escala, 
-            gs->pantalla[pA].hitboxObjetos[i].color, 2); //Dibuja las hitbox de cada mapa
-        }
+        for(i=0; i<gs->pantalla[pA].num_elementos; i++)
+            if(gs->pantalla[pA].elementos[i].activo == true)
+            {
+                al_draw_rectangle(gs->pantalla[pA].elementos[i].hitbox.x*gs->escala, gs->pantalla[pA].elementos[i].hitbox.y*gs->escala,
+                (gs->pantalla[pA].elementos[i].hitbox.x+gs->pantalla[pA].elementos[i].hitbox.ancho)*gs->escala, (gs->pantalla[pA].elementos[i].hitbox.y+gs->pantalla[pA].
+                elementos[i].hitbox.alto)*gs->escala, 
+                gs->pantalla[pA].elementos[i].hitbox.color, 2); //Dibuja las hitbox de cada mapa
+            }
         
         
 

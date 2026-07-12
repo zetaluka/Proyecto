@@ -26,10 +26,14 @@
 #define MAXPANTALLAS 4
 #define MAXHITBOX 50
 #define TAM_CELDA 32
-#define MAXFIL 22
-#define MAXCOL 40
+#define MAXFIL 30
+#define MAXCOL 200
 #define MAXENTIDADES 50
+#define MAXELEMENTOS 50
 #define LEVI_HB_RECORTE 37
+#define BORDE_CAM 250
+#define BUFFER 200
+#define ALTO_SUELO 66
 #define BLANCO al_map_rgb(220, 220, 220)
 
 
@@ -40,14 +44,17 @@
 typedef struct 
 {
     ALLEGRO_BITMAP* fondo_base;
+    ALLEGRO_BITMAP* fondo_titan_colosal;
     ALLEGRO_BITMAP* cubo;
     ALLEGRO_BITMAP* grieta;
+    ALLEGRO_BITMAP* escudoLegion;
 
 } s_AssetsPantalla;
 
 
 typedef struct{
     ALLEGRO_BITMAP* levi_parado;
+    ALLEGRO_BITMAP* levi;
 
 } s_LeviSprites;
 
@@ -60,9 +67,11 @@ typedef struct
 
 typedef struct{
 
-    ALLEGRO_FONT* shingekiFont;
-    ALLEGRO_FONT* minimalistTemplateFont;    
-    s_AssetsPantalla assetsPantalla[MAXPANTALLAS];
+    ALLEGRO_FONT* shingekiFont30;
+    ALLEGRO_FONT* minimalistTemplateFont50;    
+    ALLEGRO_FONT* minimalistTemplateFont25;
+
+    s_AssetsPantalla assetsPantalla;
     s_LeviSprites levi;
     s_TitanesSprites titanes;
 
@@ -77,8 +86,31 @@ typedef struct
     float ancho;
     float alto;
     ALLEGRO_COLOR color;
-    int tipo; //agregar variable para saber si esta activo, nose en que struct
 } s_Hitbox;
+
+typedef struct 
+{
+    int escudos;
+    int gasODM;
+} s_Inventario;
+
+typedef struct 
+{
+    float x;
+    float y;
+    float ancho;
+    float alto;
+} s_Camara;
+
+
+typedef struct 
+{
+    float x;
+    float y;
+    int tipo;
+    bool activo;
+    s_Hitbox hitbox;
+}s_Elementos;
 
 typedef struct 
 {
@@ -88,6 +120,7 @@ typedef struct
     int velocidadY;
     int vida;
     int ataque;
+    int tipo; //agregar variable para saber si esta activo, nose en que struct
     s_Hitbox hitboxAtaque;
     s_Hitbox hitboxTitan;
     s_Hitbox hitboxDeteccion;
@@ -98,13 +131,16 @@ typedef struct
 typedef struct
 {
     s_Hitbox hitbox[MAXHITBOX];
-    s_Hitbox hitboxObjetos[MAXHITBOX];
     s_Entidades entidades[MAXENTIDADES];
+    s_Elementos elementos[MAXELEMENTOS];
     bool pantallaCargada;
-    int num_hitboxObjetos;
+    char fondo[20];
+    int num_elementos;
     int num_entidades;
     int num_hitbox;
     int num_pantallas;
+    int ancho;
+    int alto;
     
 } s_Pantalla;
 
@@ -149,6 +185,7 @@ typedef struct
     bool doble_salto;
     bool levi_suelo;
     bool levi_vuelo;
+    s_Inventario inventario;
     s_Dash dash;
     s_ODM ODM;
     s_Hitbox hitbox;
@@ -213,6 +250,7 @@ typedef struct {
     s_Pantalla pantalla[MAXPANTALLAS];
     s_Variables variables;
     s_Mapas mapas;
+    s_Camara camara;
     int pantalla_actual;
     int nivel; 
     int lado_colision;

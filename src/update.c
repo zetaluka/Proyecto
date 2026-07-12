@@ -7,11 +7,13 @@ void update_levi_movimiento(s_GameState *gs);
 void transicion_pantalla(s_GameState *gs, s_Assets *assets);
 void hitbox_levi(s_GameState *gs, s_Assets *assets);
 void levi_dash(s_GameState *gs);
+void camara_scroll(s_GameState *gs);
 void cuadrado_prueba (s_GameState *gs);
 void colision_levi_dash(s_GameState *gs);
 void colision_levi_ataque(s_GameState *gs);
 void colision_levi_mapa(s_GameState *gs);
 void colision_ODM(s_GameState *gs);
+void colision_levi_elementos(s_GameState *gs);
 
 //====Funcion principal====//
 void update(s_GameState *gs, s_Assets *assets)
@@ -40,6 +42,7 @@ void update_jugando(s_GameState *gs, s_Assets *assets) //Funcion si para cuando 
     hitbox_levi(gs,assets);
     levi_dash(gs);
     comprueba_colision(gs);
+    camara_scroll(gs);
     transicion_pantalla(gs, assets);
 
     return;
@@ -63,6 +66,9 @@ void update_levi_movimiento(s_GameState *gs)
 { 
     bool bloqueaDerecha = false, bloqueaIzquierda = false;
     //printf("%f",gs->levi.velocidadY);
+
+    if(gs->levi.ODM.activo == true)
+        gs->levi.levi_suelo == false;
 
     if(gs->levi.dash.activo || gs->levi.ODM.activo)
         return;
@@ -135,17 +141,20 @@ void update_levi_movimiento(s_GameState *gs)
 
 void transicion_pantalla(s_GameState *gs, s_Assets *assets) //Efecto de transicion por pantallas
 {
+    float anchoPantalla = gs->pantalla[gs->pantalla_actual].ancho * TAM_CELDA;
 
-    if(gs->levi.x+40 >= SCREEN_X && gs->pantalla_actual < MAXPANTALLAS - 1)
+    if(gs->levi.x+40 >= anchoPantalla && gs->pantalla_actual < MAXPANTALLAS - 1)
     {
         gs->pantalla_actual++;
         gs->levi.x = -20; 
+        gs->camara.x = 0;
     }
 
     if(gs->levi.x+35 <= 0 && gs->pantalla_actual > 0)
     {
         gs->pantalla_actual--;
-        gs->levi.x = SCREEN_X - 70;
+        anchoPantalla = gs->pantalla[gs->pantalla_actual].ancho * TAM_CELDA;
+        gs->levi.x = anchoPantalla - 70;
 
         if(gs->pantalla[gs->pantalla_actual].pantallaCargada == false)
         {
@@ -170,7 +179,7 @@ void transicion_pantalla(s_GameState *gs, s_Assets *assets) //Efecto de transici
 
 void hitbox_levi(s_GameState *gs, s_Assets *assets) //Actualiza la hitbox del personaje principal
 {
-    gs->levi.hitbox.alto = al_get_bitmap_height(assets->levi.levi_parado)*2;
+    gs->levi.hitbox.alto = al_get_bitmap_height(assets->levi.levi);
     gs->levi.hitbox.ancho = LEVI_HB_RECORTE - 10;
     gs->levi.hitbox.x = gs->levi.x + LEVI_HB_RECORTE;
     gs->levi.hitbox.y = gs->levi.y;
@@ -215,6 +224,7 @@ void comprueba_colision(s_GameState *gs) //Comprueba si la hitbox del personaje 
     colision_ODM(gs);
     if(gs->levi.dash.activo == true)
         colision_levi_dash(gs);
+    colision_levi_elementos(gs);
     //Hacer funcion de detectar colision entre titan y estructuras(del mapa) para ponerles gravedad
 
 }
@@ -294,7 +304,7 @@ void colision_levi_mapa(s_GameState *gs)
 
     for(i=0;i<gs->pantalla[pA].num_hitbox;i++) //Bucle para comparar hitbox y encontrar la coincidente
         {
-            if(colision(gs, gs->levi.hitbox, gs->pantalla[pA].hitbox[i]) && gs->pantalla[pA].hitbox[i].tipo == 0)
+            if(colision(gs, gs->levi.hitbox, gs->pantalla[pA].hitbox[i]))
             {
                 //Define las distancias con las paredes
                 distancia_izquierda = (gs->levi.hitbox.x + gs->levi.hitbox.ancho) - gs->pantalla[pA].hitbox[i].x;
@@ -322,7 +332,7 @@ void colision_levi_mapa(s_GameState *gs)
 
             }
 
-            else if(gs->pantalla[pA].hitbox[i].tipo == 1)
+            /*else if(gs->pantalla[pA].hitbox[i].tipo == 1)
             {
                 //Define las distancias con las paredes
                 distancia_izquierda = (gs->levi.hitbox.x + gs->levi.hitbox.ancho) - gs->pantalla[pA].hitbox[i].x;
@@ -338,7 +348,7 @@ void colision_levi_mapa(s_GameState *gs)
                     gs->levi.x = gs->pantalla[pA].hitbox[i].x + gs->pantalla[pA].hitbox[i].ancho - LEVI_HB_RECORTE;
 
                 else if(distancia_abajo < distancia_arriba && distancia_abajo < distancia_izquierda && distancia_abajo < distancia_derecha)
-                    gs->levi.y = gs->pantalla[pA].hitbox[i].y + gs->pantalla[pA].hitbox[i].alto;*/
+                    gs->levi.y = gs->pantalla[pA].hitbox[i].y + gs->pantalla[pA].hitbox[i].alto;
 
                 if(distancia_arriba < distancia_abajo && distancia_arriba < distancia_izquierda && distancia_arriba < distancia_derecha)
                 {
@@ -346,19 +356,20 @@ void colision_levi_mapa(s_GameState *gs)
                     gs->levi.velocidadY = 0;
                     gs->levi.levi_suelo = true; //Habilita levi_suelo, lo que hace que lo habilite a dar un salto
                     gs->levi.doble_salto = true;
-                }
+                }*/
             }
 
-        }
 }
 
 void colision_ODM(s_GameState *gs)
 {
     int pA = gs->pantalla_actual, i;
     float cx, cy;
+    float mouseX = gs->input.mouseX + gs->camara.x;
+    float mouseY = gs->input.mouseY + gs->camara.y;
 
-    gs->levi.hitboxODM.x = gs->input.mouseX / gs->escala;
-    gs->levi.hitboxODM.y = gs->input.mouseY / gs->escala;
+    gs->levi.hitboxODM.x = mouseX / gs->escala;
+    gs->levi.hitboxODM.y = mouseY / gs->escala;
     gs->levi.hitboxODM.ancho = 5;
     gs->levi.hitboxODM.alto = 5;
 
@@ -370,8 +381,8 @@ void colision_ODM(s_GameState *gs)
                 /*gs->levi.x = (gs->input.mouseX / gs->escala) - LEVI_HB_RECORTE - gs->levi.hitbox.ancho/2;
                 gs->levi.y = gs->input.mouseY / gs->escala;*/
 
-                cx = (gs->input.mouseX/gs->escala) - (gs->levi.x + gs->levi.hitbox.ancho); //Calcula cateto x 
-                cy = (gs->input.mouseY/gs->escala) - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
+                cx = (mouseX/gs->escala) - (gs->levi.x + gs->levi.hitbox.ancho); //Calcula cateto x 
+                cy = (mouseY/gs->escala) - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
                 gs->levi.ODM.distanciaRestante = sqrt(cx*cx + cy*cy); //Calcula la hipotenusa (distancia de levi al punto)
 
                 gs->levi.ODM.activo = true;
@@ -380,14 +391,14 @@ void colision_ODM(s_GameState *gs)
                 gs->levi.ODM.velocidadODM = 1;
             }
 
-        for(i = 0; i < gs->pantalla[pA].num_hitboxObjetos; i++)
-            if(gs->pantalla[pA].hitboxObjetos[i].tipo == 1 && colision(gs, gs->levi.hitboxODM, gs->pantalla[pA].hitboxObjetos[i]))
+        for(i = 0; i < gs->pantalla[pA].num_elementos; i++)
+            if(gs->pantalla[pA].elementos[i].tipo == 1 && colision(gs, gs->levi.hitboxODM, gs->pantalla[pA].elementos[i].hitbox))
             {
                 /*gs->levi.x = (gs->input.mouseX / gs->escala) - LEVI_HB_RECORTE - gs->levi.hitbox.ancho/2;
                 gs->levi.y = gs->input.mouseY / gs->escala;*/
 
-                cx = (gs->input.mouseX/gs->escala) - (gs->levi.x + gs->levi.hitbox.ancho); //Calcula cateto x 
-                cy = (gs->input.mouseY/gs->escala) - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
+                cx = (mouseX/gs->escala) - (gs->levi.x + gs->levi.hitbox.ancho); //Calcula cateto x 
+                cy = (mouseY/gs->escala) - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
                 gs->levi.ODM.distanciaRestante = sqrt(cx*cx + cy*cy); //Calcula la hipotenusa (distancia de levi al punto)
 
                 gs->levi.ODM.activo = true;
@@ -402,7 +413,6 @@ void colision_ODM(s_GameState *gs)
     if(gs->levi.ODM.activo)
         {
             printf("ODM Activo\n");
-            printf("Levi y = %.2f\n", gs->levi.y);
             gs->levi.x += gs->levi.ODM.dirX * gs->levi.ODM.velocidadODM;
             gs->levi.y += gs->levi.ODM.dirY * gs->levi.ODM.velocidadODM;
             gs->levi.ODM.distanciaRestante -= gs->levi.ODM.velocidadODM;
@@ -421,14 +431,16 @@ void colision_ODM(s_GameState *gs)
 void levi_dash(s_GameState *gs)
 {
     float cx, cy, distancia; //Catetos e hipotenusa
+    float mouseX = gs->input.mouseX + gs->camara.x;
+    float mouseY = gs->input.mouseY + gs->camara.y;
 
     if(gs->input.keyF == true && gs->levi.dash.activo == false && gs->levi.dash.cooldown <= 0)
     {
         if(colision(gs, gs->levi.hitboxODM, gs->pantalla[gs->pantalla_actual].hitbox[0]) && gs->levi.levi_suelo) 
             return; //Evita bug de activar dash con el mouse en el suelo
 
-        cx = (gs->input.mouseX/gs->escala) - (gs->levi.x + gs->levi.hitbox.ancho); //Calcula cateto x 
-        cy = (gs->input.mouseY/gs->escala) - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
+        cx = (mouseX/gs->escala) - (gs->levi.x + gs->levi.hitbox.ancho); //Calcula cateto x 
+        cy = (mouseY/gs->escala) - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
         distancia = sqrt(cx*cx + cy*cy); //Calcula la hipotenusa (distancia de levi al punto)
 
         gs->levi.dash.activo = true;
@@ -436,7 +448,8 @@ void levi_dash(s_GameState *gs)
         gs->levi.dash.cooldown = 1; 
         gs->levi.dash.dashX = cx/distancia; //Direccion x del dash (coseno)
         gs->levi.dash.dashY = cy/distancia; //Direccion y del dash (seno)
-        if(gs->levi.dash.dashY < 0) //Si el dash es hacia arriba activa esta variable
+        gs->levi.ODM.activo = false;
+        if(gs->levi.dash.dashY < 0 && gs->levi.levi_suelo == true) //Si el dash es hacia arriba activa esta variable
             gs->levi.dash.frameActivacion = true; //Sirve para ignorar por 1 frame las colisiones del mapa, asi permite despegar el dash si esta en suelo
     }
 
@@ -497,7 +510,48 @@ void colision_levi_dash(s_GameState *gs)
 
         }
 
+}
+
+void colision_levi_elementos(s_GameState *gs)
+{
+    int i, pA = gs->pantalla_actual, nE = gs->pantalla[pA].num_elementos;
+
+    for(i=0;i<nE;i++)
+        if(colision(gs, gs->levi.hitbox, gs->pantalla[pA].elementos[i].hitbox) && gs->pantalla[pA].elementos[i].activo && gs->pantalla[pA].elementos[i].tipo == 2)
+        {
+            gs->levi.inventario.escudos++;
+            gs->pantalla[pA].elementos[i].activo = false;
+        }
+}
+
+void camara_scroll(s_GameState *gs)
+{
+    float bordeDer = gs->camara.x + SCREEN_X - BORDE_CAM - 150;
+    float bordeIzq = gs->camara.x + BORDE_CAM;
+    float leviX = gs->levi.x + 48;
+    float anchoPantalla = gs->pantalla[gs->pantalla_actual].ancho * TAM_CELDA;
+
+    if(leviX < bordeIzq)
+        gs->camara.x = leviX - BORDE_CAM;
+
+    else if(leviX > bordeDer)
+    {
+        gs->camara.x = leviX - (SCREEN_X - BORDE_CAM - 150);
+        printf("%.1f\n",gs->camara.x);
+    }
+
+    if(gs->camara.x < 0)
+        gs->camara.x = 0;
+
+    if(anchoPantalla > SCREEN_X)
+    {
+        if(gs->camara.x > anchoPantalla - SCREEN_X)
+            gs->camara.x = anchoPantalla - SCREEN_X;
+    }
+    else
+        gs->camara.x = 0;
 
 }
+
 
 //================================================//
