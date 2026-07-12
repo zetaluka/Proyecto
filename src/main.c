@@ -14,10 +14,10 @@ int main(void) {
    ALLEGRO_TIMER* timer_fps = al_create_timer(1.0/FPS);
    ALLEGRO_EVENT evento;
    ALLEGRO_EVENT_QUEUE* queue = al_create_event_queue();
-   ALLEGRO_DISPLAY* screen = al_create_display(1280, 720);
-   al_register_event_source(queue, al_get_display_event_source(screen));
+   ALLEGRO_DISPLAY* display = al_create_display(1920, 1080);
+   al_register_event_source(queue, al_get_display_event_source(display));
    
-   al_set_window_title(screen,"CodeNoKyojin");
+   al_set_window_title(display,"CodeNoKyojin");
 
    al_register_event_source(queue, al_get_mouse_event_source());
    al_register_event_source(queue, al_get_keyboard_event_source());
@@ -33,7 +33,7 @@ int main(void) {
    s_GameState gs = {0};
    s_Assets assets;
    assets_load(&assets);
-   game_init(&gs, &assets);
+   game_init(&gs, &assets, display);
 
    while (gs.ejecutando) 
    {

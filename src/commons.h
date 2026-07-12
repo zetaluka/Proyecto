@@ -34,6 +34,8 @@
 #define BORDE_CAM 250
 #define BUFFER 200
 #define ALTO_SUELO 66
+#define LEVI_SS_ANCHO 96
+#define LEVI_SS_ALTO 68
 #define BLANCO al_map_rgb(220, 220, 220)
 
 
@@ -76,6 +78,24 @@ typedef struct{
     s_TitanesSprites titanes;
 
 } s_Assets;
+
+typedef enum
+{
+    IDLE,
+    CAMINANDO,
+    ATACANDO
+} e_EstadoLevi;
+
+typedef struct 
+{
+    int frameActual;
+    int contadorAnim;
+    int velocidadAnim;
+    int cantidadFrames;
+    bool repetir;
+    
+} s_Animacion;
+
 
 //==============================//
 
@@ -205,7 +225,7 @@ typedef enum {
     PANTALLA_MENU,
     PANTALLA_JUGANDO,
     PANTALLA_GAME_OVER
-} s_EstadoPantalla;
+} e_EstadoPantalla;
 
 typedef struct { //input.c actualiza a través de la variable s_GameState, update.c lo lee y reacciona.
     bool keyW;
@@ -227,6 +247,8 @@ typedef struct { //input.c actualiza a través de la variable s_GameState, updat
 typedef struct 
 {
     int carga_pantalla;
+    int screenX;
+    int screenY;
     FILE *fdata;
     bool cambioSentido;
     bool detenerEntidades;
@@ -243,8 +265,8 @@ typedef struct
 
 //====s_GameState====//
 typedef struct {
-    s_Temporizador tiempoJugado;
-    s_EstadoPantalla estadoPantalla;      
+    e_EstadoPantalla estadoPantalla;      
+    s_Temporizador tiempoJugado;    
     s_InputState input;  
     s_Levi levi;    
     s_Pantalla pantalla[MAXPANTALLAS];
@@ -261,7 +283,7 @@ typedef struct {
 
 
 //==========Prototipos de funciones==========//
-void game_init(s_GameState *gs, s_Assets *assets);
+void game_init(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display);
 void input_update(s_GameState *gs, ALLEGRO_EVENT* evento);
 void update(s_GameState *gs, s_Assets *assets);
 void render_gameview(s_GameState *gs, s_Assets *assets);

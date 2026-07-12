@@ -14,6 +14,7 @@ void colision_levi_ataque(s_GameState *gs);
 void colision_levi_mapa(s_GameState *gs);
 void colision_ODM(s_GameState *gs);
 void colision_levi_elementos(s_GameState *gs);
+void hitbox_mouse(s_GameState *gs);
 
 //====Funcion principal====//
 void update(s_GameState *gs, s_Assets *assets)
@@ -40,6 +41,7 @@ void update_jugando(s_GameState *gs, s_Assets *assets) //Funcion si para cuando 
     update_levi_movimiento(gs);
     cuadrado_prueba(gs);
     hitbox_levi(gs,assets);
+    hitbox_mouse(gs);
     levi_dash(gs);
     comprueba_colision(gs);
     camara_scroll(gs);
@@ -196,6 +198,15 @@ void cuadrado_prueba (s_GameState *gs)
         gs->variables.cambioSentido = false;
     if(gs->pantalla[0].hitbox[3].y <= 500)
         gs->variables.cambioSentido = true;
+
+}
+
+void hitbox_mouse(s_GameState *gs)
+{
+    gs->levi.hitboxODM.x = (gs->input.mouseX/gs->escala) + gs->camara.x;
+    gs->levi.hitboxODM.y = (gs->input.mouseY/gs->escala) + gs->camara.y;
+    gs->levi.hitboxODM.ancho = 5;
+    gs->levi.hitboxODM.alto = 5;
 
 }
 
@@ -365,13 +376,7 @@ void colision_ODM(s_GameState *gs)
 {
     int pA = gs->pantalla_actual, i;
     float cx, cy;
-    float mouseX = gs->input.mouseX + gs->camara.x;
-    float mouseY = gs->input.mouseY + gs->camara.y;
-
-    gs->levi.hitboxODM.x = mouseX / gs->escala;
-    gs->levi.hitboxODM.y = mouseY / gs->escala;
-    gs->levi.hitboxODM.ancho = 5;
-    gs->levi.hitboxODM.alto = 5;
+    float mouseX = gs->levi.hitboxODM.x, mouseY = gs->levi.hitboxODM.y;
 
     if(gs->input.ClickDer)
     {
@@ -381,8 +386,8 @@ void colision_ODM(s_GameState *gs)
                 /*gs->levi.x = (gs->input.mouseX / gs->escala) - LEVI_HB_RECORTE - gs->levi.hitbox.ancho/2;
                 gs->levi.y = gs->input.mouseY / gs->escala;*/
 
-                cx = (mouseX/gs->escala) - (gs->levi.x + gs->levi.hitbox.ancho); //Calcula cateto x 
-                cy = (mouseY/gs->escala) - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
+                cx = mouseX - (gs->levi.x + gs->levi.hitbox.ancho); //Calcula cateto x 
+                cy = mouseY - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
                 gs->levi.ODM.distanciaRestante = sqrt(cx*cx + cy*cy); //Calcula la hipotenusa (distancia de levi al punto)
 
                 gs->levi.ODM.activo = true;
@@ -397,8 +402,8 @@ void colision_ODM(s_GameState *gs)
                 /*gs->levi.x = (gs->input.mouseX / gs->escala) - LEVI_HB_RECORTE - gs->levi.hitbox.ancho/2;
                 gs->levi.y = gs->input.mouseY / gs->escala;*/
 
-                cx = (mouseX/gs->escala) - (gs->levi.x + gs->levi.hitbox.ancho); //Calcula cateto x 
-                cy = (mouseY/gs->escala) - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
+                cx = mouseX - (gs->levi.x + gs->levi.hitbox.ancho); //Calcula cateto x 
+                cy = mouseY - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
                 gs->levi.ODM.distanciaRestante = sqrt(cx*cx + cy*cy); //Calcula la hipotenusa (distancia de levi al punto)
 
                 gs->levi.ODM.activo = true;
@@ -431,16 +436,15 @@ void colision_ODM(s_GameState *gs)
 void levi_dash(s_GameState *gs)
 {
     float cx, cy, distancia; //Catetos e hipotenusa
-    float mouseX = gs->input.mouseX + gs->camara.x;
-    float mouseY = gs->input.mouseY + gs->camara.y;
+    float mouseX = gs->levi.hitboxODM.x, mouseY = gs->levi.hitboxODM.y;
 
     if(gs->input.keyF == true && gs->levi.dash.activo == false && gs->levi.dash.cooldown <= 0)
     {
         if(colision(gs, gs->levi.hitboxODM, gs->pantalla[gs->pantalla_actual].hitbox[0]) && gs->levi.levi_suelo) 
             return; //Evita bug de activar dash con el mouse en el suelo
 
-        cx = (mouseX/gs->escala) - (gs->levi.x + gs->levi.hitbox.ancho); //Calcula cateto x 
-        cy = (mouseY/gs->escala) - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
+        cx = mouseX - (gs->levi.x + gs->levi.hitbox.ancho); //Calcula cateto x 
+        cy = mouseY - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
         distancia = sqrt(cx*cx + cy*cy); //Calcula la hipotenusa (distancia de levi al punto)
 
         gs->levi.dash.activo = true;
@@ -526,32 +530,28 @@ void colision_levi_elementos(s_GameState *gs)
 
 void camara_scroll(s_GameState *gs)
 {
-    float bordeDer = gs->camara.x + SCREEN_X - BORDE_CAM - 150;
-    float bordeIzq = gs->camara.x + BORDE_CAM;
+    float bordeDer = gs->camara.x + SCREEN_X - BORDE_CAM - 150; //Limite derecho donde empieza a scrollear la camara
+    float bordeIzq = gs->camara.x + BORDE_CAM; //Limite izquierdo donde empieza a scrollear la camara
     float leviX = gs->levi.x + 48;
     float anchoPantalla = gs->pantalla[gs->pantalla_actual].ancho * TAM_CELDA;
 
-    if(leviX < bordeIzq)
-        gs->camara.x = leviX - BORDE_CAM;
+    if(leviX < bordeIzq) //Calcula cuando toca el limite izquierdo para que empiece a scrollear la camara, para luego r
+        gs->camara.x = leviX - BORDE_CAM; //Obtiene un valor de la camara para luego restarlo al dibujo y que la posicion de levi quede en donde deberia estar en una pantalla normal
 
-    else if(leviX > bordeDer)
-    {
-        gs->camara.x = leviX - (SCREEN_X - BORDE_CAM - 150);
-        printf("%.1f\n",gs->camara.x);
-    }
+    else if(leviX > bordeDer) //Calcula cuando toca el limite derecho para que empiece a scrollear la camara
+        gs->camara.x = leviX - (SCREEN_X - BORDE_CAM - 150); //Obtiene un valor de la camara para luego restarlo al dibujo y que la posicion de levi quede en donde deberia estar en una pantalla normal
 
-    if(gs->camara.x < 0)
+    if(gs->camara.x < 0) //Evita bugs
         gs->camara.x = 0;
 
-    if(anchoPantalla > SCREEN_X)
+    if(anchoPantalla > SCREEN_X) 
     {
-        if(gs->camara.x > anchoPantalla - SCREEN_X)
+        if(gs->camara.x > anchoPantalla - SCREEN_X) //Si levi se encuentra en el borde del mundo total no se mueve la camara
             gs->camara.x = anchoPantalla - SCREEN_X;
     }
     else
         gs->camara.x = 0;
 
 }
-
 
 //================================================//

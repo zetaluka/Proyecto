@@ -7,11 +7,13 @@ void genera_titan2(s_GameState *gs, s_Assets *assets, int j);
 void pos_levi(s_GameState *gs, s_Assets *assets, int i, int j);
 void grieta_ODM(s_GameState *gs, int i, int j);
 void genera_escudo_legion(s_GameState *gs, int i, int j);
+void actualiza_res(s_GameState *gs, ALLEGRO_DISPLAY *display);
 
 //====Funcion principal====//
-void game_init(s_GameState *gs, s_Assets *assets)
+void game_init(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display)
 {
-    gs->escala = 1.0f; //Variable que multiplica fondos, elementos, hitbox, etc. Para si en un futuro quiero cambiar de resolucion, redefino la variable y se escala todo.
+    //gs->escala = 1.0f; //Variable que multiplica fondos, elementos, hitbox, etc. Para si en un futuro quiero cambiar de resolucion, redefino la variable y se escala todo.
+    actualiza_res(gs, display);
     gs->ejecutando =1;
     gs->estadoPantalla = PANTALLA_JUGANDO;
     gs->pantalla_actual = 0;
@@ -39,6 +41,14 @@ void game_init(s_GameState *gs, s_Assets *assets)
     hitbox_init(gs);
 
     return;
+}
+
+void actualiza_res(s_GameState *gs, ALLEGRO_DISPLAY *display)
+{
+    gs->variables.screenX = al_get_display_width(display);
+    gs->variables.screenY = al_get_display_height(display);
+    gs->escala = (float)gs->variables.screenX / SCREEN_X;
+
 }
 
 void hitbox_init(s_GameState *gs)
