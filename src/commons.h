@@ -50,13 +50,14 @@ typedef struct
     ALLEGRO_BITMAP* cubo;
     ALLEGRO_BITMAP* grieta;
     ALLEGRO_BITMAP* escudoLegion;
+    ALLEGRO_BITMAP* casa1;
 
 } s_AssetsPantalla;
 
 
 typedef struct{
-    ALLEGRO_BITMAP* levi_parado;
-    ALLEGRO_BITMAP* levi;
+    ALLEGRO_BITMAP* levi_SS;
+    //ALLEGRO_BITMAP* levi;
 
 } s_LeviSprites;
 
@@ -92,6 +93,7 @@ typedef struct
     int contadorAnim;
     int velocidadAnim;
     int cantidadFrames;
+    bool levi_background; //Para cuando quiera dibujar a levi atras del todo
     bool repetir;
     
 } s_Animacion;
@@ -211,6 +213,8 @@ typedef struct
     s_Hitbox hitbox;
     s_Hitbox hitboxAtaque;
     s_Hitbox hitboxODM;
+    s_Animacion animacion;
+    e_EstadoLevi estadoLevi;
 } s_Levi;
 
 typedef struct
@@ -249,7 +253,9 @@ typedef struct
     int carga_pantalla;
     int screenX;
     int screenY;
+    float cooldownHitbox;
     FILE *fdata;
+    bool desactivarHitbox;
     bool cambioSentido;
     bool detenerEntidades;
     s_Hitbox titan1;
@@ -265,7 +271,7 @@ typedef struct
 
 //====s_GameState====//
 typedef struct {
-    e_EstadoPantalla estadoPantalla;      
+    e_EstadoPantalla estadoPantalla;     
     s_Temporizador tiempoJugado;    
     s_InputState input;  
     s_Levi levi;    

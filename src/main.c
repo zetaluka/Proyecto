@@ -14,7 +14,7 @@ int main(void) {
    ALLEGRO_TIMER* timer_fps = al_create_timer(1.0/FPS);
    ALLEGRO_EVENT evento;
    ALLEGRO_EVENT_QUEUE* queue = al_create_event_queue();
-   ALLEGRO_DISPLAY* display = al_create_display(1920, 1080);
+   ALLEGRO_DISPLAY* display = al_create_display(1280, 720);
    al_register_event_source(queue, al_get_display_event_source(display));
    
    al_set_window_title(display,"CodeNoKyojin");

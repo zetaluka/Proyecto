@@ -48,17 +48,17 @@ int carga_fuentes(s_Assets *assets)
 
 int carga_sprites_levi(s_Assets *assets)
 {
-    assets->levi.levi_parado = al_load_bitmap("assets/imgs/levi_parado.png");
-    if(!assets->levi.levi_parado){
-        printf("Error cargando levi_parado");
+    assets->levi.levi_SS = al_load_bitmap("assets/imgs/levi_spritesheet.png");
+    if(!assets->levi.levi_SS){
+        printf("Error cargando levi_spritesheet");
         exit(1);
     }
 
-    assets->levi.levi = al_load_bitmap("assets/imgs/levi.png");
+    /*assets->levi.levi = al_load_bitmap("assets/imgs/levi.png");
     if(!assets->levi.levi){
         printf("Error cargando levi.png");
         exit(1);
-    }
+    }*/
 
     return 0;
 }
@@ -110,6 +110,12 @@ int carga_objetos(s_Assets *assets)
     assets->assetsPantalla.escudoLegion = al_load_bitmap("assets/imgs/escudo_legion.png");
     if(!assets->assetsPantalla.escudoLegion){
         printf("Error cargando escudo_legion");
+        return 1;
+    }
+
+    assets->assetsPantalla.casa1 = al_load_bitmap("assets/imgs/casa1.png");
+    if(!assets->assetsPantalla.casa1){
+        printf("Error cargando casa1");
         return 1;
     }
 

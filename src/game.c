@@ -8,6 +8,7 @@ void pos_levi(s_GameState *gs, s_Assets *assets, int i, int j);
 void grieta_ODM(s_GameState *gs, int i, int j);
 void genera_escudo_legion(s_GameState *gs, int i, int j);
 void actualiza_res(s_GameState *gs, ALLEGRO_DISPLAY *display);
+void genera_casa1(s_GameState *gs, int i, int j);
 
 //====Funcion principal====//
 void game_init(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display)
@@ -28,6 +29,12 @@ void game_init(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display)
     gs->levi.levi_suelo = false;
     gs->levi.viendoDerecha = 1;
     gs->levi.cooldownAtaque = 0;
+    gs->levi.estadoLevi = IDLE;
+    gs->levi.animacion.frameActual = 0;
+    gs->levi.animacion.contadorAnim = 0;
+    gs->levi.animacion.cantidadFrames = 6;
+    gs->levi.animacion.velocidadAnim = 12;
+    gs->levi.animacion.repetir = true;
 
     //Inicia fdata
 
@@ -38,7 +45,6 @@ void game_init(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display)
     }
 
     mapa1(gs, assets);
-    hitbox_init(gs);
 
     return;
 }
@@ -135,6 +141,8 @@ void mapa1(s_GameState *gs, s_Assets *assets)
         printf("%d %d\n", fil, col);
     }
 
+    hitbox_init(gs);
+
     char mapa[fil][col];
 
     for(i=0;i<fil;i++)
@@ -169,6 +177,9 @@ void mapa1(s_GameState *gs, s_Assets *assets)
                     break;
                 case 'e':
                     genera_escudo_legion(gs, i, j);
+                    break;
+                case 'c':
+                    genera_casa1(gs, i, j);
                     break;
 
             }
@@ -266,4 +277,31 @@ void genera_escudo_legion(s_GameState *gs, int i, int j)
     gs->pantalla[pA].elementos[nE].activo = true;
     gs->pantalla[pA].num_elementos++;
     
+}
+
+void genera_casa1(s_GameState *gs, int i, int j)
+{
+    int pA = gs->pantalla_actual, cont;
+    int nE = gs->pantalla[pA].num_elementos;
+
+    if(nE >= MAXELEMENTOS)
+        return;
+
+    gs->pantalla[pA].elementos[nE].x = j*TAM_CELDA;
+    gs->pantalla[pA].elementos[nE].y = i*TAM_CELDA;
+    gs->pantalla[pA].elementos[nE].hitbox.x = gs->pantalla[pA].elementos[nE].x + 25;
+    gs->pantalla[pA].elementos[nE].hitbox.y = gs->pantalla[pA].elementos[nE].y + 61;
+    gs->pantalla[pA].elementos[nE].hitbox.alto = 248;
+    gs->pantalla[pA].elementos[nE].hitbox.ancho = 285;
+    gs->pantalla[pA].elementos[nE].hitbox.color = BLANCO;
+    gs->pantalla[pA].elementos[nE].tipo = 3;
+    gs->pantalla[pA].elementos[nE].activo = true;
+    gs->pantalla[pA].num_elementos++;
+
+    while(colision(gs, gs->pantalla[pA].elementos[nE].hitbox, gs->pantalla[pA].hitbox[0]) == false)
+        {
+            gs->pantalla[pA].elementos[nE].y++;
+            gs->pantalla[pA].elementos[nE].hitbox.y++;
+        }
+
 }

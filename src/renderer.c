@@ -33,10 +33,13 @@ void render_gameview(s_GameState *gs, s_Assets *assets)
 
 void levi_sprites(s_GameState *gs, s_Assets *assets)
 {
+    //Parametros al_draw_bitmap_region: spritesheet, frameX, frameY, ancho frame, alto frame, pos x, pos y, flags
+
     int leviX = round(gs->levi.x);
     int leviY = round(gs->levi.y);
+    int numFrameX = gs->levi.animacion.frameActual * LEVI_SS_ANCHO; //Calcula el frame a usar dependiendo del frame actual
 
-    al_draw_bitmap(assets->levi.levi, leviX, leviY, 0);
+    al_draw_bitmap_region(assets->levi.levi_SS, numFrameX, 0, LEVI_SS_ANCHO, LEVI_SS_ALTO, leviX, leviY, 0);
 }
 
 void jugando(s_Assets *assets, s_GameState *gs)
@@ -94,8 +97,7 @@ void pantalla_0(s_Assets *assets, s_GameState *gs)
     int pA = gs->pantalla_actual, nE = gs->pantalla[pA].num_elementos;
 
     al_draw_scaled_bitmap(assets->assetsPantalla.fondo_base, 0, 0,
-        al_get_bitmap_width(assets->assetsPantalla.fondo_base), al_get_bitmap_height(assets->assetsPantalla.fondo_base),
-        0, 0,
+        al_get_bitmap_width(assets->assetsPantalla.fondo_base), al_get_bitmap_height(assets->assetsPantalla.fondo_base), 0, 0,
         al_get_bitmap_width(assets->assetsPantalla.fondo_base)*2, al_get_bitmap_height(assets->assetsPantalla.fondo_base)*2, 0);
 
     for(int i = 0; i<nE; i++)
@@ -107,9 +109,13 @@ void pantalla_0(s_Assets *assets, s_GameState *gs)
                 al_get_bitmap_width(assets->assetsPantalla.grieta) * 1.5, al_get_bitmap_height(assets->assetsPantalla.grieta) * 1.5, 0);
 
         else if(gs->pantalla[pA].elementos[i].tipo == 2 && gs->pantalla[pA].elementos[i].activo == true)
-            al_draw_bitmap(assets->assetsPantalla.escudoLegion,
-                gs->pantalla[pA].elementos[i].x, gs->pantalla[pA].elementos[i].y, 0);
+            al_draw_bitmap(assets->assetsPantalla.escudoLegion, gs->pantalla[pA].elementos[i].x, gs->pantalla[pA].elementos[i].y, 0);
     }
+
+    for(int i = 0; i<nE; i++)
+        if(gs->pantalla[pA].elementos[i].tipo == 3)
+            al_draw_bitmap(assets->assetsPantalla.casa1, gs->pantalla[pA].elementos[i].x, gs->pantalla[pA].elementos[i].y, 0);
+
 }
 
 void pantalla_1(s_Assets *assets, s_GameState *gs)
@@ -118,8 +124,7 @@ void pantalla_1(s_Assets *assets, s_GameState *gs)
 
     //Agrega el fondo de la pantalla 1
     al_draw_scaled_bitmap(assets->assetsPantalla.fondo_titan_colosal, 0, 0,
-        al_get_bitmap_width(assets->assetsPantalla.fondo_titan_colosal), al_get_bitmap_height(assets->assetsPantalla.fondo_titan_colosal),
-        0, 0,
+        al_get_bitmap_width(assets->assetsPantalla.fondo_titan_colosal), al_get_bitmap_height(assets->assetsPantalla.fondo_titan_colosal), 0, 0,
         al_get_bitmap_width(assets->assetsPantalla.fondo_titan_colosal)*2, al_get_bitmap_height(assets->assetsPantalla.fondo_titan_colosal)*2, 0);
 
     for(int i = 0; i<nE; i++)
@@ -134,6 +139,7 @@ void pantalla_1(s_Assets *assets, s_GameState *gs)
             al_draw_bitmap(assets->assetsPantalla.escudoLegion,
                 gs->pantalla[pA].elementos[i].x, gs->pantalla[pA].elementos[i].y, 0);
     }
+    
 }
 
 void muestra_hitbox(s_GameState *gs, s_Assets *assets)
