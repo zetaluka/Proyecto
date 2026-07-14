@@ -37,9 +37,17 @@ void levi_sprites(s_GameState *gs, s_Assets *assets)
 
     int leviX = round(gs->levi.x);
     int leviY = round(gs->levi.y);
+    float leviXODM = gs->levi.hitbox.x;
+    float leviYODM = gs->levi.hitbox.y + 50;
     int numFrameX = gs->levi.animacion.frameActual * LEVI_SS_ANCHO; //Calcula el frame a usar dependiendo del frame actual
 
     al_draw_bitmap_region(assets->levi.levi_SS, numFrameX, 0, LEVI_SS_ANCHO, LEVI_SS_ALTO, leviX, leviY, 0);
+
+    if(gs->levi.ODM.engancheActivo == true || gs->levi.ODM.activo == true)
+    {
+        al_draw_line(leviXODM, leviYODM, (gs->levi.ODM.puntoEngancheX - 10), gs->levi.ODM.puntoEngancheY, al_map_rgb(70, 70, 70), 1);
+        al_draw_line((leviXODM + 20), leviYODM, (gs->levi.ODM.puntoEngancheX + 10), gs->levi.ODM.puntoEngancheY, al_map_rgb(70, 70, 70), 1);
+    }
 }
 
 void jugando(s_Assets *assets, s_GameState *gs)
@@ -115,6 +123,10 @@ void pantalla_0(s_Assets *assets, s_GameState *gs)
     for(int i = 0; i<nE; i++)
         if(gs->pantalla[pA].elementos[i].tipo == 3)
             al_draw_bitmap(assets->assetsPantalla.casa1, gs->pantalla[pA].elementos[i].x, gs->pantalla[pA].elementos[i].y, 0);
+
+    for(int i=0; i<5; i++)
+        if(gs->variables.grietas[i].x != 0)
+            al_draw_bitmap(assets->assetsPantalla.grietaODM, gs->variables.grietas[i].x - 11, gs->variables.grietas[i].y -4, 0);
 
 }
 

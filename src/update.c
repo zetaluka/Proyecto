@@ -14,11 +14,13 @@ void colision_levi_ataque(s_GameState *gs);
 void colision_levi_mapa(s_GameState *gs);
 void colision_ODM(s_GameState *gs);
 void colision_levi_elementos(s_GameState *gs);
+void inicia_ODM(s_GameState *gs, float *cx, float *cy);
 void hitbox_mouse(s_GameState *gs);
 void cambiar_animacion(s_GameState *gs, e_EstadoLevi nuevaAnim);
 void actualizar_animacion(s_GameState *gs);
 void activar_hitbox(s_GameState *gs);
-void desactivar_hitbox(s_GameState *gs);
+void desactivar_hitbox(s_GameState *gs, float tiempo);
+void vuelve_ODM(s_GameState *gs);
 
 //====Funcion principal====//
 void update(s_GameState *gs, s_Assets *assets)
@@ -77,6 +79,33 @@ void update_levi_movimiento(s_GameState *gs)
     //printf("%f",gs->levi.velocidadY);
     cambiar_animacion(gs, IDLE);
 
+    //====Doble salto====//
+    if(gs->input.keySpace == 1 && gs->levi.levi_suelo) //Salto y habilita doble salto
+        {
+            gs->levi.velocidadY = -10;
+            gs->levi.levi_suelo = false;
+            gs->levi.doble_salto = true;
+            gs->input.keySpace = 0;
+            gs->levi.dash.tiempoRecuperacionDash = 0;
+            gs->levi.ODM.activo = false;
+        }
+
+    if(gs->input.keySpace == 1 && gs->levi.doble_salto) //Confirma si doble salto esta habilitado
+    {
+        gs->levi.velocidadY = -15;
+        gs->levi.doble_salto = false;
+        gs->input.keySpace = 0;
+        gs->levi.dash.tiempoRecuperacionDash = 0;
+        gs->levi.ODM.activo = false;
+    }
+
+    //Gravedad
+    if(!gs->levi.dash.activo && !gs->levi.ODM.activo)
+    {
+        gs->levi.velocidadY += 0.8f; //Lo hace moverse todo el rato hacia abajo
+        gs->levi.y = gs->levi.y + gs->levi.velocidadY;
+    }
+
     if(gs->levi.ODM.activo == true)
         gs->levi.levi_suelo = false;
 
@@ -123,34 +152,7 @@ void update_levi_movimiento(s_GameState *gs)
     }
 
     if(gs->input.keyS && gs->levi.levi_suelo)
-        desactivar_hitbox(gs);
-
-    //====Doble salto====//
-    if(gs->input.keySpace == 1 && gs->levi.levi_suelo) //Salto y habilita doble salto
-        {
-            gs->levi.velocidadY = -10;
-            gs->levi.levi_suelo = false;
-            gs->levi.doble_salto = true;
-            gs->input.keySpace = 0;
-            gs->levi.dash.tiempoRecuperacionDash = 0;
-            gs->levi.ODM.activo = false;
-        }
-
-    if(gs->input.keySpace == 1 && gs->levi.doble_salto) //Confirma si doble salto esta habilitado
-    {
-        gs->levi.velocidadY = -15;
-        gs->levi.doble_salto = false;
-        gs->input.keySpace = 0;
-        gs->levi.dash.tiempoRecuperacionDash = 0;
-        gs->levi.ODM.activo = false;
-    }
-
-    //Gravedad
-    if(!gs->levi.dash.activo && !gs->levi.ODM.activo)
-    {
-        gs->levi.velocidadY += 0.8f; //Lo hace moverse todo el rato hacia abajo
-        gs->levi.y = gs->levi.y + gs->levi.velocidadY;
-    }
+        desactivar_hitbox(gs, 0.2f);
     
 }
 
@@ -290,29 +292,35 @@ void colision_levi_ataque(s_GameState *gs)
                 continue;
             if(colision(gs, gs->levi.hitboxAtaque, gs->pantalla[pA].entidades[i].hitboxNuca)) //Comprueba si pega en la nuca, si es asi rompe el bucle
             {
-                printf("Colision en la nuca\n");
-                printf("%d\n", gs->pantalla[pA].entidades[i].vida);
+                //printf("Colision en la nuca\n");
+                //printf("%d\n", gs->pantalla[pA].entidades[i].vida);
                 gs->pantalla[pA].entidades[i].vida = 0;
                 gs->pantalla[pA].entidades[i].activo = false;
-                printf("%d\n", gs->pantalla[pA].entidades[i].vida);
+                //printf("%d\n", gs->pantalla[pA].entidades[i].vida);
+                if(gs->pantalla[pA].entidades[i].vida <= 0) //Desactiva al titan en caso de que no tenga vida
+                {
+                    gs->pantalla[pA].entidades[i].activo = false;
+                    gs->levi.puntuacion += 500;
+                    printf("Puntuacion: %d\n",gs->levi.puntuacion);
+                }
                 continue;
             }
 
             if(colision(gs, gs->levi.hitboxAtaque, gs->pantalla[pA].entidades[i].hitboxTitan)) //Comprueba si pega en cualquier parte de la hitbox del titan
             {
-                printf("Colisiono\n");
-                printf("Titan %d vida antes: %d\n", i, gs->pantalla[pA].entidades[i].vida);
+                //printf("Colisiono\n");
+                //printf("Titan %d vida antes: %d\n", i, gs->pantalla[pA].entidades[i].vida);
                 gs->pantalla[pA].entidades[i].vida -= 100;
-                printf("Titan %d vida despues:%d\n", i, gs->pantalla[pA].entidades[i].vida);
+                //printf("Titan %d vida despues:%d\n", i, gs->pantalla[pA].entidades[i].vida);
+                if(gs->pantalla[pA].entidades[i].vida <= 0) //Desactiva al titan en caso de que no tenga vida
+                {
+                    gs->pantalla[pA].entidades[i].activo = false;
+                    gs->levi.puntuacion += 100;
+                    printf("Puntuacion: %d\n",gs->levi.puntuacion);
+                }
             }
-
-            if(gs->pantalla[pA].entidades[i].vida <= 0) //Desactiva al titan en caso de que no tenga vida
-                gs->pantalla[pA].entidades[i].activo = false;
-
         }
-
     }
-
 }
 
 void colision_levi_mapa(s_GameState *gs)
@@ -330,6 +338,8 @@ void colision_levi_mapa(s_GameState *gs)
         {
             if(colision(gs, gs->levi.hitbox, gs->pantalla[pA].hitbox[i]))
             {
+                if(gs->levi.ODM.activo && gs->levi.ODM.dirY < 0)
+                    continue;
                 //Define las distancias con las paredes
                 distancia_izquierda = (gs->levi.hitbox.x + gs->levi.hitbox.ancho) - gs->pantalla[pA].hitbox[i].x;
                 distancia_derecha = (gs->pantalla[pA].hitbox[i].x + gs->pantalla[pA].hitbox[i].ancho) - gs->levi.hitbox.x;
@@ -375,9 +385,38 @@ void colision_levi_mapa(s_GameState *gs)
 
 }
 
+void inicia_ODM(s_GameState *gs, float *cx, float *cy)
+{
+    if(gs->levi.ODM.activo)
+    {
+        gs->levi.ODM.velocidadODMPrevia = gs->levi.ODM.velocidadODM;
+        gs->levi.velocidadX = gs->levi.ODM.dirX * gs->levi.ODM.velocidadODMPrevia;
+        gs->levi.velocidadY = gs->levi.ODM.dirY * gs->levi.ODM.velocidadODMPrevia;
+        gs->levi.dash.tiempoRecuperacionDash = 1;
+        gs->levi.ODM.activo = false;
+        printf("%.1f\n", gs->levi.velocidadX);
+    }
+    else
+        gs->levi.ODM.velocidadODMPrevia = 1;
+
+    *cx = gs->levi.hitboxODM.x - (gs->levi.x + gs->levi.hitbox.ancho); //Calcula cateto x 
+    *cy = gs->levi.hitboxODM.y - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
+    gs->levi.ODM.distanciaRestanteEnganche = sqrt(*cx * *cx + *cy * *cy); //Calcula la hipotenusa (distancia de levi al punto)
+
+    gs->levi.ODM.engancheActivo = true;
+    gs->levi.ODM.dirX = *cx/gs->levi.ODM.distanciaRestanteEnganche;
+    gs->levi.ODM.dirY = *cy/gs->levi.ODM.distanciaRestanteEnganche;
+    gs->levi.ODM.velocidadODM = 1;
+    gs->levi.levi_vuelo = true;
+    gs->levi.ODM.puntoEngancheX = gs->levi.x + gs->levi.hitbox.ancho; 
+    gs->levi.ODM.puntoEngancheY = gs->levi.y + gs->levi.hitbox.alto; 
+    gs->levi.dash.frameActivacion = true;
+}
+
 void colision_ODM(s_GameState *gs)
 {
     int pA = gs->pantalla_actual, i;
+    int flag = 0;
     float cx, cy;
     float mouseX = gs->levi.hitboxODM.x, mouseY = gs->levi.hitboxODM.y;
 
@@ -385,57 +424,83 @@ void colision_ODM(s_GameState *gs)
     {
         for(i=0;i<gs->pantalla[pA].num_entidades;i++)
             if(colision(gs, gs->levi.hitboxODM, gs->pantalla[pA].entidades[i].hitboxTitan) && gs->pantalla[pA].entidades[i].activo == true)
-            {
-                /*gs->levi.x = (gs->input.mouseX / gs->escala) - LEVI_HB_RECORTE - gs->levi.hitbox.ancho/2;
-                gs->levi.y = gs->input.mouseY / gs->escala;*/
-
-                cx = mouseX - (gs->levi.x + gs->levi.hitbox.ancho); //Calcula cateto x 
-                cy = mouseY - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
-                gs->levi.ODM.distanciaRestante = sqrt(cx*cx + cy*cy); //Calcula la hipotenusa (distancia de levi al punto)
-
-                gs->levi.ODM.activo = true;
-                gs->levi.ODM.dirX = cx/gs->levi.ODM.distanciaRestante;
-                gs->levi.ODM.dirY = cy/gs->levi.ODM.distanciaRestante;
-                gs->levi.ODM.velocidadODM = 1;
-                gs->levi.levi_vuelo = true;
-            }
+                inicia_ODM(gs, &cx, &cy);
 
         for(i = 0; i < gs->pantalla[pA].num_elementos; i++)
             if((gs->pantalla[pA].elementos[i].tipo == 1 || gs->pantalla[pA].elementos[i].tipo == 3) && colision(gs, gs->levi.hitboxODM, gs->pantalla[pA].elementos[i].hitbox))
-            {
-                /*gs->levi.x = (gs->input.mouseX / gs->escala) - LEVI_HB_RECORTE - gs->levi.hitbox.ancho/2;
-                gs->levi.y = gs->input.mouseY / gs->escala;*/
-
-                cx = mouseX - (gs->levi.x + gs->levi.hitbox.ancho); //Calcula cateto x 
-                cy = mouseY - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
-                gs->levi.ODM.distanciaRestante = sqrt(cx*cx + cy*cy); //Calcula la hipotenusa (distancia de levi al punto)
-
-                gs->levi.ODM.activo = true;
-                gs->levi.ODM.dirX = cx/gs->levi.ODM.distanciaRestante;
-                gs->levi.ODM.dirY = cy/gs->levi.ODM.distanciaRestante;
-                gs->levi.ODM.velocidadODM = 1;
-                desactivar_hitbox(gs);
-            }
+                inicia_ODM(gs, &cx, &cy);
         
         gs->input.ClickDer = false;
     }
 
-    if(gs->levi.ODM.activo)
-        {
-            printf("ODM Activo\n");
-            gs->levi.x += gs->levi.ODM.dirX * gs->levi.ODM.velocidadODM;
-            gs->levi.y += gs->levi.ODM.dirY * gs->levi.ODM.velocidadODM;
-            gs->levi.ODM.distanciaRestante -= gs->levi.ODM.velocidadODM;
-            gs->levi.ODM.velocidadODM += 0.5f;
+    if(gs->levi.ODM.engancheActivo)
+    {
+        gs->levi.ODM.puntoEngancheX += gs->levi.ODM.dirX * 15;
+        gs->levi.ODM.puntoEngancheY += gs->levi.ODM.dirY * 15;
 
-            if(gs->levi.ODM.distanciaRestante <= 0)
-            {
-                gs->levi.ODM.activo = false;
-                gs->levi.velocidadX = gs->levi.ODM.dirX * gs->levi.ODM.velocidadODM;
-                gs->levi.velocidadY = gs->levi.ODM.dirY * gs->levi.ODM.velocidadODM;
-                gs->levi.dash.tiempoRecuperacionDash = 1;
+        gs->levi.ODM.distanciaRestanteEnganche -= 15;
+
+        if(gs->levi.ODM.distanciaRestanteEnganche <= 0)
+        {
+            desactivar_hitbox(gs, 0.5f);
+            mouseX = gs->levi.ODM.puntoEngancheX;
+            mouseY = gs->levi.ODM.puntoEngancheY;
+            gs->levi.ODM.activo = true;
+            gs->levi.ODM.engancheActivo = false;
+            cx = mouseX - (gs->levi.x + gs->levi.hitbox.ancho); //Calcula cateto x 
+            cy = mouseY - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
+            gs->levi.ODM.distanciaRestanteODM = sqrt(cx*cx + cy*cy);
+            for(int i=0;i<5;i++) //Elemento estetico, si el ODM engancha, deja unas grietas guardada en un arreglo, si el arreglo esta lleno, corre a la derecha las posiciones y reemplaza la ultima como la primera
+            {                    //de esta forma, siempre reemplaza la que mas tiempo lleve en pantalla
+                if(gs->variables.grietas[i].x == 0)
+                {
+                    gs->variables.grietas[i].x = gs->levi.ODM.puntoEngancheX;
+                    gs->variables.grietas[i].y = gs->levi.ODM.puntoEngancheY;
+                    break;
+                }
+                else if(gs->variables.grietas[i].x != 0)
+                    flag++;
+
+                if(flag == 5)
+                {
+                    s_Posiciones aux = gs->variables.grietas[4];
+
+                    for(int i=4;i>0;i--)
+                        gs->variables.grietas[i] = gs->variables.grietas[i-1];
+
+                    gs->variables.grietas[0] = aux;
+                    gs->variables.grietas[0].x = gs->levi.ODM.puntoEngancheX;
+                    gs->variables.grietas[0].y = gs->levi.ODM.puntoEngancheY;
+                }
             }
         }
+    }
+
+    if(gs->levi.ODM.activo)
+    {
+        //printf("ODM Activo\n");
+        cx = gs->levi.ODM.puntoEngancheX - (gs->levi.x + gs->levi.hitbox.ancho); //Calcula cateto x 
+        cy = gs->levi.ODM.puntoEngancheY - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
+        gs->levi.ODM.distanciaRestanteODM = sqrt(cx*cx + cy*cy);
+        
+        gs->levi.ODM.dirX = cx/gs->levi.ODM.distanciaRestanteODM;
+        gs->levi.ODM.dirY = cy/gs->levi.ODM.distanciaRestanteODM;
+
+        gs->levi.x += gs->levi.ODM.dirX * gs->levi.ODM.velocidadODM;
+        gs->levi.y += gs->levi.ODM.dirY * gs->levi.ODM.velocidadODM;
+
+        gs->levi.ODM.distanciaRestanteODM -= gs->levi.ODM.velocidadODM;
+        gs->levi.ODM.velocidadODM += 0.5f;
+
+        if(gs->levi.ODM.distanciaRestanteODM <= 0)
+        {
+            gs->levi.ODM.activo = false;
+            gs->levi.velocidadX = gs->levi.ODM.dirX * gs->levi.ODM.velocidadODM;
+            gs->levi.velocidadY = gs->levi.ODM.dirY * gs->levi.ODM.velocidadODM;
+            gs->levi.dash.tiempoRecuperacionDash = 1;
+            gs->levi.levi_vuelo = false;
+        }
+    }
 }
 
 void levi_dash(s_GameState *gs)
@@ -459,7 +524,7 @@ void levi_dash(s_GameState *gs)
         gs->levi.dash.dashY = cy/distancia; //Direccion y del dash (seno)
         gs->levi.ODM.activo = false;
         if(gs->levi.levi_suelo)
-            desactivar_hitbox(gs);
+            desactivar_hitbox(gs, 0.2f);
         if(gs->levi.dash.dashY < 0 && gs->levi.levi_suelo == true) //Si el dash es hacia arriba activa esta variable
             gs->levi.dash.frameActivacion = true; //Sirve para ignorar por 1 frame las colisiones del mapa, asi permite despegar el dash si esta en suelo
     }
@@ -611,18 +676,18 @@ void activar_hitbox(s_GameState *gs)
 
     if(gs->variables.cooldownHitbox <= 0)
         for(i=0;i<nE;i++)
-            if(gs->pantalla[pA].elementos[i].activo == false)
+            if(gs->pantalla[pA].elementos[i].activo == false && gs->pantalla[pA].elementos[i].tipo != 2)
                 gs->pantalla[pA].elementos[i].activo = true;
 
 }
 
-void desactivar_hitbox(s_GameState *gs)
+void desactivar_hitbox(s_GameState *gs, float tiempo)
 {
     for(int i=0;i<gs->pantalla[gs->pantalla_actual].num_elementos;i++)
         if(gs->pantalla[gs->pantalla_actual].elementos[i].tipo == 3)
         {
             gs->pantalla[gs->pantalla_actual].elementos[i].activo = false;
-            gs->variables.cooldownHitbox = 0.2f;
+            gs->variables.cooldownHitbox = tiempo;
             gs->variables.desactivarHitbox = true;
         }
 }

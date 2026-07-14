@@ -119,6 +119,12 @@ int carga_objetos(s_Assets *assets)
         return 1;
     }
 
+    assets->assetsPantalla.grietaODM = al_load_bitmap("assets/imgs/grietita.png");
+    if(!assets->assetsPantalla.grietaODM){
+        printf("Error cargando grietita");
+        return 1;
+    }
+
     return 0;
 
 }

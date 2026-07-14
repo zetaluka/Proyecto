@@ -51,6 +51,7 @@ typedef struct
     ALLEGRO_BITMAP* grieta;
     ALLEGRO_BITMAP* escudoLegion;
     ALLEGRO_BITMAP* casa1;
+    ALLEGRO_BITMAP* grietaODM;
 
 } s_AssetsPantalla;
 
@@ -100,6 +101,13 @@ typedef struct
 
 
 //==============================//
+
+typedef struct 
+{
+    float x;
+    float y;
+} s_Posiciones;
+
 
 typedef struct 
 {
@@ -186,11 +194,15 @@ typedef struct
     float cooldown;
     float tiempoRecuperacionODM;
     float velocidadODM;
-    float distanciaRestante;
-    float distanciaODM;
+    float distanciaRestanteEnganche;
+    float distanciaRestanteODM;
     float puntoEngancheX;
     float puntoEngancheY;
+    float auxPuntoEngancheX;
+    float auxPuntoEngancheY;
+    float velocidadODMPrevia;
     bool frameActivacion;
+    bool engancheActivo;
     bool activo;
 } s_ODM;
 
@@ -198,6 +210,7 @@ typedef struct
 typedef struct
 {
     int viendoDerecha;
+    int puntuacion;
     float gravedad;
     float cooldownAtaque;
     float x;
@@ -253,6 +266,7 @@ typedef struct
     int carga_pantalla;
     int screenX;
     int screenY;
+    s_Posiciones grietas[5];
     float cooldownHitbox;
     FILE *fdata;
     bool desactivarHitbox;
