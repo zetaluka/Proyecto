@@ -125,6 +125,12 @@ int carga_objetos(s_Assets *assets)
         return 1;
     }
 
+    assets->assetsPantalla.gas = al_load_bitmap("assets/imgs/gas.png");
+    if(!assets->assetsPantalla.gas){
+        printf("Error cargando gas");
+        return 1;
+    }
+
     return 0;
 
 }

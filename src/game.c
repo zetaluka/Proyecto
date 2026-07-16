@@ -69,8 +69,7 @@ void hitbox_init(s_GameState *gs)
             gs->pantalla[pA].hitbox[0] = (s_Hitbox){0 , (SCREEN_Y - 66), gs->pantalla[0].ancho*TAM_CELDA, 66, BLANCO}; //Suelo
             gs->pantalla[pA].hitbox[1] = (s_Hitbox){(-4), (-200), 4, (SCREEN_Y + 200), BLANCO}; //Limite izquierdo de la pantalla
             gs->pantalla[pA].hitbox[2] = (s_Hitbox){0, (-200), gs->pantalla[0].ancho*TAM_CELDA, 12, BLANCO }; //Limite superior de la pantalla
-            gs->pantalla[pA].hitbox[3] = (s_Hitbox){50, 600, 32, 32, BLANCO}; //Cuadrado de prueba
-            gs->pantalla[pA].num_hitbox = 4;
+            gs->pantalla[pA].num_hitbox = 3;
             break;
 
         case (MAXPANTALLAS - 1):
@@ -95,20 +94,29 @@ void mapa1(s_GameState *gs, s_Assets *assets)
 {
     int i = 0, j, pA = gs->pantalla_actual, fil, col;
     char linea[BUFFER];
-    
+
     for(i=0;i<3;i++)
     {
         if(fgets(linea, sizeof(linea), gs->variables.fdata) == NULL)
             exit(1);
 
-        if(linea[0] == '/' || linea[0] == '\0' || linea[0] == '\n')
+        if(strcmp(linea,"default\n") == 0)
         {
+            strcpy(gs->pantalla[pA].fondo, "fondo_base");
+            gs->pantalla[pA].alto = 22;
+            gs->pantalla[pA].ancho = 40;
             break;
+        }
+
+        if(linea[0] == '/' || linea[0] == '\0' || linea[0] == '\n' || linea[0] == '.')
+        {
+            i--;
+            continue;
         }
 
         if(i == 0)
         {
-            strcpy(gs->pantalla[pA].fondo, linea);
+            sscanf(linea, "%s", gs->pantalla[pA].fondo);
             printf("%s",gs->pantalla[pA].fondo);
         }
         

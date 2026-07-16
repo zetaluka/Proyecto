@@ -36,6 +36,7 @@
 #define ALTO_SUELO 66
 #define LEVI_SS_ANCHO 96
 #define LEVI_SS_ALTO 68
+#define MAXGAS 100
 #define BLANCO al_map_rgb(220, 220, 220)
 
 
@@ -52,6 +53,7 @@ typedef struct
     ALLEGRO_BITMAP* escudoLegion;
     ALLEGRO_BITMAP* casa1;
     ALLEGRO_BITMAP* grietaODM;
+    ALLEGRO_BITMAP* gas;
 
 } s_AssetsPantalla;
 
@@ -99,6 +101,16 @@ typedef struct
     
 } s_Animacion;
 
+typedef struct 
+{
+    int frameActual;
+    int contadorAnim;
+    int cantidadFrames;
+    int velocidadAnim;
+    float x;
+    float y;
+    bool activo;
+} s_EfectoGas;
 
 //==============================//
 
@@ -156,6 +168,7 @@ typedef struct
     s_Hitbox hitboxDeteccion;
     s_Hitbox hitboxNuca;
     bool activo;
+    bool enganchadoODM;
 } s_Entidades;
 
 typedef struct
@@ -164,7 +177,7 @@ typedef struct
     s_Entidades entidades[MAXENTIDADES];
     s_Elementos elementos[MAXELEMENTOS];
     bool pantallaCargada;
-    char fondo[20];
+    char fondo[30];
     int num_elementos;
     int num_entidades;
     int num_hitbox;
@@ -181,6 +194,8 @@ typedef struct
     float cooldown;
     float distanciaRestante;
     float tiempoRecuperacionDash;
+    int flagDash;
+    int cantDash;
     bool frameActivacion;
     bool activo;
     s_Hitbox hitboxDash;
@@ -283,6 +298,15 @@ typedef struct
 
 } s_Mapas;
 
+typedef struct 
+{
+    s_EfectoGas gas[MAXGAS];
+    int contGas;
+    int contGasDS;
+    bool gasDS;
+} s_Animaciones;
+
+
 //====s_GameState====//
 typedef struct {
     e_EstadoPantalla estadoPantalla;     
@@ -293,6 +317,7 @@ typedef struct {
     s_Variables variables;
     s_Mapas mapas;
     s_Camara camara;
+    s_Animaciones animaciones;
     int pantalla_actual;
     int nivel; 
     int lado_colision;

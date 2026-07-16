@@ -20,7 +20,11 @@ void cambiar_animacion(s_GameState *gs, e_EstadoLevi nuevaAnim);
 void actualizar_animacion(s_GameState *gs);
 void activar_hitbox(s_GameState *gs);
 void desactivar_hitbox(s_GameState *gs, float tiempo);
+void aumenta_dash(s_GameState *gs);
+void aumenta_puntuacion(s_GameState *gs, int i, char *tipo);
 void vuelve_ODM(s_GameState *gs);
+void genera_gas(s_GameState *gs);
+void actualizar_gas(s_GameState *gs);
 
 //====Funcion principal====//
 void update(s_GameState *gs, s_Assets *assets)
@@ -52,7 +56,9 @@ void update_jugando(s_GameState *gs, s_Assets *assets) //Funcion si para cuando 
     if(gs->variables.desactivarHitbox == true)
         activar_hitbox(gs);
     comprueba_colision(gs);
+    aumenta_dash(gs);
     actualizar_animacion(gs);
+    actualizar_gas(gs);
     camara_scroll(gs);
     transicion_pantalla(gs, assets);
 
@@ -97,6 +103,19 @@ void update_levi_movimiento(s_GameState *gs)
         gs->input.keySpace = 0;
         gs->levi.dash.tiempoRecuperacionDash = 0;
         gs->levi.ODM.activo = false;
+        gs->animaciones.gasDS = true;
+    }
+
+    if(gs->animaciones.gasDS)
+    {
+        gs->animaciones.contGasDS++;
+        genera_gas(gs);
+
+        if(gs->animaciones.contGasDS >= 15)
+        {
+            gs->animaciones.gasDS = false;
+            gs->animaciones.contGasDS = 0;
+        }
     }
 
     //Gravedad
@@ -165,6 +184,11 @@ void transicion_pantalla(s_GameState *gs, s_Assets *assets) //Efecto de transici
         gs->pantalla_actual++;
         gs->levi.x = -20; 
         gs->camara.x = 0;
+        for(int i=0;i<5;i++)
+        {
+            gs->variables.grietas[i].x = 0;
+            gs->variables.grietas[i].y = 0;
+        }
     }
 
     if(gs->levi.x+35 <= 0 && gs->pantalla_actual > 0)
@@ -177,6 +201,12 @@ void transicion_pantalla(s_GameState *gs, s_Assets *assets) //Efecto de transici
         {
             hitbox_init(gs);
             gs->pantalla[gs->pantalla_actual].pantallaCargada = true;
+        }
+
+        for(int i=0;i<5;i++)
+        {
+            gs->variables.grietas[i].x = 0;
+            gs->variables.grietas[i].y = 0;
         }
     }
 
@@ -285,7 +315,7 @@ void colision_levi_ataque(s_GameState *gs)
     if(gs->input.ClickIzq && gs->levi.cooldownAtaque <= 0)
     {
         gs->levi.cooldownAtaque = 0.75f;
-        printf("Ataque\n");
+        //printf("Ataque\n");
         for(i=0;i<gs->pantalla[pA].num_entidades;i++)
         {
             if(gs->pantalla[pA].entidades[i].activo == false)
@@ -301,6 +331,7 @@ void colision_levi_ataque(s_GameState *gs)
                 {
                     gs->pantalla[pA].entidades[i].activo = false;
                     gs->levi.puntuacion += 500;
+                    gs->levi.dash.flagDash++;
                     printf("Puntuacion: %d\n",gs->levi.puntuacion);
                 }
                 continue;
@@ -321,6 +352,30 @@ void colision_levi_ataque(s_GameState *gs)
             }
         }
     }
+}
+
+void aumenta_dash(s_GameState *gs)
+{
+    int numDash = 0;
+
+    if(gs->levi.dash.flagDash >= 2)
+    {
+        if(gs->levi.dash.flagDash%2 == 0)
+        {
+            numDash = gs->levi.dash.flagDash / 2;
+            gs->levi.dash.cantDash += numDash;
+            gs->levi.dash.flagDash = 0;
+        }
+        else if(gs->levi.dash.flagDash % 2 != 0)
+        {
+            gs->levi.dash.flagDash--;
+            numDash = gs->levi.dash.flagDash / 2;
+            gs->levi.dash.cantDash += numDash;
+            gs->levi.dash.flagDash = 0;
+            gs->levi.dash.flagDash++;
+        }
+    }
+
 }
 
 void colision_levi_mapa(s_GameState *gs)
@@ -384,6 +439,46 @@ void colision_levi_mapa(s_GameState *gs)
         }
 
 }
+void genera_gas(s_GameState *gs)
+{
+    int i;
+
+    for(i=0;i<MAXGAS;i++)
+        if(gs->animaciones.gas[i].activo == false) //Inicializa un efecto de gas
+        {
+            gs->animaciones.gas[i].x = gs->levi.hitbox.x;
+            gs->animaciones.gas[i].y = gs->levi.hitbox.y;
+            gs->animaciones.gas[i].cantidadFrames = 8;
+            gs->animaciones.gas[i].velocidadAnim = 9;
+            gs->animaciones.gas[i].frameActual = 0;
+            gs->animaciones.gas[i].contadorAnim = 0;
+            gs->animaciones.gas[i].activo = true;
+            return;
+        }
+}
+
+void actualizar_gas(s_GameState *gs)
+{
+    int i;
+
+    for(i=0;i<MAXGAS; i++)
+    {
+        if(gs->animaciones.gas[i].activo == false)
+            continue;
+
+        gs->animaciones.gas[i].contadorAnim++;
+
+        if(gs->animaciones.gas[i].contadorAnim >= gs->animaciones.gas[i].velocidadAnim)
+        {
+            gs->animaciones.gas[i].contadorAnim = 0;
+            gs->animaciones.gas[i].frameActual++;
+
+            if(gs->animaciones.gas[i].frameActual >= gs->animaciones.gas[i].cantidadFrames) //Cuando termina la animacion del gas lo desactiva
+                gs->animaciones.gas[i].activo = false;
+
+        }
+    }
+}
 
 void inicia_ODM(s_GameState *gs, float *cx, float *cy)
 {
@@ -394,7 +489,6 @@ void inicia_ODM(s_GameState *gs, float *cx, float *cy)
         gs->levi.velocidadY = gs->levi.ODM.dirY * gs->levi.ODM.velocidadODMPrevia;
         gs->levi.dash.tiempoRecuperacionDash = 1;
         gs->levi.ODM.activo = false;
-        printf("%.1f\n", gs->levi.velocidadX);
     }
     else
         gs->levi.ODM.velocidadODMPrevia = 1;
@@ -424,7 +518,10 @@ void colision_ODM(s_GameState *gs)
     {
         for(i=0;i<gs->pantalla[pA].num_entidades;i++)
             if(colision(gs, gs->levi.hitboxODM, gs->pantalla[pA].entidades[i].hitboxTitan) && gs->pantalla[pA].entidades[i].activo == true)
+            {
                 inicia_ODM(gs, &cx, &cy);
+                break;
+            }
 
         for(i = 0; i < gs->pantalla[pA].num_elementos; i++)
             if((gs->pantalla[pA].elementos[i].tipo == 1 || gs->pantalla[pA].elementos[i].tipo == 3) && colision(gs, gs->levi.hitboxODM, gs->pantalla[pA].elementos[i].hitbox))
@@ -450,7 +547,7 @@ void colision_ODM(s_GameState *gs)
             cx = mouseX - (gs->levi.x + gs->levi.hitbox.ancho); //Calcula cateto x 
             cy = mouseY - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
             gs->levi.ODM.distanciaRestanteODM = sqrt(cx*cx + cy*cy);
-            for(int i=0;i<5;i++) //Elemento estetico, si el ODM engancha, deja unas grietas guardada en un arreglo, si el arreglo esta lleno, corre a la derecha las posiciones y reemplaza la ultima como la primera
+            for(i=0;i<5;i++) //Elemento estetico, si el ODM engancha, deja unas grietas guardada en un arreglo, si el arreglo esta lleno, corre a la derecha las posiciones y reemplaza la ultima como la primera
             {                    //de esta forma, siempre reemplaza la que mas tiempo lleve en pantalla
                 if(gs->variables.grietas[i].x == 0)
                 {
@@ -465,7 +562,7 @@ void colision_ODM(s_GameState *gs)
                 {
                     s_Posiciones aux = gs->variables.grietas[4];
 
-                    for(int i=4;i>0;i--)
+                    for(i=4;i>0;i--)
                         gs->variables.grietas[i] = gs->variables.grietas[i-1];
 
                     gs->variables.grietas[0] = aux;
@@ -486,11 +583,13 @@ void colision_ODM(s_GameState *gs)
         gs->levi.ODM.dirX = cx/gs->levi.ODM.distanciaRestanteODM;
         gs->levi.ODM.dirY = cy/gs->levi.ODM.distanciaRestanteODM;
 
-        gs->levi.x += gs->levi.ODM.dirX * gs->levi.ODM.velocidadODM;
+        gs->levi.x += gs->levi.ODM.dirX * gs->levi.ODM.velocidadODM; //Desplaza a levi
         gs->levi.y += gs->levi.ODM.dirY * gs->levi.ODM.velocidadODM;
 
-        gs->levi.ODM.distanciaRestanteODM -= gs->levi.ODM.velocidadODM;
-        gs->levi.ODM.velocidadODM += 0.5f;
+        gs->levi.ODM.distanciaRestanteODM -= gs->levi.ODM.velocidadODM; //Resta la distancia restante
+        gs->levi.ODM.velocidadODM += 0.5f; //Aumenta la velocidad de levi
+
+        genera_gas(gs);
 
         if(gs->levi.ODM.distanciaRestanteODM <= 0)
         {
@@ -565,24 +664,35 @@ void colision_levi_dash(s_GameState *gs)
                 continue;
             if(colision(gs, gs->levi.dash.hitboxDash, gs->pantalla[pA].entidades[i].hitboxNuca)) //Comprueba si pega en la nuca, si es asi rompe el bucle
             {
-                printf("Colision en la nuca\n");
-                printf("%d\n", gs->pantalla[pA].entidades[i].vida);
+                //printf("Colision en la nuca\n");
+                //printf("%d\n", gs->pantalla[pA].entidades[i].vida);
                 gs->pantalla[pA].entidades[i].vida = 0;
                 gs->pantalla[pA].entidades[i].activo = false;
-                printf("%d\n", gs->pantalla[pA].entidades[i].vida);
+                
+                if(gs->pantalla[pA].entidades[i].vida <= 0)
+                {
+                    gs->pantalla[pA].entidades[i].activo = false;
+                    gs->levi.puntuacion += 500;
+                    printf("Puntuacion: %d\n", gs->levi.puntuacion); 
+                }
+                //printf("%d\n", gs->pantalla[pA].entidades[i].vida);
                 continue;
             }
 
             if(colision(gs, gs->levi.hitboxAtaque, gs->pantalla[pA].entidades[i].hitboxTitan)) //Comprueba si pega en cualquier parte de la hitbox del titan
             {
-                printf("Colisiono\n");
-                printf("Titan %d vida antes: %d\n", i, gs->pantalla[pA].entidades[i].vida);
+                //printf("Colisiono\n");
+                //printf("Titan %d vida antes: %d\n", i, gs->pantalla[pA].entidades[i].vida);       
                 gs->pantalla[pA].entidades[i].vida -= 75;
-                printf("Titan %d vida despues:%d\n", i, gs->pantalla[pA].entidades[i].vida);
-            }
 
-            if(gs->pantalla[pA].entidades[i].vida <= 0) //Desactiva al titan en caso de que no tenga vida
-                gs->pantalla[pA].entidades[i].activo = false;
+                if(gs->pantalla[pA].entidades[i].vida <= 0)
+                {
+                    gs->pantalla[pA].entidades[i].activo = false;
+                    gs->levi.puntuacion += 100;
+                    printf("Puntuacion: %d\n", gs->levi.puntuacion); 
+                }
+                //printf("Titan %d vida despues:%d\n", i, gs->pantalla[pA].entidades[i].vida);
+            }
 
         }
 
@@ -692,4 +802,33 @@ void desactivar_hitbox(s_GameState *gs, float tiempo)
         }
 }
 
+void aumenta_puntuacion(s_GameState *gs, int i, char *tipo)
+{
+    if(strcmp(tipo,"ataque/nuca") == 0)
+    {
+        gs->levi.puntuacion += 500;
+        gs->levi.dash.flagDash++;
+        printf("Puntuacion: %d\n", gs->levi.puntuacion); 
+    }
+
+    if(strcmp(tipo,"dash/nuca"))
+    {
+        gs->levi.puntuacion += 500;
+        gs->levi.dash.flagDash++;
+        printf("Puntuacion: %d\n", gs->levi.puntuacion); 
+    }
+
+    if(strcmp(tipo,"ataque/cuerpo"))
+    {
+        gs->levi.puntuacion += 100;
+        printf("Puntuacion: %d\n", gs->levi.puntuacion); 
+    }
+
+    if(strcmp(tipo,"dash/cuerpo"))
+    {
+        gs->levi.puntuacion += 500;
+        printf("Puntuacion: %d\n", gs->levi.puntuacion); 
+    }
+
+}
 //================================================//

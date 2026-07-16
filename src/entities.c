@@ -18,7 +18,8 @@ void pantalla_0_entidades(s_GameState *gs)
 
     if(gs->input.keyL == true)
     {
-        printf("\nNumero de entidades de la pantalla: %d, Activo: \n",gs->pantalla[pA].num_entidades, gs->pantalla[pA].entidades[1].activo);
+        printf("flagDash: %d\n", gs->levi.dash.flagDash);
+        printf("Cantidad de dashes: %d\n", gs->levi.dash.cantDash);
         gs->input.keyL = false;
     }
 
