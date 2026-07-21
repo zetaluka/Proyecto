@@ -40,17 +40,20 @@ void levi_sprites(s_GameState *gs, s_Assets *assets)
     int leviX = round(gs->levi.x);
     int leviY = round(gs->levi.y);
     float leviXODM = gs->levi.hitbox.x;
-    float leviYODM = gs->levi.hitbox.y + 50;
+    float leviYODM = gs->levi.hitbox.y + 40;
     int numFrameX = gs->levi.animacion.frameActual * LEVI_SS_ANCHO; //Calcula el frame a usar dependiendo del frame actual
 
     dibuja_gas(gs,assets);
 
-    al_draw_bitmap_region(assets->levi.levi_SS, numFrameX, 0, LEVI_SS_ANCHO, LEVI_SS_ALTO, leviX, leviY, 0);
+    if(gs->levi.animacion.rotarAnim == true)
+        al_draw_bitmap_region(assets->levi.levi_SS, numFrameX, gs->levi.animacion.fila_ss, LEVI_SS_ANCHO, LEVI_SS_ALTO, leviX, leviY, ALLEGRO_FLIP_HORIZONTAL);
+    else
+        al_draw_bitmap_region(assets->levi.levi_SS, numFrameX, gs->levi.animacion.fila_ss, LEVI_SS_ANCHO, LEVI_SS_ALTO, leviX, leviY, 0);
 
     if(gs->levi.ODM.engancheActivo == true || gs->levi.ODM.activo == true)
     {
         al_draw_line(leviXODM, leviYODM, (gs->levi.ODM.puntoEngancheX - 10), gs->levi.ODM.puntoEngancheY, al_map_rgb(70, 70, 70), 1);
-        al_draw_line((leviXODM + 20), leviYODM, (gs->levi.ODM.puntoEngancheX + 10), gs->levi.ODM.puntoEngancheY, al_map_rgb(70, 70, 70), 1);
+        al_draw_line((leviXODM + 20), leviYODM, (gs->levi.ODM.puntoEngancheX + 10), gs->levi.ODM.puntoEngancheY , al_map_rgb(70, 70, 70), 1);
     }
 }
 void dibuja_gas(s_GameState *gs, s_Assets *assets)
@@ -67,9 +70,9 @@ void dibuja_gas(s_GameState *gs, s_Assets *assets)
             continue;
 
         numFrameX = gas_ss_ancho * gs->animaciones.gas[i].frameActual; //Calcula el frame a ocupar
-        al_draw_scaled_bitmap(assets->assetsPantalla.gas, numFrameX, 0, gas_ss_ancho, gas_ss_ancho, gs->animaciones.gas[i].x - 10, gs->animaciones.gas[i].y + 48, gas_ss_ancho * 0.2f, 
+        al_draw_scaled_bitmap(assets->assetsPantalla.gas, numFrameX, 0, gas_ss_ancho, gas_ss_ancho, gs->animaciones.gas[i].x - 5, gs->animaciones.gas[i].y + 48, gas_ss_ancho * 0.2f, 
             gas_ss_ancho * 0.2f, 0);
-        al_draw_scaled_bitmap(assets->assetsPantalla.gas, numFrameX, 0, gas_ss_ancho, gas_ss_ancho, gs->animaciones.gas[i].x + 20, gs->animaciones.gas[i].y + 50, gas_ss_ancho * 0.2f, 
+        al_draw_scaled_bitmap(assets->assetsPantalla.gas, numFrameX, 0, gas_ss_ancho, gas_ss_ancho, gs->animaciones.gas[i].x + 10, gs->animaciones.gas[i].y + 50, gas_ss_ancho * 0.2f, 
             gas_ss_ancho * 0.2f, 0);
     }
 
@@ -136,67 +139,33 @@ void dibujar_fondo(s_GameState *gs, s_Assets *assets)
     }
 
     for(int i = 0; i<nE; i++)
-        if(gs->pantalla[pA].elementos[i].tipo == 3)
-            al_draw_bitmap(assets->assetsPantalla.casa1, gs->pantalla[pA].elementos[i].x, gs->pantalla[pA].elementos[i].y, 0);
+        if(gs->pantalla[pA].elementos[i].tipoCasa == 1)
+            al_draw_scaled_bitmap(assets->assetsPantalla.casa1, 0, 0, al_get_bitmap_width(assets->assetsPantalla.casa1), al_get_bitmap_height(assets->assetsPantalla.casa1),
+                gs->pantalla[pA].elementos[i].x, gs->pantalla[pA].elementos[i].y, al_get_bitmap_width(assets->assetsPantalla.casa1) * 0.3f,
+                al_get_bitmap_height(assets->assetsPantalla.casa1) * 0.3f, 0);
+
+    for(int i =0;i<nE;i++)
+        if(gs->pantalla[pA].elementos[i].tipoCasa == 2)
+            al_draw_scaled_bitmap(assets->assetsPantalla.casa2, 0, 0, al_get_bitmap_width(assets->assetsPantalla.casa2), al_get_bitmap_height(assets->assetsPantalla.casa2),
+                gs->pantalla[pA].elementos[i].x, gs->pantalla[pA].elementos[i].y, al_get_bitmap_width(assets->assetsPantalla.casa2) * 0.5f,
+                al_get_bitmap_height(assets->assetsPantalla.casa2) * 0.5f, 0);
+
+    for(int i =0;i<nE;i++)
+        if(gs->pantalla[pA].elementos[i].tipoCasa == 3)
+            al_draw_scaled_bitmap(assets->assetsPantalla.casa3, 0, 0, al_get_bitmap_width(assets->assetsPantalla.casa3), al_get_bitmap_height(assets->assetsPantalla.casa3),
+                gs->pantalla[pA].elementos[i].x, gs->pantalla[pA].elementos[i].y, al_get_bitmap_width(assets->assetsPantalla.casa3) * 0.4f,
+                al_get_bitmap_height(assets->assetsPantalla.casa3) * 0.4f, 0);
+
+    for(int i =0;i<nE;i++)
+        if(gs->pantalla[pA].elementos[i].tipoCasa == 4)
+            al_draw_scaled_bitmap(assets->assetsPantalla.puestoComida, 0, 0, al_get_bitmap_width(assets->assetsPantalla.puestoComida), al_get_bitmap_height(assets->assetsPantalla.puestoComida),
+                gs->pantalla[pA].elementos[i].x, gs->pantalla[pA].elementos[i].y, al_get_bitmap_width(assets->assetsPantalla.puestoComida) * 0.2f,
+                al_get_bitmap_height(assets->assetsPantalla.puestoComida) * 0.2f, 0);
 
     for(int i=0; i<5; i++)
         if(gs->variables.grietas[i].x != 0)
             al_draw_bitmap(assets->assetsPantalla.grietaODM, gs->variables.grietas[i].x - 11, gs->variables.grietas[i].y -4, 0);
 
-}
-
-void pantalla_0(s_Assets *assets, s_GameState *gs)
-{
-    int pA = gs->pantalla_actual, nE = gs->pantalla[pA].num_elementos;
-
-    al_draw_scaled_bitmap(assets->assetsPantalla.fondo_base, 0, 0,
-        al_get_bitmap_width(assets->assetsPantalla.fondo_base), al_get_bitmap_height(assets->assetsPantalla.fondo_base), 0, 0,
-        al_get_bitmap_width(assets->assetsPantalla.fondo_base)*2, al_get_bitmap_height(assets->assetsPantalla.fondo_base)*2, 0);
-
-    for(int i = 0; i<nE; i++)
-    {
-        if(gs->pantalla[pA].elementos[i].tipo == 1)
-            al_draw_scaled_bitmap(assets->assetsPantalla.grieta, 0, 0,
-                al_get_bitmap_width(assets->assetsPantalla.grieta), al_get_bitmap_height(assets->assetsPantalla.grieta),
-                gs->pantalla[pA].elementos[i].x, gs->pantalla[pA].elementos[i].y,
-                al_get_bitmap_width(assets->assetsPantalla.grieta) * 1.5, al_get_bitmap_height(assets->assetsPantalla.grieta) * 1.5, 0);
-
-        else if(gs->pantalla[pA].elementos[i].tipo == 2 && gs->pantalla[pA].elementos[i].activo == true)
-            al_draw_bitmap(assets->assetsPantalla.escudoLegion, gs->pantalla[pA].elementos[i].x, gs->pantalla[pA].elementos[i].y, 0);
-    }
-
-    for(int i = 0; i<nE; i++)
-        if(gs->pantalla[pA].elementos[i].tipo == 3)
-            al_draw_bitmap(assets->assetsPantalla.casa1, gs->pantalla[pA].elementos[i].x, gs->pantalla[pA].elementos[i].y, 0);
-
-    for(int i=0; i<5; i++)
-        if(gs->variables.grietas[i].x != 0)
-            al_draw_bitmap(assets->assetsPantalla.grietaODM, gs->variables.grietas[i].x - 11, gs->variables.grietas[i].y -4, 0);
-
-}
-
-void pantalla_1(s_Assets *assets, s_GameState *gs)
-{
-    int pA = gs->pantalla_actual, nE = gs->pantalla[pA].num_elementos;
-
-    //Agrega el fondo de la pantalla 1
-    al_draw_scaled_bitmap(assets->assetsPantalla.fondo_titan_colosal, 0, 0,
-        al_get_bitmap_width(assets->assetsPantalla.fondo_titan_colosal), al_get_bitmap_height(assets->assetsPantalla.fondo_titan_colosal), 0, 0,
-        al_get_bitmap_width(assets->assetsPantalla.fondo_titan_colosal)*2, al_get_bitmap_height(assets->assetsPantalla.fondo_titan_colosal)*2, 0);
-
-    for(int i = 0; i<nE; i++)
-    {
-        if(gs->pantalla[pA].elementos[i].tipo == 1)
-            al_draw_scaled_bitmap(assets->assetsPantalla.grieta, 0, 0,
-                al_get_bitmap_width(assets->assetsPantalla.grieta), al_get_bitmap_height(assets->assetsPantalla.grieta),
-                gs->pantalla[pA].elementos[i].x, gs->pantalla[pA].elementos[i].y,
-                al_get_bitmap_width(assets->assetsPantalla.grieta) * 1.5, al_get_bitmap_height(assets->assetsPantalla.grieta) * 1.5, 0);
-
-        else if(gs->pantalla[pA].elementos[i].tipo == 2 && gs->pantalla[pA].elementos[i].activo == true)
-            al_draw_bitmap(assets->assetsPantalla.escudoLegion,
-                gs->pantalla[pA].elementos[i].x, gs->pantalla[pA].elementos[i].y, 0);
-    }
-    
 }
 
 void muestra_hitbox(s_GameState *gs, s_Assets *assets)

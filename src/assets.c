@@ -119,6 +119,24 @@ int carga_objetos(s_Assets *assets)
         return 1;
     }
 
+    assets->assetsPantalla.casa2 = al_load_bitmap("assets/imgs/casa2.2.png");
+    if(!assets->assetsPantalla.casa2){
+        printf("Error cargando casa2");
+        return 1;
+    }
+
+    assets->assetsPantalla.casa3 = al_load_bitmap("assets/imgs/casa3.png");
+    if(!assets->assetsPantalla.casa3){
+        printf("Error cargando casa3");
+        return 1;
+    }
+
+    assets->assetsPantalla.puestoComida = al_load_bitmap("assets/imgs/puesto_comida.png");
+    if(!assets->assetsPantalla.puestoComida){
+        printf("Error cargando puesto_comida");
+        return 1;
+    }
+
     assets->assetsPantalla.grietaODM = al_load_bitmap("assets/imgs/grietita.png");
     if(!assets->assetsPantalla.grietaODM){
         printf("Error cargando grietita");
@@ -130,6 +148,7 @@ int carga_objetos(s_Assets *assets)
         printf("Error cargando gas");
         return 1;
     }
+
 
     return 0;
 

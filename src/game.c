@@ -9,6 +9,9 @@ void grieta_ODM(s_GameState *gs, int i, int j);
 void genera_escudo_legion(s_GameState *gs, int i, int j);
 void actualiza_res(s_GameState *gs, ALLEGRO_DISPLAY *display);
 void genera_casa1(s_GameState *gs, int i, int j);
+void genera_casa2(s_GameState *gs, int i, int j);
+void genera_casa3(s_GameState *gs, int i, int j);
+void genera_puesto_comida(s_GameState *gs, int i, int j);
 
 //====Funcion principal====//
 void game_init(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display)
@@ -189,6 +192,16 @@ void mapa1(s_GameState *gs, s_Assets *assets)
                 case 'c':
                     genera_casa1(gs, i, j);
                     break;
+                case 'C':
+                    genera_casa2(gs, i, j);
+                    break; 
+                case '3':
+                    genera_casa3(gs, i, j);
+                    break;
+
+                case 'p':
+                    genera_puesto_comida(gs, i, j);
+                    break;
 
             }
         }
@@ -297,12 +310,97 @@ void genera_casa1(s_GameState *gs, int i, int j)
 
     gs->pantalla[pA].elementos[nE].x = j*TAM_CELDA;
     gs->pantalla[pA].elementos[nE].y = i*TAM_CELDA;
-    gs->pantalla[pA].elementos[nE].hitbox.x = gs->pantalla[pA].elementos[nE].x + 25;
+    gs->pantalla[pA].elementos[nE].hitbox.x = gs->pantalla[pA].elementos[nE].x + 10;
     gs->pantalla[pA].elementos[nE].hitbox.y = gs->pantalla[pA].elementos[nE].y + 61;
-    gs->pantalla[pA].elementos[nE].hitbox.alto = 248;
+    gs->pantalla[pA].elementos[nE].hitbox.alto = 246;
     gs->pantalla[pA].elementos[nE].hitbox.ancho = 285;
     gs->pantalla[pA].elementos[nE].hitbox.color = BLANCO;
     gs->pantalla[pA].elementos[nE].tipo = 3;
+    gs->pantalla[pA].elementos[nE].tipoCasa = 1;
+    gs->pantalla[pA].elementos[nE].activo = true;
+    gs->pantalla[pA].num_elementos++;
+
+    while(colision(gs, gs->pantalla[pA].elementos[nE].hitbox, gs->pantalla[pA].hitbox[0]) == false)
+        {
+            gs->pantalla[pA].elementos[nE].y++;
+            gs->pantalla[pA].elementos[nE].hitbox.y++;
+        }
+
+}
+
+void genera_casa2(s_GameState *gs, int i, int j)
+{
+    int pA = gs->pantalla_actual, cont;
+    int nE = gs->pantalla[pA].num_elementos;
+
+    if(nE >= MAXELEMENTOS)
+        return;
+
+    gs->pantalla[pA].elementos[nE].x = j*TAM_CELDA;
+    gs->pantalla[pA].elementos[nE].y = i*TAM_CELDA;
+    gs->pantalla[pA].elementos[nE].hitbox.x = gs->pantalla[pA].elementos[nE].x + 50;
+    gs->pantalla[pA].elementos[nE].hitbox.y = gs->pantalla[pA].elementos[nE].y + 64;
+    gs->pantalla[pA].elementos[nE].hitbox.alto = 365;
+    gs->pantalla[pA].elementos[nE].hitbox.ancho = 635;
+    gs->pantalla[pA].elementos[nE].hitbox.color = BLANCO;
+    gs->pantalla[pA].elementos[nE].tipo = 3;
+    gs->pantalla[pA].elementos[nE].tipoCasa = 2;
+    gs->pantalla[pA].elementos[nE].activo = true;
+    gs->pantalla[pA].num_elementos++;
+
+    while(colision(gs, gs->pantalla[pA].elementos[nE].hitbox, gs->pantalla[pA].hitbox[0]) == false)
+        {
+            gs->pantalla[pA].elementos[nE].y++;
+            gs->pantalla[pA].elementos[nE].hitbox.y++;
+        }
+
+}
+
+void genera_casa3(s_GameState *gs, int i, int j)
+{
+    int pA = gs->pantalla_actual, cont;
+    int nE = gs->pantalla[pA].num_elementos;
+
+    if(nE >= MAXELEMENTOS)
+        return;
+
+    gs->pantalla[pA].elementos[nE].x = j*TAM_CELDA;
+    gs->pantalla[pA].elementos[nE].y = i*TAM_CELDA;
+    gs->pantalla[pA].elementos[nE].hitbox.x = gs->pantalla[pA].elementos[nE].x + 100;
+    gs->pantalla[pA].elementos[nE].hitbox.y = gs->pantalla[pA].elementos[nE].y + 58;
+    gs->pantalla[pA].elementos[nE].hitbox.alto = 318;
+    gs->pantalla[pA].elementos[nE].hitbox.ancho = 420;
+    gs->pantalla[pA].elementos[nE].hitbox.color = BLANCO;
+    gs->pantalla[pA].elementos[nE].tipo = 3;
+    gs->pantalla[pA].elementos[nE].tipoCasa = 3;
+    gs->pantalla[pA].elementos[nE].activo = true;
+    gs->pantalla[pA].num_elementos++;
+
+    while(colision(gs, gs->pantalla[pA].elementos[nE].hitbox, gs->pantalla[pA].hitbox[0]) == false)
+        {
+            gs->pantalla[pA].elementos[nE].y++;
+            gs->pantalla[pA].elementos[nE].hitbox.y++;
+        }
+
+}
+
+void genera_puesto_comida(s_GameState *gs, int i, int j)
+{
+    int pA = gs->pantalla_actual, cont;
+    int nE = gs->pantalla[pA].num_elementos;
+
+    if(nE >= MAXELEMENTOS)
+        return;
+
+    gs->pantalla[pA].elementos[nE].x = j*TAM_CELDA;
+    gs->pantalla[pA].elementos[nE].y = i*TAM_CELDA;
+    gs->pantalla[pA].elementos[nE].hitbox.x = gs->pantalla[pA].elementos[nE].x + 30;
+    gs->pantalla[pA].elementos[nE].hitbox.y = gs->pantalla[pA].elementos[nE].y + 35;
+    gs->pantalla[pA].elementos[nE].hitbox.alto = 150;
+    gs->pantalla[pA].elementos[nE].hitbox.ancho = 67;
+    gs->pantalla[pA].elementos[nE].hitbox.color = BLANCO;
+    gs->pantalla[pA].elementos[nE].tipo = 3;
+    gs->pantalla[pA].elementos[nE].tipoCasa = 4;
     gs->pantalla[pA].elementos[nE].activo = true;
     gs->pantalla[pA].num_elementos++;
 

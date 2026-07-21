@@ -25,6 +25,7 @@ void aumenta_puntuacion(s_GameState *gs, int i, char *tipo);
 void vuelve_ODM(s_GameState *gs);
 void genera_gas(s_GameState *gs);
 void actualizar_gas(s_GameState *gs);
+void actualizar_estado_levi(s_GameState *gs);
 
 //====Funcion principal====//
 void update(s_GameState *gs, s_Assets *assets)
@@ -49,7 +50,7 @@ void update_jugando(s_GameState *gs, s_Assets *assets) //Funcion si para cuando 
 {
     update_tiempo_jugado(gs);
     update_levi_movimiento(gs);
-    cuadrado_prueba(gs);
+    //actualizar_estado_levi(gs);
     hitbox_levi(gs,assets);
     hitbox_mouse(gs);
     levi_dash(gs);
@@ -83,18 +84,21 @@ void update_levi_movimiento(s_GameState *gs)
 { 
     bool bloqueaDerecha = false, bloqueaIzquierda = false;
     //printf("%f",gs->levi.velocidadY);
-    cambiar_animacion(gs, IDLE);
 
     //====Doble salto====//
     if(gs->input.keySpace == 1 && gs->levi.levi_suelo) //Salto y habilita doble salto
-        {
-            gs->levi.velocidadY = -10;
-            gs->levi.levi_suelo = false;
-            gs->levi.doble_salto = true;
-            gs->input.keySpace = 0;
-            gs->levi.dash.tiempoRecuperacionDash = 0;
-            gs->levi.ODM.activo = false;
-        }
+    {
+        gs->levi.velocidadY = -10;
+        gs->levi.levi_suelo = false;
+        gs->levi.doble_salto = true;
+        gs->input.keySpace = 0;
+        gs->levi.dash.tiempoRecuperacionDash = 0;
+        gs->levi.ODM.activo = false;
+        gs->levi.animacion.saltoActivo = true;
+        gs->levi.animacion.bloquearAnimacion = false;
+        gs->variables.bloquearControles = false;
+        cambiar_animacion(gs, SALTANDO);
+    }
 
     if(gs->input.keySpace == 1 && gs->levi.doble_salto) //Confirma si doble salto esta habilitado
     {
@@ -104,6 +108,11 @@ void update_levi_movimiento(s_GameState *gs)
         gs->levi.dash.tiempoRecuperacionDash = 0;
         gs->levi.ODM.activo = false;
         gs->animaciones.gasDS = true;
+        gs->levi.animacion.saltoActivo = true;
+        gs->levi.animacion.bloquearAnimacion = false;
+        gs->variables.bloquearControles = false;
+        cambiar_animacion(gs, SALTANDO);
+
     }
 
     if(gs->animaciones.gasDS)
@@ -123,6 +132,9 @@ void update_levi_movimiento(s_GameState *gs)
     {
         gs->levi.velocidadY += 0.8f; //Lo hace moverse todo el rato hacia abajo
         gs->levi.y = gs->levi.y + gs->levi.velocidadY;
+
+        if(gs->levi.velocidadY >= 0 && !gs->levi.ODM.activo && !gs->levi.dash.activo && !gs->levi.levi_suelo)
+            cambiar_animacion(gs, CAYENDO);
     }
 
     if(gs->levi.ODM.activo == true)
@@ -133,20 +145,31 @@ void update_levi_movimiento(s_GameState *gs)
 
     if(gs->levi.dash.tiempoRecuperacionDash >= 0)
     {
+        //printf("recuperacion=%f\n", gs->levi.dash.tiempoRecuperacionDash);
+
+       if(gs->levi.levi_suelo)
+            gs->levi.dash.tiempoRecuperacionDash = 0;
+
         gs->levi.dash.tiempoRecuperacionDash -= 1.0f/FPS;    
         gs->levi.velocidadX *= 0.9f; //Va bajando gradualmente la inercia horizontal
         gs->levi.velocidadY *= 0.9f; //Va bajando gradualmente la inercia vertical
 
-        if(gs->input.keyLShift == 1 && gs->input.keyD == 1) //Resta gradualmente la inercia
+        if(gs->input.keyLShift && gs->input.keyD) //Resta gradualmente la inercia
             gs->levi.velocidadX += 0.4f;
         
-        else if(gs->input.keyLShift == 1 && gs->input.keyA == 1) //Resta gradualmente la inercia
+        else if(gs->input.keyLShift && gs->input.keyA) //Resta gradualmente la inercia
+        {
             gs->levi.velocidadX -= 0.4f;
+            gs->levi.animacion.rotarAnim = true;
+        }
 
-        else if(gs->input.keyA == 1) //Resta gradualmente la inercia en menor cantidad
+        else if(gs->input.keyA) //Resta gradualmente la inercia en menor cantidad
+        {
             gs->levi.velocidadX -= 0.2f;
+            gs->levi.animacion.rotarAnim = true;
+        }
 
-        else if(gs->input.keyD == 1) //Resta gradualmente la inercia en menor cantidad
+        else if(gs->input.keyD) //Resta gradualmente la inercia en menor cantidad
             gs->levi.velocidadX += 0.2f;
 
         gs->levi.x += gs->levi.velocidadX; //Hace que levi se mueva con la inercia
@@ -157,21 +180,46 @@ void update_levi_movimiento(s_GameState *gs)
     {
         gs->levi.levi_vuelo = false;
 
-        if(gs->input.keyLShift == 1 && gs->input.keyD == 1) //Si mantiene el LShift corre
+        if(gs->input.keyLShift && gs->input.keyD && !gs->variables.bloquearControles) //Si mantiene el LShift corre
+        {
             gs->levi.x += 4.5f;
+            if(gs->levi.levi_suelo && !gs->levi.animacion.bloquearAnimacion)
+                cambiar_animacion(gs, CORRIENDO);
+            gs->levi.animacion.rotarAnim = false;
+        }
             
-        else if(gs->input.keyLShift == 1 && gs->input.keyA == 1) //Si mantiene el LShift corre
+        else if(gs->input.keyLShift && gs->input.keyA && !gs->variables.bloquearControles) //Si mantiene el LShift corre
+        {
             gs->levi.x -= 4.5f;
+            if(gs->levi.levi_suelo && !gs->levi.animacion.bloquearAnimacion)
+                cambiar_animacion(gs, CORRIENDO);
+            gs->levi.animacion.rotarAnim = true;
+        }
 
-        else if(gs->input.keyA == 1) //Camina izquierda
-            gs->levi.x -= 3;
+        else if(gs->input.keyA && !gs->variables.bloquearControles) //Camina izquierda
+        {
+            gs->levi.x -= 2;
+            if(gs->levi.levi_suelo && !gs->levi.animacion.bloquearAnimacion)
+                cambiar_animacion(gs, CAMINANDO);
+            gs->levi.animacion.rotarAnim = true;
+        }
 
-        else if(gs->input.keyD == 1) //Camina derecha
-            gs->levi.x += 3;
+        else if(gs->input.keyD && !gs->variables.bloquearControles) //Camina derecha
+        {
+            gs->levi.x += 2;
+            if(gs->levi.levi_suelo && !gs->levi.animacion.bloquearAnimacion)
+                cambiar_animacion(gs, CAMINANDO);
+            gs->levi.animacion.rotarAnim = false;
+        }
     }
 
+    if(gs->levi.levi_suelo && !gs->input.keyA && !gs->input.keyD && !gs->levi.ODM.activo && !gs->levi.dash.activo && !gs->levi.animacion.bloquearAnimacion)
+        cambiar_animacion(gs, IDLE);
+
     if(gs->input.keyS && gs->levi.levi_suelo)
-        desactivar_hitbox(gs, 0.2f);
+        desactivar_hitbox(gs, 0.1f);
+    else if(gs->input.keyS)
+        desactivar_hitbox(gs, 0.5f);
     
 }
 
@@ -226,10 +274,10 @@ void transicion_pantalla(s_GameState *gs, s_Assets *assets) //Efecto de transici
 
 void hitbox_levi(s_GameState *gs, s_Assets *assets) //Actualiza la hitbox del personaje principal
 {
-    gs->levi.hitbox.alto = al_get_bitmap_height(assets->levi.levi_SS);
-    gs->levi.hitbox.ancho = LEVI_HB_RECORTE - 10;
-    gs->levi.hitbox.x = gs->levi.x + LEVI_HB_RECORTE;
-    gs->levi.hitbox.y = gs->levi.y;
+    gs->levi.hitbox.alto = LEVI_SS_ALTO - LEVI_HB_OFFSET_Y;  
+    gs->levi.hitbox.ancho = LEVI_HB_RECORTE - 18;
+    gs->levi.hitbox.x = gs->levi.x + LEVI_HB_RECORTE + 3;
+    gs->levi.hitbox.y = gs->levi.y + LEVI_HB_OFFSET_Y;
 }
 
 void cuadrado_prueba (s_GameState *gs)
@@ -243,7 +291,6 @@ void cuadrado_prueba (s_GameState *gs)
         gs->variables.cambioSentido = false;
     if(gs->pantalla[0].hitbox[3].y <= 500)
         gs->variables.cambioSentido = true;
-
 }
 
 void hitbox_mouse(s_GameState *gs)
@@ -292,7 +339,7 @@ void colision_levi_ataque(s_GameState *gs)
     if(gs->levi.cooldownAtaque > 0)
         gs->levi.cooldownAtaque -= 1.0f/FPS;
 
-    if(gs->input.mouseX >= (gs->levi.hitbox.x + gs->levi.hitbox.ancho/2) * gs->escala)
+    if(gs->levi.hitboxODM.x >= gs->levi.hitbox.x + gs->levi.hitbox.ancho/2)
         gs->levi.viendoDerecha = 1;
     else
         gs->levi.viendoDerecha = 0;
@@ -306,8 +353,8 @@ void colision_levi_ataque(s_GameState *gs)
     }
     else if(gs->levi.viendoDerecha == 0)
     {
-        gs->levi.hitboxAtaque.x = gs->levi.x; 
-        gs->levi.hitboxAtaque.y = gs->levi.y + gs->levi.hitbox.alto/2;
+        gs->levi.hitboxAtaque.x = gs->levi.hitbox.x - gs->levi.hitboxAtaque.ancho; 
+        gs->levi.hitboxAtaque.y = gs->levi.hitbox.y + gs->levi.hitbox.alto/2;
         gs->levi.hitboxAtaque.alto = 5;
         gs->levi.hitboxAtaque.ancho = 40;
     }
@@ -389,6 +436,8 @@ void colision_levi_mapa(s_GameState *gs)
         return;
     }
 
+    gs->levi.levi_suelo = false;
+
     for(i=0;i<gs->pantalla[pA].num_hitbox;i++) //Bucle para comparar hitbox y encontrar la coincidente
         {
             if(colision(gs, gs->levi.hitbox, gs->pantalla[pA].hitbox[i]))
@@ -409,14 +458,21 @@ void colision_levi_mapa(s_GameState *gs)
                     gs->levi.x = gs->pantalla[pA].hitbox[i].x + gs->pantalla[pA].hitbox[i].ancho - LEVI_HB_RECORTE;
 
                 else if(distancia_abajo < distancia_arriba && distancia_abajo < distancia_izquierda && distancia_abajo < distancia_derecha)
-                    gs->levi.y = gs->pantalla[pA].hitbox[i].y + gs->pantalla[pA].hitbox[i].alto;
+                    gs->levi.y = gs->pantalla[pA].hitbox[i].y + gs->pantalla[pA].hitbox[i].alto - LEVI_HB_OFFSET_Y;
 
                 else if(distancia_arriba < distancia_abajo && distancia_arriba < distancia_izquierda && distancia_arriba < distancia_derecha)
                 {
-                    gs->levi.y = gs->pantalla[pA].hitbox[i].y - gs->levi.hitbox.alto;
+                    gs->levi.y = gs->pantalla[pA].hitbox[i].y - gs->levi.hitbox.alto - LEVI_HB_OFFSET_Y;
                     gs->levi.velocidadY = 0;
                     gs->levi.levi_suelo = true; //Habilita levi_suelo, lo que hace que lo habilite a dar un salto
                     gs->levi.doble_salto = true;
+                    gs->levi.ODM.activo = false; //Calcular distancia entre levi y suelo y cancelar
+                    if(gs->levi.estadoLevi == CAYENDO)
+                    {
+                        cambiar_animacion(gs, ATERRIZANDO);
+                        gs->levi.animacion.bloquearAnimacion = true;
+                        gs->variables.bloquearControles = true;
+                    }
                 }
 
             }
@@ -430,10 +486,16 @@ void colision_levi_mapa(s_GameState *gs)
 
                 if(gs->levi.velocidadY >= 0 && distancia_arriba < 20 && gs->levi.levi_vuelo == false)
                 {
-                    gs->levi.y = gs->pantalla[pA].elementos[i].hitbox.y - gs->levi.hitbox.alto;
+                    gs->levi.y = gs->pantalla[pA].elementos[i].hitbox.y - gs->levi.hitbox.alto - LEVI_HB_OFFSET_Y;
                     gs->levi.velocidadY = 0;
                     gs->levi.levi_suelo = true;
                     gs->levi.doble_salto = true;
+                    if(gs->levi.estadoLevi == CAYENDO)
+                    {
+                        cambiar_animacion(gs, ATERRIZANDO);
+                        gs->levi.animacion.bloquearAnimacion = true;
+                        gs->variables.bloquearControles = true;
+                    }
                 }
             }
         }
@@ -539,7 +601,6 @@ void colision_ODM(s_GameState *gs)
 
         if(gs->levi.ODM.distanciaRestanteEnganche <= 0)
         {
-            desactivar_hitbox(gs, 0.5f);
             mouseX = gs->levi.ODM.puntoEngancheX;
             mouseY = gs->levi.ODM.puntoEngancheY;
             gs->levi.ODM.activo = true;
@@ -547,6 +608,14 @@ void colision_ODM(s_GameState *gs)
             cx = mouseX - (gs->levi.x + gs->levi.hitbox.ancho); //Calcula cateto x 
             cy = mouseY - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
             gs->levi.ODM.distanciaRestanteODM = sqrt(cx*cx + cy*cy);
+
+            if(cx < 0) //Sirve para rotar la animacion
+                gs->levi.animacion.rotarAnim = true;
+            else 
+                gs->levi.animacion.rotarAnim = false;
+
+            cambiar_animacion(gs, ODM);
+            
             for(i=0;i<5;i++) //Elemento estetico, si el ODM engancha, deja unas grietas guardada en un arreglo, si el arreglo esta lleno, corre a la derecha las posiciones y reemplaza la ultima como la primera
             {                    //de esta forma, siempre reemplaza la que mas tiempo lleve en pantalla
                 if(gs->variables.grietas[i].x == 0)
@@ -576,6 +645,8 @@ void colision_ODM(s_GameState *gs)
     if(gs->levi.ODM.activo)
     {
         //printf("ODM Activo\n");
+        desactivar_hitbox(gs, 0.1f);
+
         cx = gs->levi.ODM.puntoEngancheX - (gs->levi.x + gs->levi.hitbox.ancho); //Calcula cateto x 
         cy = gs->levi.ODM.puntoEngancheY - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
         gs->levi.ODM.distanciaRestanteODM = sqrt(cx*cx + cy*cy);
@@ -594,10 +665,12 @@ void colision_ODM(s_GameState *gs)
         if(gs->levi.ODM.distanciaRestanteODM <= 0)
         {
             gs->levi.ODM.activo = false;
+            gs->levi.animacion.bloquearAnimacion = false;
             gs->levi.velocidadX = gs->levi.ODM.dirX * gs->levi.ODM.velocidadODM;
             gs->levi.velocidadY = gs->levi.ODM.dirY * gs->levi.ODM.velocidadODM;
             gs->levi.dash.tiempoRecuperacionDash = 1;
             gs->levi.levi_vuelo = false;
+            cambiar_animacion(gs, CAYENDO);
         }
     }
 }
@@ -750,9 +823,71 @@ void cambiar_animacion(s_GameState *gs, e_EstadoLevi nuevaAnim)
         case IDLE:
 
             gs->levi.animacion.cantidadFrames = 6;
-            gs->levi.animacion.velocidadAnim = 12;
+            gs->levi.animacion.velocidadAnim = 10;
             gs->levi.animacion.repetir = true;
+            gs->levi.animacion.fila_ss = 0;
+            gs->levi.animacion.contadorAnim = 0;
+            gs->levi.animacion.frameXRepetir = 0;
             break;
+
+        case CAMINANDO:
+
+            gs->levi.animacion.cantidadFrames = 6;
+            gs->levi.animacion.velocidadAnim = 10;
+            gs->levi.animacion.repetir = true;
+            gs->levi.animacion.fila_ss = LEVI_SS_ALTO*2;
+            gs->levi.animacion.contadorAnim = 0;
+            gs->levi.animacion.frameXRepetir = 0;
+            break;
+
+        case CORRIENDO:
+
+            gs->levi.animacion.cantidadFrames = 8;
+            gs->levi.animacion.velocidadAnim = 7;
+            gs->levi.animacion.repetir = true;
+            gs->levi.animacion.fila_ss = LEVI_SS_ALTO;
+            gs->levi.animacion.contadorAnim = 0;
+            gs->levi.animacion.frameXRepetir = 0;
+            break;
+
+        case ODM:
+
+            gs->levi.animacion.cantidadFrames = 5;
+            gs->levi.animacion.velocidadAnim = 3;
+            gs->levi.animacion.repetir = true;
+            gs->levi.animacion.fila_ss = LEVI_SS_ALTO * 6;
+            gs->levi.animacion.frameXRepetir = 2;
+            gs->levi.animacion.contadorAnim = 0;
+            break;
+
+        case SALTANDO:
+
+            gs->levi.animacion.cantidadFrames = 2;
+            gs->levi.animacion.velocidadAnim = 5;
+            gs->levi.animacion.repetir = false;
+            gs->levi.animacion.fila_ss = LEVI_SS_ALTO * 3;
+            gs->levi.animacion.contadorAnim = 0;
+            gs->levi.animacion.frameXRepetir = 0;
+            break;  
+
+        case CAYENDO:
+
+            gs->levi.animacion.cantidadFrames = 6;
+            gs->levi.animacion.velocidadAnim = 5;
+            gs->levi.animacion.repetir = true;
+            gs->levi.animacion.fila_ss = LEVI_SS_ALTO * 4;
+            gs->levi.animacion.frameXRepetir = 2;
+            gs->levi.animacion.contadorAnim = 0;
+            break;  
+        
+        case ATERRIZANDO:
+
+            gs->levi.animacion.cantidadFrames = 5;
+            gs->levi.animacion.velocidadAnim = 5;
+            gs->levi.animacion.repetir = false;
+            gs->levi.animacion.fila_ss = LEVI_SS_ALTO * 5;
+            gs->levi.animacion.contadorAnim = 0;
+            break;  
     }
 
 }
@@ -769,13 +904,124 @@ void actualizar_animacion(s_GameState *gs)
         if(gs->levi.animacion.frameActual >= gs->levi.animacion.cantidadFrames) //Verifica si llego al fin de la animacion
         {
             if(gs->levi.animacion.repetir == true) //Repite la animacion
-                gs->levi.animacion.frameActual = 0;
+                gs->levi.animacion.frameActual = gs->levi.animacion.frameXRepetir;
+            else if(gs->levi.estadoLevi == ATERRIZANDO)
+            {
+                gs->levi.animacion.bloquearAnimacion = false;
+                gs->variables.bloquearControles = false;
+                cambiar_animacion(gs,IDLE);
+            }
             else
                 gs->levi.animacion.frameActual = gs->levi.animacion.cantidadFrames - 1; //Lo deja en el ultimo frame
         }
     }
-
 }
+
+/*void actualizar_estado_levi(s_GameState *gs)
+{
+
+    /*if(gs->levi.ODM.activo && gs->levi.ODM.ODMIzquierda == true) 
+    {
+        cambiar_animacion(gs,ODM);
+        gs->levi.animacion.bloquearAnimacion = true;
+        gs->levi.animacion.rotarAnim = false;
+ }
+    else if(gs->levi.ODM.activo) 
+    {
+        cambiar_animacion(gs,ODM);
+        gs->levi.animacion.rotarAnim = true;
+        gs->levi.animacion.bloquearAnimacion = true;
+    }
+    else if(gs->levi.animacion.saltoActivo == true && gs->input.keyA && gs->input.keyLShift)
+    {
+        cambiar_animacion(gs,SALTANDO);
+        gs->levi.animacion.saltoActivo = false;
+        gs->levi.animacion.bloquearAnimacion = true;
+        gs->levi.animacion.rotarAnim = true;
+    }
+    else if(gs->levi.animacion.saltoActivo == true && gs->input.keyA)
+    {
+        cambiar_animacion(gs,SALTANDO);
+        gs->levi.animacion.saltoActivo = false;
+        gs->levi.animacion.bloquearAnimacion = true;
+        gs->levi.animacion.rotarAnim = true;
+    }
+    else if(gs->levi.animacion.saltoActivo)
+    {
+        cambiar_animacion(gs,SALTANDO);
+        gs->levi.animacion.saltoActivo = false;
+        gs->levi.animacion.bloquearAnimacion = true;
+        gs->levi.animacion.rotarAnim = false;
+    }
+    else if(gs->input.keyD && gs->input.keyLShift && gs->levi.animacion.bloquearAnimacion == false) 
+    {
+        cambiar_animacion(gs, CORRIENDO);
+        gs->levi.animacion.rotarAnim = false;
+    }
+        
+    else if(gs->input.keyA && gs->input.keyLShift && gs->levi.animacion.bloquearAnimacion == false)
+    {
+        cambiar_animacion(gs, CORRIENDO);
+        gs->levi.animacion.rotarAnim = true;
+    }
+
+    else if(gs->input.keyD && gs->levi.animacion.bloquearAnimacion == false)
+    {
+        cambiar_animacion(gs, CAMINANDO);
+        gs->levi.animacion.rotarAnim = false;
+    }
+
+    else if(gs->input.keyA && gs->levi.animacion.bloquearAnimacion == false)
+    {
+        cambiar_animacion(gs, CAMINANDO);
+        gs->levi.animacion.rotarAnim = true;
+    }
+    else
+        if(!gs->levi.animacion.bloquearAnimacion)
+            cambiar_animacion(gs, IDLE);*/
+
+    /*switch(gs->levi.estadoLevi)
+    {
+        case CAMINANDO:
+
+            if(gs->levi.animacion.bloquearAnimacion == false)
+                cambiar_animacion(gs, CAMINANDO);
+            break;
+
+        case CORRIENDO:
+
+            if(gs->levi.animacion.bloquearAnimacion == false)
+                cambiar_animacion(gs, CORRIENDO);
+            break;
+
+        case ODM:
+
+            cambiar_animacion(gs, ODM);
+            break;
+
+        case SALTANDO:
+
+            cambiar_animacion(gs, SALTANDO);
+            break;
+
+        case ATERRIZANDO:
+            
+            cambiar_animacion(gs, ATERRIZANDO);
+            break;
+        
+        case CAYENDO:
+
+            cambiar_animacion(gs, CAYENDO);
+            break;
+
+        case IDLE:
+
+            cambiar_animacion(gs, IDLE);
+            break;
+
+    }
+    
+}*/
 
 void activar_hitbox(s_GameState *gs)
 {

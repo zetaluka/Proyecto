@@ -30,12 +30,13 @@
 #define MAXCOL 200
 #define MAXENTIDADES 50
 #define MAXELEMENTOS 50
-#define LEVI_HB_RECORTE 37
+#define LEVI_HB_RECORTE 42
+#define LEVI_HB_OFFSET_Y 14
 #define BORDE_CAM 250
 #define BUFFER 200
 #define ALTO_SUELO 66
-#define LEVI_SS_ANCHO 96
-#define LEVI_SS_ALTO 68
+#define LEVI_SS_ANCHO 110
+#define LEVI_SS_ALTO 80
 #define MAXGAS 100
 #define BLANCO al_map_rgb(220, 220, 220)
 
@@ -51,9 +52,12 @@ typedef struct
     ALLEGRO_BITMAP* cubo;
     ALLEGRO_BITMAP* grieta;
     ALLEGRO_BITMAP* escudoLegion;
-    ALLEGRO_BITMAP* casa1;
     ALLEGRO_BITMAP* grietaODM;
     ALLEGRO_BITMAP* gas;
+    ALLEGRO_BITMAP* casa1;
+    ALLEGRO_BITMAP* casa2;
+    ALLEGRO_BITMAP* casa3; 
+    ALLEGRO_BITMAP* puestoComida;
 
 } s_AssetsPantalla;
 
@@ -87,7 +91,12 @@ typedef enum
 {
     IDLE,
     CAMINANDO,
-    ATACANDO
+    CORRIENDO,
+    ATACANDO,
+    SALTANDO,
+    CAYENDO,
+    ATERRIZANDO,
+    ODM
 } e_EstadoLevi;
 
 typedef struct 
@@ -96,10 +105,15 @@ typedef struct
     int contadorAnim;
     int velocidadAnim;
     int cantidadFrames;
+    int fila_ss;
+    int frameXRepetir;
+    bool rotarAnim;
     bool levi_background; //Para cuando quiera dibujar a levi atras del todo
     bool repetir;
+    bool bloquearAnimacion;
+    bool saltoActivo;
     
-} s_Animacion;
+} s_AnimacionLevi;
 
 typedef struct 
 {
@@ -150,6 +164,7 @@ typedef struct
     float x;
     float y;
     int tipo;
+    int tipoCasa;
     bool activo;
     s_Hitbox hitbox;
 }s_Elementos;
@@ -241,7 +256,7 @@ typedef struct
     s_Hitbox hitbox;
     s_Hitbox hitboxAtaque;
     s_Hitbox hitboxODM;
-    s_Animacion animacion;
+    s_AnimacionLevi animacion;
     e_EstadoLevi estadoLevi;
 } s_Levi;
 
@@ -287,6 +302,7 @@ typedef struct
     bool desactivarHitbox;
     bool cambioSentido;
     bool detenerEntidades;
+    bool bloquearControles;
     s_Hitbox titan1;
 
 } s_Variables;
