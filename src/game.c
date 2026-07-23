@@ -22,6 +22,7 @@ void game_init(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display)
     gs->estadoPantalla = PANTALLA_JUGANDO;
     gs->pantalla_actual = 0;
     gs->nivel = 1;
+    gs->variables.gravedad = 0.8;
 
     //Inicializacion de levi
     gs->levi.x = 700;
@@ -69,7 +70,7 @@ void hitbox_init(s_GameState *gs)
     switch(gs->pantalla_actual)
     {
         case 0:
-            gs->pantalla[pA].hitbox[0] = (s_Hitbox){0 , (SCREEN_Y - 66), gs->pantalla[0].ancho*TAM_CELDA, 66, BLANCO}; //Suelo
+            gs->pantalla[pA].hitbox[0] = (s_Hitbox){0 , (SCREEN_Y - 66), gs->pantalla[0].ancho*TAM_CELDA + 10, 66, BLANCO}; //Suelo
             gs->pantalla[pA].hitbox[1] = (s_Hitbox){(-4), (-200), 4, (SCREEN_Y + 200), BLANCO}; //Limite izquierdo de la pantalla
             gs->pantalla[pA].hitbox[2] = (s_Hitbox){0, (-200), gs->pantalla[0].ancho*TAM_CELDA, 12, BLANCO }; //Limite superior de la pantalla
             gs->pantalla[pA].num_hitbox = 3;
@@ -84,7 +85,7 @@ void hitbox_init(s_GameState *gs)
             break;
         
         default:
-            gs->pantalla[pA].hitbox[0] = (s_Hitbox){0 , (SCREEN_Y - 66), gs->pantalla[pA].ancho*TAM_CELDA, 66, BLANCO}; //Suelo
+            gs->pantalla[pA].hitbox[0] = (s_Hitbox){0 , (SCREEN_Y - 66), gs->pantalla[pA].ancho*TAM_CELDA + 10, 66, BLANCO}; //Suelo
             gs->pantalla[pA].hitbox[1] = (s_Hitbox){(-4), (-200), 4, (SCREEN_Y + 200), BLANCO}; //Limite izquierdo de la pantalla
             gs->pantalla[pA].hitbox[2] = (s_Hitbox){0, (-200), gs->pantalla[pA].ancho*TAM_CELDA, 12, BLANCO }; //Limite superior de la pantalla
             gs->pantalla[pA].num_hitbox = 3;

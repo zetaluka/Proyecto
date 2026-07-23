@@ -149,6 +149,14 @@ int carga_objetos(s_Assets *assets)
         return 1;
     }
 
+    assets->assetsPantalla.dash = al_load_bitmap("assets/imgs/dash.png");
+    if(!assets->assetsPantalla.dash){
+        printf("Error cargando dash.png");
+        return 1;
+    }
+
+    for(int i=0; i<14; i++)
+        assets->assetsPantalla.dashSB[i] = al_create_sub_bitmap(assets->assetsPantalla.dash, i*280, 0, 280, 160);
 
     return 0;
 

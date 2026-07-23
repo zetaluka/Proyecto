@@ -35,7 +35,7 @@
 #define BORDE_CAM 250
 #define BUFFER 200
 #define ALTO_SUELO 66
-#define LEVI_SS_ANCHO 110
+#define LEVI_SS_ANCHO 120
 #define LEVI_SS_ALTO 80
 #define MAXGAS 100
 #define BLANCO al_map_rgb(220, 220, 220)
@@ -58,6 +58,8 @@ typedef struct
     ALLEGRO_BITMAP* casa2;
     ALLEGRO_BITMAP* casa3; 
     ALLEGRO_BITMAP* puestoComida;
+    ALLEGRO_BITMAP* dash;
+    ALLEGRO_BITMAP* dashSB[14];
 
 } s_AssetsPantalla;
 
@@ -92,11 +94,19 @@ typedef enum
     IDLE,
     CAMINANDO,
     CORRIENDO,
-    ATACANDO,
+    ATAQUE_BASICO,
     SALTANDO,
     CAYENDO,
     ATERRIZANDO,
-    ODM
+    ODM,
+    DASH,
+    SALIDA_DASH,
+    ODMATAQUE,
+    ODM_ATAQUE1,
+    ODM_ATAQUE2,
+    ODM_ATAQUE3,
+    ODM_ATAQUE_BASICO,
+    ODM_NORMAL_ATAQUE_BASICO
 } e_EstadoLevi;
 
 typedef struct 
@@ -204,6 +214,9 @@ typedef struct
 
 typedef struct 
 {
+    float angulo;
+    float x;
+    float y;
     float dashX;
     float dashY;
     float cooldown;
@@ -213,7 +226,9 @@ typedef struct
     int cantDash;
     bool frameActivacion;
     bool activo;
+    bool animDashActiva;
     s_Hitbox hitboxDash;
+    s_AnimacionLevi animDash;
 
 } s_Dash;
 
@@ -231,6 +246,8 @@ typedef struct
     float auxPuntoEngancheX;
     float auxPuntoEngancheY;
     float velocidadODMPrevia;
+    bool engancheTitan;
+    bool engancheNormal;
     bool frameActivacion;
     bool engancheActivo;
     bool activo;
@@ -287,6 +304,9 @@ typedef struct { //input.c actualiza a través de la variable s_GameState, updat
     bool keyF; //Dash de levi
     bool ClickIzq;
     bool ClickDer;
+    bool key1;
+    bool key2;
+    bool key3;
     float mouseX;
     float mouseY;
 } s_InputState;
@@ -296,8 +316,9 @@ typedef struct
     int carga_pantalla;
     int screenX;
     int screenY;
-    s_Posiciones grietas[5];
     float cooldownHitbox;
+    float gravedad;
+    s_Posiciones grietas[5];
     FILE *fdata;
     bool desactivarHitbox;
     bool cambioSentido;

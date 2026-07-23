@@ -10,7 +10,6 @@ void titanes_sprites(s_GameState *gs, s_Assets *assets);
 void dibujar_fondo(s_GameState *gs, s_Assets *assets);
 void dibuja_gas(s_GameState *gs, s_Assets *assets);
 
-
 //====Funcion principal====//
 void render_gameview(s_GameState *gs, s_Assets *assets)
 {
@@ -28,7 +27,6 @@ void render_gameview(s_GameState *gs, s_Assets *assets)
         case PANTALLA_GAME_OVER:
             break;
     }
-    levi_sprites(gs, assets);
 
     return;
 }
@@ -45,17 +43,25 @@ void levi_sprites(s_GameState *gs, s_Assets *assets)
 
     dibuja_gas(gs,assets);
 
-    if(gs->levi.animacion.rotarAnim == true)
-        al_draw_bitmap_region(assets->levi.levi_SS, numFrameX, gs->levi.animacion.fila_ss, LEVI_SS_ANCHO, LEVI_SS_ALTO, leviX, leviY, ALLEGRO_FLIP_HORIZONTAL);
-    else
-        al_draw_bitmap_region(assets->levi.levi_SS, numFrameX, gs->levi.animacion.fila_ss, LEVI_SS_ANCHO, LEVI_SS_ALTO, leviX, leviY, 0);
-
-    if(gs->levi.ODM.engancheActivo == true || gs->levi.ODM.activo == true)
+    if(!gs->levi.dash.activo)
     {
-        al_draw_line(leviXODM, leviYODM, (gs->levi.ODM.puntoEngancheX - 10), gs->levi.ODM.puntoEngancheY, al_map_rgb(70, 70, 70), 1);
-        al_draw_line((leviXODM + 20), leviYODM, (gs->levi.ODM.puntoEngancheX + 10), gs->levi.ODM.puntoEngancheY , al_map_rgb(70, 70, 70), 1);
+        if(gs->levi.animacion.rotarAnim == true)
+            al_draw_bitmap_region(assets->levi.levi_SS, numFrameX, gs->levi.animacion.fila_ss, LEVI_SS_ANCHO, LEVI_SS_ALTO, leviX, leviY, ALLEGRO_FLIP_HORIZONTAL);
+        else
+            al_draw_bitmap_region(assets->levi.levi_SS, numFrameX, gs->levi.animacion.fila_ss, LEVI_SS_ANCHO, LEVI_SS_ALTO, leviX, leviY, 0);
+
+        if(gs->levi.ODM.engancheActivo == true || gs->levi.ODM.activo == true)
+        {
+            al_draw_line(leviXODM, leviYODM, (gs->levi.ODM.puntoEngancheX - 10), gs->levi.ODM.puntoEngancheY, al_map_rgb(70, 70, 70), 1);
+            al_draw_line((leviXODM + 20), leviYODM, (gs->levi.ODM.puntoEngancheX + 10), gs->levi.ODM.puntoEngancheY , al_map_rgb(70, 70, 70), 1);
+        }
     }
-}
+
+    if(gs->levi.dash.animDashActiva)
+        al_draw_rotated_bitmap(assets->assetsPantalla.dashSB[gs->levi.dash.animDash.frameActual], 0, 80, gs->levi.dash.x, gs->levi.dash.y, gs->levi.dash.angulo, 0);
+
+}   
+
 void dibuja_gas(s_GameState *gs, s_Assets *assets)
 {
     //Parametros al_draw_scaled_bitmap: Spritesheet, frameX, frameY, ancho, alto, x , y , (ancho destino, alto destino (escalado)), flags
@@ -91,6 +97,7 @@ void jugando(s_Assets *assets, s_GameState *gs)
     dibujar_fondo(gs, assets);
     titanes_sprites(gs, assets);
     muestra_hitbox(gs,assets);
+    levi_sprites(gs, assets);
 }
 
 void titanes_sprites(s_GameState *gs, s_Assets *assets)

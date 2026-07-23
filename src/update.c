@@ -82,11 +82,14 @@ void update_tiempo_jugado(s_GameState* gs) //Funcion para hacer funcionar el cro
 
 void update_levi_movimiento(s_GameState *gs)
 { 
+    if(gs->levi.estadoLevi != DASH || gs->levi.estadoLevi != SALIDA_DASH)
+        gs->variables.gravedad = 0.8;
+
     bool bloqueaDerecha = false, bloqueaIzquierda = false;
     //printf("%f",gs->levi.velocidadY);
 
     //====Doble salto====//
-    if(gs->input.keySpace == 1 && gs->levi.levi_suelo) //Salto y habilita doble salto
+    if(gs->input.keySpace == 1 && gs->levi.levi_suelo && !gs->levi.dash.activo && !gs->variables.bloquearControles) //Salto y habilita doble salto
     {
         gs->levi.velocidadY = -10;
         gs->levi.levi_suelo = false;
@@ -100,7 +103,7 @@ void update_levi_movimiento(s_GameState *gs)
         cambiar_animacion(gs, SALTANDO);
     }
 
-    if(gs->input.keySpace == 1 && gs->levi.doble_salto) //Confirma si doble salto esta habilitado
+    if(gs->input.keySpace == 1 && gs->levi.doble_salto && !gs->levi.dash.activo && !gs->variables.bloquearControles) //Confirma si doble salto esta habilitado
     {
         gs->levi.velocidadY = -15;
         gs->levi.doble_salto = false;
@@ -130,10 +133,10 @@ void update_levi_movimiento(s_GameState *gs)
     //Gravedad
     if(!gs->levi.dash.activo && !gs->levi.ODM.activo)
     {
-        gs->levi.velocidadY += 0.8f; //Lo hace moverse todo el rato hacia abajo
+        gs->levi.velocidadY += gs->variables.gravedad; //Lo hace moverse todo el rato hacia abajo
         gs->levi.y = gs->levi.y + gs->levi.velocidadY;
 
-        if(gs->levi.velocidadY >= 0 && !gs->levi.ODM.activo && !gs->levi.dash.activo && !gs->levi.levi_suelo)
+        if(gs->levi.velocidadY >= 0 && !gs->levi.ODM.activo && !gs->levi.dash.activo && !gs->levi.levi_suelo && gs->levi.estadoLevi != SALIDA_DASH && gs->levi.estadoLevi != DASH)
             cambiar_animacion(gs, CAYENDO);
     }
 
@@ -184,7 +187,7 @@ void update_levi_movimiento(s_GameState *gs)
         {
             gs->levi.x += 4.5f;
             if(gs->levi.levi_suelo && !gs->levi.animacion.bloquearAnimacion)
-                cambiar_animacion(gs, CORRIENDO);
+                cambiar_animacion(gs, CORRIENDO); //Hacer que bloquear controles sea falso y quitar condicion de bloquearAnimacion, y bloquear controles solo cuando caiga cierta distancia
             gs->levi.animacion.rotarAnim = false;
         }
             
@@ -217,8 +220,11 @@ void update_levi_movimiento(s_GameState *gs)
         cambiar_animacion(gs, IDLE);
 
     if(gs->input.keyS && gs->levi.levi_suelo)
+    {
         desactivar_hitbox(gs, 0.1f);
-    else if(gs->input.keyS)
+        gs->input.keyS = false;
+    }
+    else if(gs->input.keyS && !gs->levi.levi_suelo)
         desactivar_hitbox(gs, 0.5f);
     
 }
@@ -359,8 +365,20 @@ void colision_levi_ataque(s_GameState *gs)
         gs->levi.hitboxAtaque.ancho = 40;
     }
 
+    if(gs->levi.estadoLevi == ODMATAQUE && gs->input.key1 == true)
+        cambiar_animacion(gs,ODM_ATAQUE1);
+    else if(gs->levi.estadoLevi == ODMATAQUE && gs->input.key2 == true)
+        cambiar_animacion(gs,ODM_ATAQUE2);
+
     if(gs->input.ClickIzq && gs->levi.cooldownAtaque <= 0)
     {
+        if(gs->levi.estadoLevi == ODMATAQUE)
+            cambiar_animacion(gs,ODM_ATAQUE_BASICO);
+        else if(gs->levi.estadoLevi == ODM)
+            cambiar_animacion(gs, ODM_NORMAL_ATAQUE_BASICO);
+        else 
+            cambiar_animacion(gs, ATAQUE_BASICO);
+
         gs->levi.cooldownAtaque = 0.75f;
         //printf("Ataque\n");
         for(i=0;i<gs->pantalla[pA].num_entidades;i++)
@@ -467,11 +485,13 @@ void colision_levi_mapa(s_GameState *gs)
                     gs->levi.levi_suelo = true; //Habilita levi_suelo, lo que hace que lo habilite a dar un salto
                     gs->levi.doble_salto = true;
                     gs->levi.ODM.activo = false; //Calcular distancia entre levi y suelo y cancelar
-                    if(gs->levi.estadoLevi == CAYENDO)
+                    if(gs->levi.estadoLevi == CAYENDO || gs->levi.estadoLevi == SALIDA_DASH || gs->levi.estadoLevi == DASH)
                     {
                         cambiar_animacion(gs, ATERRIZANDO);
                         gs->levi.animacion.bloquearAnimacion = true;
                         gs->variables.bloquearControles = true;
+                        gs->variables.gravedad = 0.8f;
+                        gs->levi.dash.activo = false;
                     }
                 }
 
@@ -490,7 +510,7 @@ void colision_levi_mapa(s_GameState *gs)
                     gs->levi.velocidadY = 0;
                     gs->levi.levi_suelo = true;
                     gs->levi.doble_salto = true;
-                    if(gs->levi.estadoLevi == CAYENDO)
+                    if(gs->levi.estadoLevi == CAYENDO || gs->levi.estadoLevi == SALIDA_DASH || gs->levi.estadoLevi == DASH)
                     {
                         cambiar_animacion(gs, ATERRIZANDO);
                         gs->levi.animacion.bloquearAnimacion = true;
@@ -582,12 +602,16 @@ void colision_ODM(s_GameState *gs)
             if(colision(gs, gs->levi.hitboxODM, gs->pantalla[pA].entidades[i].hitboxTitan) && gs->pantalla[pA].entidades[i].activo == true)
             {
                 inicia_ODM(gs, &cx, &cy);
+                gs->levi.ODM.engancheTitan = true;
                 break;
             }
 
         for(i = 0; i < gs->pantalla[pA].num_elementos; i++)
             if((gs->pantalla[pA].elementos[i].tipo == 1 || gs->pantalla[pA].elementos[i].tipo == 3) && colision(gs, gs->levi.hitboxODM, gs->pantalla[pA].elementos[i].hitbox))
+            {
                 inicia_ODM(gs, &cx, &cy);
+                gs->levi.ODM.engancheNormal = true;
+            }
         
         gs->input.ClickDer = false;
     }
@@ -614,7 +638,13 @@ void colision_ODM(s_GameState *gs)
             else 
                 gs->levi.animacion.rotarAnim = false;
 
-            cambiar_animacion(gs, ODM);
+            if(gs->levi.ODM.engancheTitan)
+                    cambiar_animacion(gs, ODMATAQUE);
+            else if(gs->levi.ODM.engancheNormal)
+                cambiar_animacion(gs, ODM);
+
+            gs->levi.ODM.engancheNormal = false;
+            gs->levi.ODM.engancheTitan = false;
             
             for(i=0;i<5;i++) //Elemento estetico, si el ODM engancha, deja unas grietas guardada en un arreglo, si el arreglo esta lleno, corre a la derecha las posiciones y reemplaza la ultima como la primera
             {                    //de esta forma, siempre reemplaza la que mas tiempo lleve en pantalla
@@ -670,7 +700,8 @@ void colision_ODM(s_GameState *gs)
             gs->levi.velocidadY = gs->levi.ODM.dirY * gs->levi.ODM.velocidadODM;
             gs->levi.dash.tiempoRecuperacionDash = 1;
             gs->levi.levi_vuelo = false;
-            cambiar_animacion(gs, CAYENDO);
+            if(gs->levi.animacion.bloquearAnimacion == false)
+                cambiar_animacion(gs, CAYENDO);
         }
     }
 }
@@ -690,30 +721,48 @@ void levi_dash(s_GameState *gs)
         distancia = sqrt(cx*cx + cy*cy); //Calcula la hipotenusa (distancia de levi al punto)
 
         gs->levi.dash.activo = true;
-        gs->levi.dash.distanciaRestante = 125; //Distancia fija a recorrer
+        gs->levi.dash.distanciaRestante = 250; //Distancia fija a recorrer
         gs->levi.dash.cooldown = 1; 
         gs->levi.dash.dashX = cx/distancia; //Direccion x del dash (coseno)
         gs->levi.dash.dashY = cy/distancia; //Direccion y del dash (seno)
         gs->levi.ODM.activo = false;
-        if(gs->levi.levi_suelo)
-            desactivar_hitbox(gs, 0.2f);
         if(gs->levi.dash.dashY < 0 && gs->levi.levi_suelo == true) //Si el dash es hacia arriba activa esta variable
             gs->levi.dash.frameActivacion = true; //Sirve para ignorar por 1 frame las colisiones del mapa, asi permite despegar el dash si esta en suelo
+
+        gs->levi.dash.animDashActiva = true;
+        gs->levi.dash.angulo = atan2(cy, cx);
+        gs->levi.dash.x = gs->levi.x + 40;
+        gs->levi.dash.y = gs->levi.y + 55;
+        gs->variables.gravedad = 0;
+
+        if(cx < 0 )
+            gs->levi.animacion.rotarAnim = true;
+        else if(cx > 0 )
+            gs->levi.animacion.rotarAnim = false;
+
+        cambiar_animacion(gs, DASH);
+        desactivar_hitbox(gs, 0.5f);
+
     }
 
     if(gs->levi.dash.activo)
     {
         gs->input.keyF = false;
-        gs->levi.x += gs->levi.dash.dashX*20; //Mueve a levi segun la direccion x y lo multiplica por la velocidad 8
-        gs->levi.y += gs->levi.dash.dashY*20; //Mueve a levi segun la direccion x y lo multiplica por la velocidad 8
-        gs->levi.dash.distanciaRestante -= 20; //Resta la distancia restante 
+        gs->levi.x += gs->levi.dash.dashX*10; //Mueve a levi segun la direccion x y lo multiplica por la velocidad 8
+        gs->levi.y += gs->levi.dash.dashY*10; //Mueve a levi segun la direccion x y lo multiplica por la velocidad 8
+        gs->levi.dash.distanciaRestante -= 10; //Resta la distancia restante 
 
         if(gs->levi.dash.distanciaRestante <= 0) //Calcula el fin del dash
         {
             gs->levi.dash.activo = false;
             gs->levi.dash.tiempoRecuperacionDash = 0.3f;
-            gs->levi.velocidadX = gs->levi.dash.dashX * 12; //Inercia horizontal
-            gs->levi.velocidadY = gs->levi.dash.dashY * 8; //Inercia vertical
+            gs->levi.velocidadX = gs->levi.dash.dashX * 25; //Inercia horizontal
+            gs->levi.velocidadY = gs->levi.dash.dashY * 18; //Inercia vertical
+
+            /*gs->levi.x += gs->levi.dash.dashX * 50; 
+            gs->levi.y += gs->levi.dash.dashY * 50;*/
+
+            cambiar_animacion(gs, SALIDA_DASH);
         }
     }
 
@@ -822,35 +871,45 @@ void cambiar_animacion(s_GameState *gs, e_EstadoLevi nuevaAnim)
     {
         case IDLE:
 
-            gs->levi.animacion.cantidadFrames = 6;
-            gs->levi.animacion.velocidadAnim = 10;
-            gs->levi.animacion.repetir = true;
-            gs->levi.animacion.fila_ss = 0;
-            gs->levi.animacion.contadorAnim = 0;
-            gs->levi.animacion.frameXRepetir = 0;
+            if(!gs->levi.animacion.bloquearAnimacion)
+            {
+                gs->levi.animacion.cantidadFrames = 6;
+                gs->levi.animacion.velocidadAnim = 10;
+                gs->levi.animacion.repetir = true;
+                gs->levi.animacion.fila_ss = 0;
+                gs->levi.animacion.contadorAnim = 0;
+                gs->levi.animacion.frameXRepetir = 0;
+            }
             break;
 
         case CAMINANDO:
 
-            gs->levi.animacion.cantidadFrames = 6;
-            gs->levi.animacion.velocidadAnim = 10;
-            gs->levi.animacion.repetir = true;
-            gs->levi.animacion.fila_ss = LEVI_SS_ALTO*2;
-            gs->levi.animacion.contadorAnim = 0;
-            gs->levi.animacion.frameXRepetir = 0;
+            if(!gs->levi.animacion.bloquearAnimacion)
+            {
+                gs->levi.animacion.cantidadFrames = 6;
+                gs->levi.animacion.velocidadAnim = 10;
+                gs->levi.animacion.repetir = true;
+                gs->levi.animacion.fila_ss = LEVI_SS_ALTO*2;
+                gs->levi.animacion.contadorAnim = 0;
+                gs->levi.animacion.frameXRepetir = 0;
+            }
             break;
 
         case CORRIENDO:
 
-            gs->levi.animacion.cantidadFrames = 8;
-            gs->levi.animacion.velocidadAnim = 7;
-            gs->levi.animacion.repetir = true;
-            gs->levi.animacion.fila_ss = LEVI_SS_ALTO;
-            gs->levi.animacion.contadorAnim = 0;
-            gs->levi.animacion.frameXRepetir = 0;
+            if(!gs->levi.animacion.bloquearAnimacion)
+            {
+                gs->levi.animacion.cantidadFrames = 8;
+                gs->levi.animacion.velocidadAnim = 7;
+                gs->levi.animacion.repetir = true;
+                gs->levi.animacion.fila_ss = LEVI_SS_ALTO;
+                gs->levi.animacion.contadorAnim = 0;
+                gs->levi.animacion.frameXRepetir = 0;
+            }
             break;
 
         case ODM:
+
 
             gs->levi.animacion.cantidadFrames = 5;
             gs->levi.animacion.velocidadAnim = 3;
@@ -860,35 +919,140 @@ void cambiar_animacion(s_GameState *gs, e_EstadoLevi nuevaAnim)
             gs->levi.animacion.contadorAnim = 0;
             break;
 
+        case ODMATAQUE:
+
+            gs->levi.animacion.cantidadFrames = 8;
+            gs->levi.animacion.velocidadAnim = 3;
+            gs->levi.animacion.repetir = true;
+            gs->levi.animacion.fila_ss = LEVI_SS_ALTO * 8;
+            gs->levi.animacion.frameXRepetir = 5;
+            gs->levi.animacion.contadorAnim = 0;
+            break;
+
         case SALTANDO:
 
-            gs->levi.animacion.cantidadFrames = 2;
-            gs->levi.animacion.velocidadAnim = 5;
-            gs->levi.animacion.repetir = false;
-            gs->levi.animacion.fila_ss = LEVI_SS_ALTO * 3;
-            gs->levi.animacion.contadorAnim = 0;
-            gs->levi.animacion.frameXRepetir = 0;
+            if(!gs->levi.animacion.bloquearAnimacion)
+            {
+                gs->levi.animacion.cantidadFrames = 2;
+                gs->levi.animacion.velocidadAnim = 4;
+                gs->levi.animacion.repetir = false;
+                gs->levi.animacion.fila_ss = LEVI_SS_ALTO * 3;
+                gs->levi.animacion.contadorAnim = 0;
+                gs->levi.animacion.frameXRepetir = 0;
+            }
             break;  
 
         case CAYENDO:
 
-            gs->levi.animacion.cantidadFrames = 6;
-            gs->levi.animacion.velocidadAnim = 5;
-            gs->levi.animacion.repetir = true;
-            gs->levi.animacion.fila_ss = LEVI_SS_ALTO * 4;
-            gs->levi.animacion.frameXRepetir = 2;
-            gs->levi.animacion.contadorAnim = 0;
+            if(gs->levi.animacion.bloquearAnimacion == false )
+            {
+                gs->levi.animacion.cantidadFrames = 6;
+                gs->levi.animacion.velocidadAnim = 5;
+                gs->levi.animacion.repetir = true;
+                gs->levi.animacion.fila_ss = LEVI_SS_ALTO * 4;
+                gs->levi.animacion.frameXRepetir = 2;
+                gs->levi.animacion.contadorAnim = 0;
+            }
             break;  
         
         case ATERRIZANDO:
 
+            if(gs->levi.estadoLevi != ODM_ATAQUE1)
+            {
+                gs->levi.animacion.cantidadFrames = 5;
+                gs->levi.animacion.velocidadAnim = 5;
+                gs->levi.animacion.repetir = false;
+                gs->levi.animacion.fila_ss = LEVI_SS_ALTO * 5;
+                gs->levi.animacion.contadorAnim = 0;
+            }
+            break;  
+
+        case DASH: 
+
+            gs->levi.dash.animDash.cantidadFrames = 14;
+            gs->levi.dash.animDash.velocidadAnim = 3;
+            gs->levi.dash.animDash.repetir = false;
+            gs->levi.dash.animDash.contadorAnim = 0;
+            gs->levi.dash.animDash.frameActual = 0;
+            break;   
+
+        case SALIDA_DASH:
+
+            gs->levi.animacion.bloquearAnimacion = true;
+            gs->levi.animacion.cantidadFrames = 3;
+            gs->levi.animacion.velocidadAnim = 7;
+            gs->levi.animacion.repetir = false;
+            gs->levi.animacion.fila_ss = LEVI_SS_ALTO * 7;
+            gs->levi.animacion.contadorAnim = 0;
+            break;  
+
+        case ODM_ATAQUE3:
+
+            gs->levi.animacion.bloquearAnimacion = true;
+            gs->levi.animacion.cantidadFrames = 10;
+            gs->levi.animacion.velocidadAnim = 5;
+            gs->levi.animacion.repetir = false;
+            gs->levi.animacion.fila_ss = LEVI_SS_ALTO * 9;
+            gs->levi.animacion.contadorAnim = 0;
+            gs->levi.animacion.bloquearAnimacion = true;
+            gs->variables.gravedad = 0;
+            desactivar_hitbox(gs, 0.5);
+            break; 
+
+        case ODM_ATAQUE_BASICO:
+
+            gs->levi.animacion.bloquearAnimacion = true;
+            gs->levi.animacion.cantidadFrames = 9;
+            gs->levi.animacion.velocidadAnim = 7;
+            gs->levi.animacion.repetir = true;
+            gs->levi.animacion.frameXRepetir = 5;
+            gs->levi.animacion.fila_ss = LEVI_SS_ALTO * 10;
+            gs->levi.animacion.contadorAnim = 0;
+            break;
+
+        case ODM_ATAQUE1:
+
+            gs->levi.animacion.bloquearAnimacion = true;
+            gs->levi.animacion.cantidadFrames = 10;
+            gs->levi.animacion.velocidadAnim = 3;
+            gs->levi.animacion.repetir = false;
+            gs->levi.animacion.fila_ss = LEVI_SS_ALTO * 11;
+            gs->levi.animacion.contadorAnim = 0;
+            break;
+
+        case ODM_ATAQUE2:
+
+            gs->levi.animacion.bloquearAnimacion = true;
+            gs->levi.animacion.cantidadFrames = 14;
+            gs->levi.animacion.velocidadAnim = 2;
+            gs->levi.animacion.repetir = false;
+            gs->levi.animacion.fila_ss = LEVI_SS_ALTO * 14;
+            gs->levi.animacion.contadorAnim = 0;
+            break;
+
+        case ATAQUE_BASICO:
+
+            gs->levi.animacion.bloquearAnimacion = true;
             gs->levi.animacion.cantidadFrames = 5;
             gs->levi.animacion.velocidadAnim = 5;
             gs->levi.animacion.repetir = false;
-            gs->levi.animacion.fila_ss = LEVI_SS_ALTO * 5;
+            gs->levi.animacion.fila_ss = LEVI_SS_ALTO * 12;
             gs->levi.animacion.contadorAnim = 0;
-            break;  
-    }
+            gs->variables.bloquearControles = true;
+            break;
+            
+        case ODM_NORMAL_ATAQUE_BASICO:
+
+            gs->levi.animacion.bloquearAnimacion = true;
+            gs->levi.animacion.cantidadFrames = 5;
+            gs->levi.animacion.velocidadAnim = 8;
+            gs->levi.animacion.repetir = false;
+            gs->levi.animacion.fila_ss = LEVI_SS_ALTO * 13;
+            gs->levi.animacion.contadorAnim = 0;
+            gs->variables.bloquearControles = false;
+            break;
+            
+    }   
 
 }
 
@@ -911,8 +1075,36 @@ void actualizar_animacion(s_GameState *gs)
                 gs->variables.bloquearControles = false;
                 cambiar_animacion(gs,IDLE);
             }
+            else if(gs->levi.estadoLevi == SALIDA_DASH || gs->levi.estadoLevi == ODM_ATAQUE1 || gs->levi.estadoLevi == ODM_ATAQUE3 || gs->levi.estadoLevi == ATAQUE_BASICO
+            || gs->levi.estadoLevi == ODM_ATAQUE2)
+            {
+                gs->levi.animacion.bloquearAnimacion = false;
+                gs->variables.bloquearControles = false;
+                gs->variables.gravedad = 0.8;
+                if(gs->levi.levi_suelo)
+                    cambiar_animacion(gs, IDLE);
+                else    
+                    cambiar_animacion(gs, CAYENDO);
+            }
             else
                 gs->levi.animacion.frameActual = gs->levi.animacion.cantidadFrames - 1; //Lo deja en el ultimo frame
+        }
+    }
+
+    if(gs->levi.dash.animDashActiva)
+    {
+        if(gs->levi.estadoLevi == ATERRIZANDO)
+            gs->levi.dash.animDashActiva = false;
+
+        gs->levi.dash.animDash.contadorAnim++;
+
+        if(gs->levi.dash.animDash.contadorAnim >= gs->levi.dash.animDash.velocidadAnim)
+        {
+            gs->levi.dash.animDash.contadorAnim = 0;
+            gs->levi.dash.animDash.frameActual++;
+
+            if(gs->levi.dash.animDash.frameActual >= gs->levi.dash.animDash.cantidadFrames)
+                gs->levi.dash.animDashActiva = false;
         }
     }
 }
