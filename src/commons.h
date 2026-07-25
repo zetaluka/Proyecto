@@ -73,6 +73,8 @@ typedef struct{
 typedef struct 
 {
     ALLEGRO_BITMAP* titan_bizarro;
+    ALLEGRO_BITMAP* titan1;
+    ALLEGRO_BITMAP* titan2;
 
 } s_TitanesSprites;
 
@@ -101,6 +103,9 @@ typedef enum
     ODM,
     DASH,
     SALIDA_DASH,
+    SALIDA_ODM_ATAQUE1,
+    SALIDA_ODM_ATAQUE2,
+    ATAQUE_BASICO_CAYENDO,
     ODMATAQUE,
     ODM_ATAQUE1,
     ODM_ATAQUE2,
@@ -124,6 +129,19 @@ typedef struct
     bool saltoActivo;
     
 } s_AnimacionLevi;
+
+typedef struct 
+{
+    int frameActual;
+    int contadorAnim;
+    int velocidadAnim;
+    int cantidadFrames;
+    int fila_ss;
+    int frameXRepetir;
+    bool rotarAnim;
+    bool repetir;
+} s_AnimacionTitanes;
+
 
 typedef struct 
 {
@@ -179,19 +197,36 @@ typedef struct
     s_Hitbox hitbox;
 }s_Elementos;
 
+typedef struct {
+    bool activo;
+    float dirX;
+    float dirY;
+    float distanciaRestante;
+    float manoX;
+    float manoY;
+} s_AgarreTitan;
+
 typedef struct 
 {
     int x;
     int y;
-    int velocidadX;
-    int velocidadY;
     int vida;
     int ataque;
     int tipo; //agregar variable para saber si esta activo, nose en que struct
+    float velocidadX;
+    float velocidadY;
+    float tiempoQuieto;
+    float distanciaRecorrida;
+    float distanciaRecorridaRegistrada;
     s_Hitbox hitboxAtaque;
     s_Hitbox hitboxTitan;
     s_Hitbox hitboxDeteccion;
     s_Hitbox hitboxNuca;
+    s_AnimacionTitanes animacion;
+    s_AgarreTitan agarre;
+    bool cambioDireccion;
+    bool viendoDerecha;
+    bool quieto;
     bool activo;
     bool enganchadoODM;
 } s_Entidades;
@@ -264,6 +299,13 @@ typedef struct
     float y;
     float velocidadX;
     float velocidadY;
+    float cooldownHabilidad1;
+    float cooldownHabilidad2;
+    float distanciaYRecorrida;
+    bool distanciaYRegistrada;
+    bool leviAtacando;
+    bool habilidad1Activa;
+    bool habilidad2Activa;
     bool doble_salto;
     bool levi_suelo;
     bool levi_vuelo;

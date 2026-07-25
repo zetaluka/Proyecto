@@ -96,6 +96,18 @@ int carga_sprites_titanes(s_Assets *assets)
         return 1;
     }
 
+    assets->titanes.titan1 = al_load_bitmap("assets/imgs/dina.png");
+    if(!assets->titanes.titan1){
+        printf("Error cargando titan1");
+        return 1;
+    }
+
+    assets->titanes.titan2 = al_load_bitmap("assets/imgs/titangloton.png");
+    if(!assets->titanes.titan2){
+        printf("Error cargando titan2");
+        return 1;
+    }
+
     return 0;
 }
 

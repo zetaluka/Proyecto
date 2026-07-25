@@ -110,13 +110,24 @@ void titanes_sprites(s_GameState *gs, s_Assets *assets)
         titanX = round(gs->pantalla[pA].entidades[i].x);
         titanY = round(gs->pantalla[pA].entidades[i].y);
 
-        if(gs->pantalla[pA].entidades[i].activo == true)
-        {
             if(gs->pantalla[pA].entidades[i].vida > 0)
             {
-                al_draw_bitmap(assets->titanes.titan_bizarro, titanX, titanY, 0);
+
+                if(gs->pantalla[pA].entidades[i].tipo == 1)
+                {
+                    if(gs->pantalla[pA].entidades[i].animacion.rotarAnim)
+                        al_draw_scaled_bitmap(assets->titanes.titan1,0, 0, 219, 164, titanX, titanY, 219*2.5, 164*2.5, ALLEGRO_FLIP_HORIZONTAL);
+                    else
+                        al_draw_scaled_bitmap(assets->titanes.titan1,0, 0, 219, 164, titanX, titanY, 219*2.5, 164*2.5, 0);
+                }
+                else if(gs->pantalla[pA].entidades[i].tipo == 2)
+                {
+                    if(gs->pantalla[pA].entidades[i].animacion.rotarAnim)
+                        al_draw_scaled_bitmap(assets->titanes.titan2,0, 0, 127, 128, titanX, titanY, 127*1.5, 127*1.5, ALLEGRO_FLIP_HORIZONTAL);
+                    else
+                        al_draw_scaled_bitmap(assets->titanes.titan2,0, 0, 127, 128, titanX, titanY, 127*1.5, 127*1.5, 0);
+                }
             }
-        }
     }
 }
 
@@ -188,7 +199,7 @@ void muestra_hitbox(s_GameState *gs, s_Assets *assets)
             gs->levi.hitboxAtaque.x+gs->levi.hitboxAtaque.ancho, gs->levi.hitboxAtaque.y+gs->levi.hitboxAtaque.alto,
             al_map_rgb(255, 0, 0), 2);
 
-        if(gs->levi.dash.activo)
+        if(gs->levi.dash.activo || gs->levi.estadoLevi == SALIDA_DASH)
             al_draw_rectangle(gs->levi.dash.hitboxDash.x, gs->levi.dash.hitboxDash.y,
                 gs->levi.dash.hitboxDash.x+gs->levi.dash.hitboxDash.ancho, gs->levi.dash.hitboxDash.y+gs->levi.dash.hitboxDash.alto,
                 al_map_rgb(0, 0, 255), 2);
@@ -210,16 +221,16 @@ void muestra_hitbox(s_GameState *gs, s_Assets *assets)
                     gs->pantalla[pA].elementos[i].hitbox.color, 2);
 
         for(i=0; i<gs->pantalla[pA].num_entidades; i++)
-            if(gs->pantalla[pA].entidades[i].activo == true)
+            if(gs->pantalla[pA].entidades[i].vida > 0)
             {
-                al_draw_rectangle(gs->pantalla[pA].entidades[i].hitboxTitan.x, gs->pantalla[pA].entidades[i].hitboxTitan.y,
-                    gs->pantalla[pA].entidades[i].hitboxTitan.x + gs->pantalla[pA].entidades[i].hitboxTitan.ancho,
-                    gs->pantalla[pA].entidades[i].hitboxTitan.y + gs->pantalla[pA].entidades[i].hitboxTitan.alto, BLANCO, 2);
+            al_draw_rectangle(gs->pantalla[pA].entidades[i].hitboxTitan.x, gs->pantalla[pA].entidades[i].hitboxTitan.y,
+                gs->pantalla[pA].entidades[i].hitboxTitan.x + gs->pantalla[pA].entidades[i].hitboxTitan.ancho,
+                gs->pantalla[pA].entidades[i].hitboxTitan.y + gs->pantalla[pA].entidades[i].hitboxTitan.alto, BLANCO, 2);
 
-                al_draw_rectangle(gs->pantalla[pA].entidades[i].hitboxNuca.x, gs->pantalla[pA].entidades[i].hitboxNuca.y,
-                    gs->pantalla[pA].entidades[i].hitboxNuca.x + gs->pantalla[pA].entidades[i].hitboxNuca.ancho,
-                    gs->pantalla[pA].entidades[i].hitboxNuca.y + gs->pantalla[pA].entidades[i].hitboxNuca.alto,
-                    al_map_rgb(255, 165, 0), 2);
+            al_draw_rectangle(gs->pantalla[pA].entidades[i].hitboxNuca.x, gs->pantalla[pA].entidades[i].hitboxNuca.y,
+                gs->pantalla[pA].entidades[i].hitboxNuca.x + gs->pantalla[pA].entidades[i].hitboxNuca.ancho,
+                gs->pantalla[pA].entidades[i].hitboxNuca.y + gs->pantalla[pA].entidades[i].hitboxNuca.alto,
+                al_map_rgb(255, 165, 0), 2);
             }
     }
 }

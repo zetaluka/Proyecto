@@ -247,7 +247,7 @@ void genera_titan2(s_GameState *gs, s_Assets *assets, int j)
     gs->pantalla[pA].entidades[nE].ataque = 300;
     gs->pantalla[pA].entidades[nE].activo = false;
     gs->pantalla[pA].num_entidades++;
-    gs->pantalla[pA].entidades[nE].tipo = 1;
+    gs->pantalla[pA].entidades[nE].tipo = 2;
 
 }
 
