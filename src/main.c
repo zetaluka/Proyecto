@@ -2,6 +2,7 @@
 
 int main(void) {
 
+   srand(time(0));
    al_init();
    al_init_font_addon();
    al_init_ttf_addon();

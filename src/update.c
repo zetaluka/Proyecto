@@ -16,7 +16,6 @@ void colision_ODM(s_GameState *gs);
 void colision_levi_elementos(s_GameState *gs);
 void inicia_ODM(s_GameState *gs, float *cx, float *cy);
 void hitbox_mouse(s_GameState *gs);
-void cambiar_animacion(s_GameState *gs, e_EstadoLevi nuevaAnim);
 void actualizar_animacion(s_GameState *gs);
 void activar_hitbox(s_GameState *gs);
 void desactivar_hitbox(s_GameState *gs, float tiempo);
@@ -84,8 +83,19 @@ void update_tiempo_jugado(s_GameState* gs) //Funcion para hacer funcionar el cro
 void update_levi_movimiento(s_GameState *gs)
 { 
     if(gs->levi.estadoLevi != DASH && gs->levi.estadoLevi != SALIDA_DASH && gs->levi.estadoLevi != ODM_ATAQUE1 && gs->levi.estadoLevi != ODM_ATAQUE2
-        && gs->levi.estadoLevi != SALIDA_ODM_ATAQUE1 && gs->levi.estadoLevi != SALIDA_ODM_ATAQUE2)
+        && gs->levi.estadoLevi != SALIDA_ODM_ATAQUE1 && gs->levi.estadoLevi != SALIDA_ODM_ATAQUE2 && gs->levi.agarrado == false)
         gs->variables.gravedad = 0.8;
+
+    if(gs->levi.velocidadY > 0)
+    {
+        gs->levi.distanciaYRecorrida += gs->levi.velocidadY;
+        gs->levi.distanciaYRegistrada = true;
+    }
+    else if(gs->levi.velocidadY <= 0)
+    {
+        gs->levi.distanciaYRecorrida = 0;
+        gs->levi.distanciaYRegistrada = false;
+    }
 
     bool bloqueaDerecha = false, bloqueaIzquierda = false;
     //printf("%f",gs->levi.velocidadY);
@@ -219,7 +229,7 @@ void update_levi_movimiento(s_GameState *gs)
         }
     }
 
-    if(gs->levi.levi_suelo && !gs->input.keyA && !gs->input.keyD && !gs->levi.ODM.activo && !gs->levi.dash.activo && !gs->levi.animacion.bloquearAnimacion)
+    if(gs->levi.levi_suelo && !gs->input.keyA && !gs->input.keyD && !gs->levi.ODM.activo && !gs->levi.dash.activo && !gs->levi.animacion.bloquearAnimacion && gs->levi.estadoLevi != ATERRIZANDO)
         cambiar_animacion(gs, IDLE);
 
     if(gs->input.keyS && gs->levi.levi_suelo)
@@ -446,6 +456,9 @@ void colision_levi_ataque(s_GameState *gs)
 {
     int i, pA = gs->pantalla_actual;
 
+    if(gs->levi.agarrado == true)
+        return;
+
     levi_ataques(gs);
 
     if(gs->levi.leviAtacando)
@@ -611,8 +624,11 @@ void colision_levi_mapa(s_GameState *gs)
                     if(gs->levi.estadoLevi == CAYENDO || gs->levi.estadoLevi == SALIDA_DASH || gs->levi.estadoLevi == DASH || gs->levi.estadoLevi == SALIDA_ODM_ATAQUE1 ||
                         gs->levi.estadoLevi == SALIDA_ODM_ATAQUE2 || gs->levi.estadoLevi == ODM_ATAQUE_BASICO)
                     {
-                        gs->levi.animacion.bloquearAnimacion = true;
-                        gs->variables.bloquearControles = true;
+                        if(gs->levi.distanciaYRecorrida > 250)
+                        {
+                            gs->levi.animacion.bloquearAnimacion = true;
+                            gs->variables.bloquearControles = true;
+                        }
                         cambiar_animacion(gs, ATERRIZANDO);
                         gs->variables.gravedad = 0.8f;
                         gs->levi.dash.activo = false;
@@ -640,9 +656,12 @@ void colision_levi_mapa(s_GameState *gs)
                     if(gs->levi.estadoLevi == CAYENDO || gs->levi.estadoLevi == SALIDA_DASH || gs->levi.estadoLevi == DASH || gs->levi.estadoLevi == SALIDA_ODM_ATAQUE1 ||
                         gs->levi.estadoLevi == SALIDA_ODM_ATAQUE2 || gs->levi.estadoLevi == ODM_ATAQUE_BASICO)
                     {
+                        if(gs->levi.distanciaYRecorrida > 250)
+                        {
+                            gs->levi.animacion.bloquearAnimacion = true;
+                            gs->variables.bloquearControles = true;
+                        }
                         cambiar_animacion(gs, ATERRIZANDO);
-                        gs->levi.animacion.bloquearAnimacion = true;
-                        gs->variables.bloquearControles = true;
                     }
                 }
             }
@@ -725,12 +744,14 @@ void colision_ODM(s_GameState *gs)
     float cx, cy;
     float mouseX = gs->levi.hitboxODM.x, mouseY = gs->levi.hitboxODM.y;
 
-    if(gs->input.ClickDer)
+    if(gs->input.ClickDer && gs->levi.agarrado == false)
     {
         for(i=0;i<gs->pantalla[pA].num_entidades;i++)
             if(colision(gs, gs->levi.hitboxODM, gs->pantalla[pA].entidades[i].hitboxTitan) && gs->pantalla[pA].entidades[i].activo == true)
             {
                 inicia_ODM(gs, &cx, &cy);
+                gs->levi.habilidad1Activa = false;
+                gs->levi.habilidad2Activa = false;
                 gs->levi.ODM.engancheTitan = true;
                 break;
             }
@@ -739,6 +760,8 @@ void colision_ODM(s_GameState *gs)
             if((gs->pantalla[pA].elementos[i].tipo == 1 || gs->pantalla[pA].elementos[i].tipo == 3) && colision(gs, gs->levi.hitboxODM, gs->pantalla[pA].elementos[i].hitbox))
             {
                 inicia_ODM(gs, &cx, &cy);
+                gs->levi.habilidad1Activa = false;
+                gs->levi.habilidad2Activa = false;
                 gs->levi.ODM.engancheNormal = true;
             }
         
@@ -747,6 +770,11 @@ void colision_ODM(s_GameState *gs)
 
     if(gs->levi.ODM.engancheActivo)
     {
+        if(gs->levi.agarrado)
+        {
+            gs->levi.ODM.engancheActivo = false;
+        }
+        
         gs->levi.ODM.puntoEngancheX += gs->levi.ODM.dirX * 15;
         gs->levi.ODM.puntoEngancheY += gs->levi.ODM.dirY * 15;
 
@@ -844,7 +872,7 @@ void levi_dash(s_GameState *gs)
     float cx, cy, distancia; //Catetos e hipotenusa
     float mouseX = gs->levi.hitboxODM.x, mouseY = gs->levi.hitboxODM.y;
 
-    if(gs->input.keyF == true && gs->levi.dash.activo == false && gs->levi.dash.cooldown <= 0)
+    if(gs->input.keyF == true && gs->levi.dash.activo == false && gs->levi.dash.cooldown <= 0 && gs->levi.agarrado == false)
     {
         if(colision(gs, gs->levi.hitboxODM, gs->pantalla[gs->pantalla_actual].hitbox[0]) && gs->levi.levi_suelo) 
             return; //Evita bug de activar dash con el mouse en el suelo
@@ -958,11 +986,22 @@ void colision_levi_elementos(s_GameState *gs)
     int i, pA = gs->pantalla_actual, nE = gs->pantalla[pA].num_elementos;
 
     for(i=0;i<nE;i++)
+    {
         if(colision(gs, gs->levi.hitbox, gs->pantalla[pA].elementos[i].hitbox) && gs->pantalla[pA].elementos[i].activo && gs->pantalla[pA].elementos[i].tipo == 2)
         {
             gs->levi.inventario.escudos++;
             gs->pantalla[pA].elementos[i].activo = false;
         }
+
+        if(gs->input.keyE)
+        {
+            if(colision(gs, gs->levi.hitbox, gs->pantalla[pA].elementos[i].hitbox2))
+            {
+                printf("Colision con puerta\n");
+                gs->input.keyE = false;
+            }
+        }
+    }
 }
 
 void camara_scroll(s_GameState *gs)
@@ -994,6 +1033,9 @@ void camara_scroll(s_GameState *gs)
 void cambiar_animacion(s_GameState *gs, e_EstadoLevi nuevaAnim)
 {
     if(gs->levi.estadoLevi == nuevaAnim) //Verifica si el estado de levi es nuevo, si no es asi, retorna
+        return;
+
+    if(gs->levi.agarrado == true)
         return;
 
     bool Interrumpible = (nuevaAnim == IDLE || nuevaAnim == CAMINANDO || nuevaAnim == CORRIENDO || nuevaAnim == SALTANDO || nuevaAnim == CAYENDO);
@@ -1122,17 +1164,30 @@ void cambiar_animacion(s_GameState *gs, e_EstadoLevi nuevaAnim)
             gs->levi.animacion.contadorAnim = 0;
             break;  
 
-        case ODM_ATAQUE3:
+        case SALIDA_TITAN_AGARRE:
 
             gs->levi.animacion.bloquearAnimacion = true;
-            gs->levi.animacion.cantidadFrames = 10;
-            gs->levi.animacion.velocidadAnim = 5;
+            gs->levi.animacion.cantidadFrames = 6;
+            gs->levi.animacion.velocidadAnim = 2;
             gs->levi.animacion.repetir = false;
             gs->levi.animacion.fila_ss = LEVI_SS_ALTO * 9;
             gs->levi.animacion.contadorAnim = 0;
             gs->levi.animacion.bloquearAnimacion = true;
             gs->variables.gravedad = 0;
             break; 
+
+        case PARRY:
+
+            gs->levi.animacion.bloquearAnimacion = true;
+            gs->levi.animacion.cantidadFrames = 3;
+            gs->levi.animacion.velocidadAnim = 9;
+            gs->levi.animacion.repetir = false;
+            gs->levi.animacion.fila_ss = LEVI_SS_ALTO * 9;
+            gs->levi.animacion.contadorAnim = 0;
+            gs->levi.animacion.bloquearAnimacion = true;
+            gs->variables.gravedad = 0;
+            break; 
+
 
         case ODM_ATAQUE_BASICO:
 
@@ -1231,6 +1286,9 @@ void cambiar_animacion(s_GameState *gs, e_EstadoLevi nuevaAnim)
 
 void actualizar_animacion(s_GameState *gs)
 {
+    if(gs->levi.agarrado)
+        return;
+
     gs->levi.animacion.contadorAnim++;
 
     if(gs->levi.animacion.contadorAnim >= gs->levi.animacion.velocidadAnim) //Verifica si el contador llega a la velocidad para cambiar de frame
@@ -1274,7 +1332,7 @@ void fin_animacion(s_GameState *gs)
     }
 
     else if(gs->levi.estadoLevi == SALIDA_DASH || gs->levi.estadoLevi == ATAQUE_BASICO || gs->levi.estadoLevi == SALIDA_ODM_ATAQUE1 
-        || gs->levi.estadoLevi == SALIDA_ODM_ATAQUE2)
+        || gs->levi.estadoLevi == SALIDA_ODM_ATAQUE2 || gs->levi.estadoLevi == SALIDA_TITAN_AGARRE || gs->levi.estadoLevi == PARRY)
     {
         gs->levi.animacion.bloquearAnimacion = false;
         gs->variables.bloquearControles = false;

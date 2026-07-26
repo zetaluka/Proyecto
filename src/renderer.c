@@ -215,10 +215,17 @@ void muestra_hitbox(s_GameState *gs, s_Assets *assets)
 
         for(i=0; i<gs->pantalla[pA].num_elementos; i++)
             if(gs->pantalla[pA].elementos[i].activo == true)
+            {
                 al_draw_rectangle(gs->pantalla[pA].elementos[i].hitbox.x, gs->pantalla[pA].elementos[i].hitbox.y,
                     gs->pantalla[pA].elementos[i].hitbox.x+gs->pantalla[pA].elementos[i].hitbox.ancho,
                     gs->pantalla[pA].elementos[i].hitbox.y+gs->pantalla[pA].elementos[i].hitbox.alto,
                     gs->pantalla[pA].elementos[i].hitbox.color, 2);
+
+                al_draw_rectangle(gs->pantalla[pA].elementos[i].hitbox2.x, gs->pantalla[pA].elementos[i].hitbox2.y,
+                    gs->pantalla[pA].elementos[i].hitbox2.x+gs->pantalla[pA].elementos[i].hitbox2.ancho,
+                    gs->pantalla[pA].elementos[i].hitbox2.y+gs->pantalla[pA].elementos[i].hitbox2.alto,
+                    gs->pantalla[pA].elementos[i].hitbox2.color, 2);
+            }
 
         for(i=0; i<gs->pantalla[pA].num_entidades; i++)
             if(gs->pantalla[pA].entidades[i].vida > 0)
@@ -231,6 +238,18 @@ void muestra_hitbox(s_GameState *gs, s_Assets *assets)
                 gs->pantalla[pA].entidades[i].hitboxNuca.x + gs->pantalla[pA].entidades[i].hitboxNuca.ancho,
                 gs->pantalla[pA].entidades[i].hitboxNuca.y + gs->pantalla[pA].entidades[i].hitboxNuca.alto,
                 al_map_rgb(255, 165, 0), 2);
+
+            al_draw_rectangle(gs->pantalla[pA].entidades[i].hitboxAtaqueBasico.x, gs->pantalla[pA].entidades[i].hitboxAtaqueBasico.y,
+                gs->pantalla[pA].entidades[i].hitboxAtaqueBasico.x + gs->pantalla[pA].entidades[i].hitboxAtaqueBasico.ancho,
+                gs->pantalla[pA].entidades[i].hitboxAtaqueBasico.y + gs->pantalla[pA].entidades[i].hitboxAtaqueBasico.alto, al_map_rgb(255, 0, 0), 2);
+
+            al_draw_rectangle(gs->pantalla[pA].entidades[i].agarre.manoHB.x, gs->pantalla[pA].entidades[i].agarre.manoHB.y,
+                gs->pantalla[pA].entidades[i].agarre.manoHB.x + gs->pantalla[pA].entidades[i].agarre.manoHB.ancho,
+                gs->pantalla[pA].entidades[i].agarre.manoHB.y + gs->pantalla[pA].entidades[i].agarre.manoHB.alto, gs->pantalla[pA].entidades[i].agarre.manoHB.color, 2);
+
+            al_draw_rectangle(gs->pantalla[pA].entidades[i].agarre.manoHB.x, gs->pantalla[pA].entidades[i].mordidaHB.y,
+                gs->pantalla[pA].entidades[i].mordidaHB.x + gs->pantalla[pA].entidades[i].mordidaHB.ancho,
+                gs->pantalla[pA].entidades[i].mordidaHB.y + gs->pantalla[pA].entidades[i].mordidaHB.alto, gs->pantalla[pA].entidades[i].mordidaHB.color, 2);
             }
     }
 }

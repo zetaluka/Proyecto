@@ -7,6 +7,8 @@
 #include <stdbool.h>
 #include <math.h>
 #include <string.h>
+#include <stdlib.h>
+#include <time.h>
 #include <allegro5/allegro.h>
 #include <allegro5/display.h>
 #include <allegro5/allegro_font.h>
@@ -109,7 +111,8 @@ typedef enum
     ODMATAQUE,
     ODM_ATAQUE1,
     ODM_ATAQUE2,
-    ODM_ATAQUE3,
+    PARRY,
+    SALIDA_TITAN_AGARRE,
     ODM_ATAQUE_BASICO,
     ODM_NORMAL_ATAQUE_BASICO
 } e_EstadoLevi;
@@ -195,6 +198,7 @@ typedef struct
     int tipoCasa;
     bool activo;
     s_Hitbox hitbox;
+    s_Hitbox hitbox2;
 }s_Elementos;
 
 typedef struct {
@@ -202,8 +206,7 @@ typedef struct {
     float dirX;
     float dirY;
     float distanciaRestante;
-    float manoX;
-    float manoY;
+   s_Hitbox manoHB;
 } s_AgarreTitan;
 
 typedef struct 
@@ -212,23 +215,33 @@ typedef struct
     int y;
     int vida;
     int ataque;
-    int tipo; //agregar variable para saber si esta activo, nose en que struct
+    int tipo; 
+    int casoAtaque;
+    float velocidadXSalto;
     float velocidadX;
     float velocidadY;
     float tiempoQuieto;
     float distanciaRecorrida;
     float distanciaRecorridaRegistrada;
-    s_Hitbox hitboxAtaque;
+    float cooldownAtaque;
+    float cooldownMordida;
+    float tiempoAtaqueActivo;
+    float tiempoMordidaActivo;
+    float gravedadTitan;
+    s_Hitbox mordidaHB;
+    s_Hitbox hitboxAtaqueBasico;
     s_Hitbox hitboxTitan;
     s_Hitbox hitboxDeteccion;
     s_Hitbox hitboxNuca;
     s_AnimacionTitanes animacion;
     s_AgarreTitan agarre;
+    bool saltoActivo;
     bool cambioDireccion;
     bool viendoDerecha;
     bool quieto;
     bool activo;
     bool enganchadoODM;
+    bool frameActivacion;
 } s_Entidades;
 
 typedef struct
@@ -293,6 +306,7 @@ typedef struct
 {
     int viendoDerecha;
     int puntuacion;
+    int contSoltarse;
     float gravedad;
     float cooldownAtaque;
     float x;
@@ -302,6 +316,8 @@ typedef struct
     float cooldownHabilidad1;
     float cooldownHabilidad2;
     float distanciaYRecorrida;
+    bool invulnerabilidad;
+    bool agarrado;
     bool distanciaYRegistrada;
     bool leviAtacando;
     bool habilidad1Activa;
@@ -344,6 +360,8 @@ typedef struct { //input.c actualiza a través de la variable s_GameState, updat
     bool keyH; //Para visualizar hitbox de levi
     bool keyG; //Detener entidades
     bool keyF; //Dash de levi
+    bool keyE;
+    bool keyR;
     bool ClickIzq;
     bool ClickDer;
     bool key1;
@@ -420,6 +438,7 @@ void mapa1(s_GameState *gs, s_Assets *assets);
 void hitbox_init(s_GameState *gs);
 void comprueba_colision(s_GameState *gs);
 void colision_levi_titan(s_GameState *gs);
+void cambiar_animacion(s_GameState *gs, e_EstadoLevi nuevaAnim);
 bool colision(s_GameState *gs, s_Hitbox h1, s_Hitbox h2);
 
 

@@ -349,6 +349,12 @@ void genera_casa2(s_GameState *gs, int i, int j)
     gs->pantalla[pA].elementos[nE].activo = true;
     gs->pantalla[pA].num_elementos++;
 
+    gs->pantalla[pA].elementos[nE].hitbox2.x = gs->pantalla[pA].elementos[nE].hitbox.x + 112;
+    gs->pantalla[pA].elementos[nE].hitbox2.y = gs->pantalla[pA].elementos[nE].hitbox.y + 394;
+    gs->pantalla[pA].elementos[nE].hitbox2.alto = 67;
+    gs->pantalla[pA].elementos[nE].hitbox2.ancho = 40;
+    gs->pantalla[pA].elementos[nE].hitbox2.color = al_map_rgb(147, 112, 219);
+
     while(colision(gs, gs->pantalla[pA].elementos[nE].hitbox, gs->pantalla[pA].hitbox[0]) == false)
         {
             gs->pantalla[pA].elementos[nE].y++;
