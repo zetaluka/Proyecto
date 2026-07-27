@@ -23,8 +23,10 @@ void game_init(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display)
     gs->pantalla_actual = 0;
     gs->nivel = 1;
     gs->variables.gravedad = 0.8;
+    gs->input.keyG = true;
 
     //Inicializacion de levi
+    gs->levi.vida = 10;
     gs->levi.x = 700;
     gs->levi.y = 100;
     gs->levi.velocidadX = 0;
@@ -348,18 +350,19 @@ void genera_casa2(s_GameState *gs, int i, int j)
     gs->pantalla[pA].elementos[nE].tipoCasa = 2;
     gs->pantalla[pA].elementos[nE].activo = true;
     gs->pantalla[pA].num_elementos++;
+    
+    while(colision(gs, gs->pantalla[pA].elementos[nE].hitbox, gs->pantalla[pA].hitbox[0]) == false)
+    {
+        gs->pantalla[pA].elementos[nE].y++;
+        gs->pantalla[pA].elementos[nE].hitbox.y++;
+    }
 
     gs->pantalla[pA].elementos[nE].hitbox2.x = gs->pantalla[pA].elementos[nE].hitbox.x + 112;
-    gs->pantalla[pA].elementos[nE].hitbox2.y = gs->pantalla[pA].elementos[nE].hitbox.y + 394;
+    gs->pantalla[pA].elementos[nE].hitbox2.y = gs->pantalla[pA].elementos[nE].hitbox.y + 297;
     gs->pantalla[pA].elementos[nE].hitbox2.alto = 67;
     gs->pantalla[pA].elementos[nE].hitbox2.ancho = 40;
     gs->pantalla[pA].elementos[nE].hitbox2.color = al_map_rgb(147, 112, 219);
 
-    while(colision(gs, gs->pantalla[pA].elementos[nE].hitbox, gs->pantalla[pA].hitbox[0]) == false)
-        {
-            gs->pantalla[pA].elementos[nE].y++;
-            gs->pantalla[pA].elementos[nE].hitbox.y++;
-        }
 
 }
 

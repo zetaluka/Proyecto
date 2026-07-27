@@ -771,9 +771,7 @@ void colision_ODM(s_GameState *gs)
     if(gs->levi.ODM.engancheActivo)
     {
         if(gs->levi.agarrado)
-        {
             gs->levi.ODM.engancheActivo = false;
-        }
         
         gs->levi.ODM.puntoEngancheX += gs->levi.ODM.dirX * 15;
         gs->levi.ODM.puntoEngancheY += gs->levi.ODM.dirY * 15;
@@ -846,7 +844,7 @@ void colision_ODM(s_GameState *gs)
 
         genera_gas(gs);
 
-        if(gs->levi.ODM.distanciaRestanteODM <= 0)
+        if(gs->levi.ODM.distanciaRestanteODM <= 0 || gs->levi.agarrado)
         {
             gs->levi.ODM.engancheNormal = false;
             gs->levi.ODM.engancheTitan = false;
@@ -908,6 +906,8 @@ void levi_dash(s_GameState *gs)
 
     if(gs->levi.dash.activo)
     {
+        if(gs->levi.agarrado)
+            gs->levi.dash.distanciaRestante = 0;
         gs->input.keyF = false;
         gs->levi.x += gs->levi.dash.dashX*10; //Mueve a levi segun la direccion x y lo multiplica por la velocidad 8
         gs->levi.y += gs->levi.dash.dashY*10; //Mueve a levi segun la direccion x y lo multiplica por la velocidad 8

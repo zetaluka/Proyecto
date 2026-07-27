@@ -247,7 +247,7 @@ void muestra_hitbox(s_GameState *gs, s_Assets *assets)
                 gs->pantalla[pA].entidades[i].agarre.manoHB.x + gs->pantalla[pA].entidades[i].agarre.manoHB.ancho,
                 gs->pantalla[pA].entidades[i].agarre.manoHB.y + gs->pantalla[pA].entidades[i].agarre.manoHB.alto, gs->pantalla[pA].entidades[i].agarre.manoHB.color, 2);
 
-            al_draw_rectangle(gs->pantalla[pA].entidades[i].agarre.manoHB.x, gs->pantalla[pA].entidades[i].mordidaHB.y,
+            al_draw_rectangle(gs->pantalla[pA].entidades[i].mordidaHB.x, gs->pantalla[pA].entidades[i].mordidaHB.y,
                 gs->pantalla[pA].entidades[i].mordidaHB.x + gs->pantalla[pA].entidades[i].mordidaHB.ancho,
                 gs->pantalla[pA].entidades[i].mordidaHB.y + gs->pantalla[pA].entidades[i].mordidaHB.alto, gs->pantalla[pA].entidades[i].mordidaHB.color, 2);
             }

@@ -228,13 +228,19 @@ typedef struct
     float tiempoAtaqueActivo;
     float tiempoMordidaActivo;
     float gravedadTitan;
+    float distanciaRecorridaAtaque;
     s_Hitbox mordidaHB;
     s_Hitbox hitboxAtaqueBasico;
     s_Hitbox hitboxTitan;
-    s_Hitbox hitboxDeteccion;
     s_Hitbox hitboxNuca;
     s_AnimacionTitanes animacion;
     s_AgarreTitan agarre;
+    bool agarreFase2Activa;
+    bool agarreFase3Activa;
+    bool ataqueDerecha;
+    bool ataqueRegistrado;
+    bool patadaActiva;
+    bool ataqueActivo;
     bool saltoActivo;
     bool cambioDireccion;
     bool viendoDerecha;
@@ -242,6 +248,7 @@ typedef struct
     bool activo;
     bool enganchadoODM;
     bool frameActivacion;
+    bool golpeRegistrado;
 } s_Entidades;
 
 typedef struct
@@ -307,6 +314,7 @@ typedef struct
     int viendoDerecha;
     int puntuacion;
     int contSoltarse;
+    int vida;
     float gravedad;
     float cooldownAtaque;
     float x;
