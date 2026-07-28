@@ -2,6 +2,7 @@
 
 //====Prototipos====//
 void update_jugando(s_GameState *gs, s_Assets *assets);
+void update_menu(s_GameState *gs, s_Assets *assets);
 void update_tiempo_jugado(s_GameState* gs);
 void update_levi_movimiento(s_GameState *gs);
 void transicion_pantalla(s_GameState *gs, s_Assets *assets);
@@ -26,6 +27,8 @@ void genera_gas(s_GameState *gs);
 void actualizar_gas(s_GameState *gs);
 void fin_animacion(s_GameState *gs);
 void levi_ataques(s_GameState *gs);
+void actualizar_transicion(s_GameState *gs);
+void verifica_estado_nivel(s_GameState *gs);
 
 //====Funcion principal====//
 void update(s_GameState *gs, s_Assets *assets)
@@ -33,6 +36,7 @@ void update(s_GameState *gs, s_Assets *assets)
     switch(gs->estadoPantalla) //Detecta en que estado esta, ejemplo: Menu, jugando, pausa, etc.
     {
         case PANTALLA_MENU:
+            update_menu(gs, assets);
             break;
 
         case PANTALLA_JUGANDO:
@@ -43,6 +47,11 @@ void update(s_GameState *gs, s_Assets *assets)
             break;
     }
 
+}
+
+void update_menu(s_GameState *gs, s_Assets *assets)
+{
+    
 }
 
 
@@ -62,8 +71,16 @@ void update_jugando(s_GameState *gs, s_Assets *assets) //Funcion si para cuando 
     actualizar_gas(gs);
     camara_scroll(gs);
     transicion_pantalla(gs, assets);
+    verifica_estado_nivel(gs);
 
     return;
+}
+
+void verifica_estado_nivel(s_GameState *gs)
+{
+    if(gs->nivelCompletado == true)
+        gs->estadoPantalla = PANTALLA_MENU;
+
 }
 
 void update_tiempo_jugado(s_GameState* gs) //Funcion para hacer funcionar el cronometro de tiempo jugado
@@ -245,20 +262,56 @@ void update_levi_movimiento(s_GameState *gs)
 void transicion_pantalla(s_GameState *gs, s_Assets *assets) //Efecto de transicion por pantallas
 {
     float anchoPantalla = gs->pantalla[gs->pantalla_actual].ancho * TAM_CELDA;
+    
+    if(gs->levi.x+40 >= anchoPantalla && gs->pantalla_actual < MAXPANTALLAS - 1 && gs->pantalla_actual == 2 && gs->animaciones.transicion.activo == false)
+    {   
+        gs->animaciones.transicion.activo = true;
+        gs->animaciones.transicion.cantidadFrames = 38;
+        gs->animaciones.transicion.contadorAnim = 0;
+        gs->animaciones.transicion.frameActual = 0;
+        gs->animaciones.transicion.velocidadAnim = 2;
+        gs->animaciones.cambioPantallaHecho = false;
+    }
 
-    if(gs->levi.x+40 >= anchoPantalla && gs->pantalla_actual < MAXPANTALLAS - 1)
+    if(gs->input.keyE)
+        for(int i=0;i<gs->pantalla[gs->pantalla_actual].num_elementos;i++)
+            if(colision(gs, gs->levi.hitbox, gs->pantalla[gs->pantalla_actual].elementos[i].hitbox) && gs->pantalla[gs->pantalla_actual].elementos[i].tipo == 4 && gs->animaciones.transicion.activo == false)
+                {
+                    gs->animaciones.transicion.activo = true;
+                    gs->animaciones.transicion.cantidadFrames = 38;
+                    gs->animaciones.transicion.contadorAnim = 0;
+                    gs->animaciones.transicion.frameActual = 0;
+                    gs->animaciones.transicion.velocidadAnim = 2;
+                    gs->animaciones.cambioPantallaHecho = false;
+                    gs->input.keyE = false;
+                }
+
+    if(gs->animaciones.transicion.activo == true)
+        actualizar_transicion(gs);
+
+    if(gs->animaciones.transicion.frameActual == 20 && !gs->animaciones.cambioPantallaHecho)
     {
-        gs->pantalla_actual++;
-        gs->levi.x = -20; 
-        gs->camara.x = 0;
-        for(int i=0;i<5;i++)
+        gs->animaciones.cambioPantallaHecho = true;
+
+        if(gs->pantalla_actual < MAXPANTALLAS - 1)
         {
-            gs->variables.grietas[i].x = 0;
-            gs->variables.grietas[i].y = 0;
+            gs->pantalla_actual++;
+            gs->camara.x = 0;
+            for(int i=0;i<5;i++)
+            {
+                gs->variables.grietas[i].x = 0;
+                gs->variables.grietas[i].y = 0;
+            }
+
+            if(gs->pantalla[gs->pantalla_actual].pantallaCargada == false)
+            {
+                hitbox_init(gs);
+                gs->pantalla[gs->pantalla_actual].pantallaCargada = true;
+            }
         }
     }
 
-    if(gs->levi.x+35 <= 0 && gs->pantalla_actual > 0)
+    /*if(gs->levi.x+35 <= 0 && gs->pantalla_actual > 0)
     {
         gs->pantalla_actual--;
         anchoPantalla = gs->pantalla[gs->pantalla_actual].ancho * TAM_CELDA;
@@ -275,9 +328,9 @@ void transicion_pantalla(s_GameState *gs, s_Assets *assets) //Efecto de transici
             gs->variables.grietas[i].x = 0;
             gs->variables.grietas[i].y = 0;
         }
-    }
+    }*/
 
-     if(gs->pantalla_actual > gs->variables.carga_pantalla)
+     if(gs->pantalla_actual > gs->variables.carga_pantalla) //Servia para detectar si la pantalla habia sido cargada 
     {
         mapa1(gs, assets);
         gs->variables.carga_pantalla++;
@@ -782,21 +835,30 @@ void colision_ODM(s_GameState *gs)
         {
             mouseX = gs->levi.ODM.puntoEngancheX;
             mouseY = gs->levi.ODM.puntoEngancheY;
-            gs->levi.ODM.activo = true;
             gs->levi.ODM.engancheActivo = false;
-            cx = mouseX - (gs->levi.x + gs->levi.hitbox.ancho); //Calcula cateto x 
-            cy = mouseY - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
-            gs->levi.ODM.distanciaRestanteODM = sqrt(cx*cx + cy*cy);
 
-            if(cx < 0) //Sirve para rotar la animacion
-                gs->levi.animacion.rotarAnim = true;
-            else 
-                gs->levi.animacion.rotarAnim = false;
+            if(gs->levi.gasRestante > 0)
+            {
+                gs->levi.ODM.activo = true;
+                cx = mouseX - (gs->levi.x + gs->levi.hitbox.ancho);
+                cy = mouseY - (gs->levi.y + gs->levi.hitbox.alto);
+                gs->levi.ODM.distanciaRestanteODM = sqrt(cx*cx + cy*cy);
 
-            if(gs->levi.ODM.engancheTitan)
-                cambiar_animacion(gs, ODMATAQUE);
-            else if(gs->levi.ODM.engancheNormal)
-                cambiar_animacion(gs, ODM);
+                if(cx < 0)
+                    gs->levi.animacion.rotarAnim = true;
+                else 
+                    gs->levi.animacion.rotarAnim = false;
+
+                if(gs->levi.ODM.engancheTitan)
+                    cambiar_animacion(gs, ODMATAQUE);
+                else if(gs->levi.ODM.engancheNormal)
+                    cambiar_animacion(gs, ODM);
+            }
+            else
+            {
+                gs->levi.ODM.engancheNormal = false;
+                gs->levi.ODM.engancheTitan = false;
+            }
             
             for(i=0;i<5;i++) //Elemento estetico, si el ODM engancha, deja unas grietas guardada en un arreglo, si el arreglo esta lleno, corre a la derecha las posiciones y reemplaza la ultima como la primera
             {                    //de esta forma, siempre reemplaza la que mas tiempo lleve en pantalla
@@ -828,23 +890,27 @@ void colision_ODM(s_GameState *gs)
     {
         //printf("ODM Activo\n");
         desactivar_hitbox(gs, 0.1f);
+        gs->levi.gasRestante--;
 
-        cx = gs->levi.ODM.puntoEngancheX - (gs->levi.x + gs->levi.hitbox.ancho); //Calcula cateto x 
-        cy = gs->levi.ODM.puntoEngancheY - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
-        gs->levi.ODM.distanciaRestanteODM = sqrt(cx*cx + cy*cy);
-        
-        gs->levi.ODM.dirX = cx/gs->levi.ODM.distanciaRestanteODM;
-        gs->levi.ODM.dirY = cy/gs->levi.ODM.distanciaRestanteODM;
+        if(gs->levi.gasRestante > 0)
+        {
+            cx = gs->levi.ODM.puntoEngancheX - (gs->levi.x + gs->levi.hitbox.ancho); //Calcula cateto x 
+            cy = gs->levi.ODM.puntoEngancheY - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
+            gs->levi.ODM.distanciaRestanteODM = sqrt(cx*cx + cy*cy);
+            
+            gs->levi.ODM.dirX = cx/gs->levi.ODM.distanciaRestanteODM;
+            gs->levi.ODM.dirY = cy/gs->levi.ODM.distanciaRestanteODM;
 
-        gs->levi.x += gs->levi.ODM.dirX * gs->levi.ODM.velocidadODM; //Desplaza a levi
-        gs->levi.y += gs->levi.ODM.dirY * gs->levi.ODM.velocidadODM;
+            gs->levi.x += gs->levi.ODM.dirX * gs->levi.ODM.velocidadODM; //Desplaza a levi
+            gs->levi.y += gs->levi.ODM.dirY * gs->levi.ODM.velocidadODM;
 
-        gs->levi.ODM.distanciaRestanteODM -= gs->levi.ODM.velocidadODM; //Resta la distancia restante
-        gs->levi.ODM.velocidadODM += 0.5f; //Aumenta la velocidad de levi
+            gs->levi.ODM.distanciaRestanteODM -= gs->levi.ODM.velocidadODM; //Resta la distancia restante
+            gs->levi.ODM.velocidadODM += 0.5f; //Aumenta la velocidad de levi
+            genera_gas(gs);
+        }
 
-        genera_gas(gs);
 
-        if(gs->levi.ODM.distanciaRestanteODM <= 0 || gs->levi.agarrado)
+        if(gs->levi.ODM.distanciaRestanteODM <= 0 || gs->levi.agarrado || gs->levi.gasRestante <= 0)
         {
             gs->levi.ODM.engancheNormal = false;
             gs->levi.ODM.engancheTitan = false;
@@ -1435,6 +1501,25 @@ void aumenta_puntuacion(s_GameState *gs, int i, char *tipo)
     {
         gs->levi.puntuacion += 500;
         printf("Puntuacion: %d\n", gs->levi.puntuacion); 
+    }
+
+}
+
+void actualizar_transicion(s_GameState *gs)
+{
+
+    if(gs->animaciones.transicion.activo == true)
+    {
+        gs->animaciones.transicion.contadorAnim++;
+
+        if(gs->animaciones.transicion.contadorAnim >= gs->animaciones.transicion.velocidadAnim)
+        {
+            gs->animaciones.transicion.contadorAnim = 0;
+            gs->animaciones.transicion.frameActual++;
+
+            if(gs->animaciones.transicion.frameActual >= gs->animaciones.transicion.cantidadFrames)
+                gs->animaciones.transicion.activo = false;
+        }
     }
 
 }

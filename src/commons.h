@@ -19,7 +19,6 @@
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_image.h>
 
-
 //==========Defines==========//
 #define SCREEN_X 1280
 #define SCREEN_Y 720
@@ -29,13 +28,13 @@
 #define MAXHITBOX 50
 #define TAM_CELDA 32
 #define MAXFIL 30
-#define MAXCOL 200
+#define MAXCOL 400
 #define MAXENTIDADES 50
 #define MAXELEMENTOS 50
 #define LEVI_HB_RECORTE 42
 #define LEVI_HB_OFFSET_Y 14
 #define BORDE_CAM 250
-#define BUFFER 200
+#define BUFFER 400
 #define ALTO_SUELO 66
 #define LEVI_SS_ANCHO 120
 #define LEVI_SS_ALTO 80
@@ -51,6 +50,10 @@ typedef struct
 {
     ALLEGRO_BITMAP* fondo_base;
     ALLEGRO_BITMAP* fondo_titan_colosal;
+    ALLEGRO_BITMAP* fondo_bosque;
+    ALLEGRO_BITMAP* fondo_menu;
+    ALLEGRO_BITMAP* marcoVida;
+    ALLEGRO_BITMAP* galonGas;
     ALLEGRO_BITMAP* cubo;
     ALLEGRO_BITMAP* grieta;
     ALLEGRO_BITMAP* escudoLegion;
@@ -62,6 +65,7 @@ typedef struct
     ALLEGRO_BITMAP* puestoComida;
     ALLEGRO_BITMAP* dash;
     ALLEGRO_BITMAP* dashSB[14];
+    ALLEGRO_BITMAP* transicion;
 
 } s_AssetsPantalla;
 
@@ -74,9 +78,9 @@ typedef struct{
 
 typedef struct 
 {
-    ALLEGRO_BITMAP* titan_bizarro;
     ALLEGRO_BITMAP* titan1;
     ALLEGRO_BITMAP* titan2;
+    ALLEGRO_BITMAP* titan_hembra
 
 } s_TitanesSprites;
 
@@ -155,7 +159,7 @@ typedef struct
     float x;
     float y;
     bool activo;
-} s_EfectoGas;
+} s_Animacion;
 
 //==============================//
 
@@ -229,6 +233,7 @@ typedef struct
     float tiempoMordidaActivo;
     float gravedadTitan;
     float distanciaRecorridaAtaque;
+    float tiempoGolpeRegistrado;
     s_Hitbox mordidaHB;
     s_Hitbox hitboxAtaqueBasico;
     s_Hitbox hitboxTitan;
@@ -248,7 +253,6 @@ typedef struct
     bool activo;
     bool enganchadoODM;
     bool frameActivacion;
-    bool golpeRegistrado;
 } s_Entidades;
 
 typedef struct
@@ -266,6 +270,22 @@ typedef struct
     int alto;
     
 } s_Pantalla;
+
+typedef struct 
+{
+    int vida;
+    float x;
+    float y;
+    float velocidadX;
+    float velocidadY;
+    float tiempoAtaqueActivo;
+    float cooldownAtaque;
+    bool activa;
+    s_Hitbox hitbox;
+    s_Hitbox hitboxAtaque1;
+    s_Hitbox hitboxAtaque2
+} s_TitanHembra;
+
 
 typedef struct 
 {
@@ -308,7 +328,6 @@ typedef struct
     bool activo;
 } s_ODM;
 
-
 typedef struct
 {
     int viendoDerecha;
@@ -324,6 +343,7 @@ typedef struct
     float cooldownHabilidad1;
     float cooldownHabilidad2;
     float distanciaYRecorrida;
+    float gasRestante;
     bool invulnerabilidad;
     bool agarrado;
     bool distanciaYRegistrada;
@@ -405,9 +425,11 @@ typedef struct
 
 typedef struct 
 {
-    s_EfectoGas gas[MAXGAS];
+    s_Animacion gas[MAXGAS];
+    s_Animacion transicion;
     int contGas;
     int contGasDS;
+    bool cambioPantallaHecho;
     bool gasDS;
 } s_Animaciones;
 
@@ -423,10 +445,11 @@ typedef struct {
     s_Mapas mapas;
     s_Camara camara;
     s_Animaciones animaciones;
+    s_TitanHembra titanHembra;
     int pantalla_actual;
     int nivel; 
-    int lado_colision;
     float escala;
+    bool nivelCompletado;
 
     bool ejecutando; 
 } s_GameState;

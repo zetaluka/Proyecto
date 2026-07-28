@@ -85,14 +85,26 @@ int carga_fondo(s_Assets *assets)
         return 1;
     }
 
+    assets->assetsPantalla.fondo_bosque = al_load_bitmap("assets/imgs/bosque.jpg");
+    if(!assets->assetsPantalla.fondo_bosque){
+        printf("Error cargando fondo_bosque");
+        return 1;
+    }
+
+    assets->assetsPantalla.fondo_menu = al_load_bitmap("assets/imgs/fondo_menu.jpg");
+    if(!assets->assetsPantalla.fondo_menu){
+        printf("Error cargando ondo_menu");
+        return 1;
+    }
+
 
     return 0;
 }
 int carga_sprites_titanes(s_Assets *assets)
 {
-    assets->titanes.titan_bizarro = al_load_bitmap("assets/imgs/titanbizarro.png");
-    if(!assets->titanes.titan_bizarro){
-        printf("Error cargando titanbizarro");
+    assets->titanes.titan_hembra = al_load_bitmap("assets/imgs/titanhembra.png");
+    if(!assets->titanes.titan_hembra){
+        printf("Error cargando titanhembra");
         return 1;
     }
 
@@ -166,6 +178,28 @@ int carga_objetos(s_Assets *assets)
         printf("Error cargando dash.png");
         return 1;
     }
+
+    assets->assetsPantalla.marcoVida = al_load_bitmap("assets/imgs/marcovida.png");
+    if(!assets->assetsPantalla.marcoVida){
+        printf("Error cargando marcovida.png");
+        return 1;
+    }
+
+    assets->assetsPantalla.galonGas = al_load_bitmap("assets/imgs/galonGas.png");
+    if(!assets->assetsPantalla.galonGas){
+        printf("Error cargando galonGas");
+        return 1;
+    }
+
+    assets->assetsPantalla.transicion = al_load_bitmap("assets/imgs/transicion.png");
+    if(!assets->assetsPantalla.transicion){
+        printf("Error cargando transicion.png");
+        return 1;
+    }
+
+    printf("Ancho transicion: %d, frames reales: %f\n",
+    al_get_bitmap_width(assets->assetsPantalla.transicion),
+    al_get_bitmap_width(assets->assetsPantalla.transicion) / 1280.0f);
 
     for(int i=0; i<14; i++)
         assets->assetsPantalla.dashSB[i] = al_create_sub_bitmap(assets->assetsPantalla.dash, i*280, 0, 280, 160);

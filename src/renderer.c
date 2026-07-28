@@ -3,12 +3,14 @@
 
 void levi_sprites(s_GameState *gs, s_Assets *assets);
 void pantalla_0(s_Assets *assets, s_GameState *gs);
+void menu(s_GameState *gs, s_Assets *assets);
 void jugando(s_Assets *assets, s_GameState *gs);
 void pantalla_1(s_Assets *assets, s_GameState *gs);
 void muestra_hitbox(s_GameState *gs, s_Assets *assets);
 void titanes_sprites(s_GameState *gs, s_Assets *assets);
 void dibujar_fondo(s_GameState *gs, s_Assets *assets);
 void dibuja_gas(s_GameState *gs, s_Assets *assets);
+void titan_hembra_sprites(s_GameState *gs, s_Assets *assets);
 
 //====Funcion principal====//
 void render_gameview(s_GameState *gs, s_Assets *assets)
@@ -20,6 +22,7 @@ void render_gameview(s_GameState *gs, s_Assets *assets)
     switch (gs->estadoPantalla)
     {
         case PANTALLA_MENU:
+            menu(gs, assets);
             break;
         case PANTALLA_JUGANDO:
             jugando(assets, gs); 
@@ -29,6 +32,29 @@ void render_gameview(s_GameState *gs, s_Assets *assets)
     }
 
     return;
+}
+
+void menu(s_GameState *gs, s_Assets *assets)
+{
+    al_draw_bitmap(assets->assetsPantalla.fondo_menu, 0, 0, 0);
+
+}
+
+void jugando(s_Assets *assets, s_GameState *gs)
+{
+    //Sirve para escalar todo por gs->escala, para cuando pase a pantalla completa//
+    ALLEGRO_TRANSFORM transform; 
+    al_identity_transform(&transform);
+    al_translate_transform(&transform, -gs->camara.x, 0);
+    al_scale_transform(&transform, gs->escala, gs->escala);
+    al_use_transform(&transform);
+    ////////////////////////////////////////////////////////////////////////////////
+
+    dibujar_fondo(gs, assets);
+    titanes_sprites(gs, assets);
+    muestra_hitbox(gs,assets);
+    titan_hembra_sprites(gs, assets);
+    levi_sprites(gs, assets);
 }
 
 void levi_sprites(s_GameState *gs, s_Assets *assets)
@@ -84,20 +110,13 @@ void dibuja_gas(s_GameState *gs, s_Assets *assets)
 
 }
 
-void jugando(s_Assets *assets, s_GameState *gs)
+void titan_hembra_sprites(s_GameState *gs, s_Assets *assets)
 {
-    //Sirve para escalar todo por gs->escala, para cuando pase a pantalla completa//
-    ALLEGRO_TRANSFORM transform; 
-    al_identity_transform(&transform);
-    al_translate_transform(&transform, -gs->camara.x, 0);
-    al_scale_transform(&transform, gs->escala, gs->escala);
-    al_use_transform(&transform);
-    ////////////////////////////////////////////////////////////////////////////////
+    if(gs->titanHembra.activa == true)
+    {
+        al_draw_scaled_bitmap(assets->titanes.titan_hembra, 0, 0, 600, 900, gs->titanHembra.x, gs->titanHembra.y, 600*0.5, 900*0.5, 0);
+    }
 
-    dibujar_fondo(gs, assets);
-    titanes_sprites(gs, assets);
-    muestra_hitbox(gs,assets);
-    levi_sprites(gs, assets);
 }
 
 void titanes_sprites(s_GameState *gs, s_Assets *assets)
@@ -139,6 +158,12 @@ void dibujar_fondo(s_GameState *gs, s_Assets *assets)
         al_draw_scaled_bitmap(assets->assetsPantalla.fondo_titan_colosal, 0, 0,
             al_get_bitmap_width(assets->assetsPantalla.fondo_titan_colosal), al_get_bitmap_height(assets->assetsPantalla.fondo_titan_colosal), 0, 0,
             al_get_bitmap_width(assets->assetsPantalla.fondo_titan_colosal)*2, al_get_bitmap_height(assets->assetsPantalla.fondo_titan_colosal)*2, 0);
+
+    else if(strcmp("fondo_bosque", gs->pantalla[pA].fondo) == 0)
+        al_draw_scaled_bitmap(assets->assetsPantalla.fondo_bosque, 0, 0,
+            al_get_bitmap_width(assets->assetsPantalla.fondo_bosque), al_get_bitmap_height(assets->assetsPantalla.fondo_bosque), 0, 0,
+            al_get_bitmap_width(assets->assetsPantalla.fondo_bosque)*1, al_get_bitmap_height(assets->assetsPantalla.fondo_bosque)*1, 0);
+
     else 
         al_draw_scaled_bitmap(assets->assetsPantalla.fondo_base, 0, 0,
             al_get_bitmap_width(assets->assetsPantalla.fondo_base), al_get_bitmap_height(assets->assetsPantalla.fondo_base), 0, 0,
@@ -151,6 +176,7 @@ void dibujar_fondo(s_GameState *gs, s_Assets *assets)
                 al_get_bitmap_width(assets->assetsPantalla.grieta), al_get_bitmap_height(assets->assetsPantalla.grieta),
                 gs->pantalla[pA].elementos[i].x, gs->pantalla[pA].elementos[i].y,
                 al_get_bitmap_width(assets->assetsPantalla.grieta) * 1.5, al_get_bitmap_height(assets->assetsPantalla.grieta) * 1.5, 0);
+                
 
         else if(gs->pantalla[pA].elementos[i].tipo == 2 && gs->pantalla[pA].elementos[i].activo == true)
             al_draw_bitmap(assets->assetsPantalla.escudoLegion, gs->pantalla[pA].elementos[i].x, gs->pantalla[pA].elementos[i].y, 0);
@@ -251,6 +277,9 @@ void muestra_hitbox(s_GameState *gs, s_Assets *assets)
                 gs->pantalla[pA].entidades[i].mordidaHB.x + gs->pantalla[pA].entidades[i].mordidaHB.ancho,
                 gs->pantalla[pA].entidades[i].mordidaHB.y + gs->pantalla[pA].entidades[i].mordidaHB.alto, gs->pantalla[pA].entidades[i].mordidaHB.color, 2);
             }
+
+            al_draw_rectangle(gs->titanHembra.hitbox.x, gs->titanHembra.hitbox.y, gs->titanHembra.hitbox.x + gs->titanHembra.hitbox.ancho, gs->titanHembra.hitbox.y + gs->titanHembra.hitbox.alto, BLANCO, 2);
     }
 }
+
 

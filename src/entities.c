@@ -12,7 +12,8 @@ void titan1_ataque2(s_GameState *gs, int i, s_Entidades *entidad, float cx, floa
 void titan2_ataque1(s_GameState *gs, int i, s_Entidades *entidad, float cx, float cy);
 void titan2_ataque2(s_GameState *gs, int i, s_Entidades *entidad, float cx, float cy);
 void titan2_ataque3(s_GameState *gs, int i, s_Entidades *entidad, float cx, float cy);
-void aplicar_dano(s_GameState *gs, int dano, float empuje);
+void aplicar_dano(s_GameState *gs, int dano, float empuje, bool ataqueDerecha);
+void titan_hembra(s_GameState *gs);
 
 
 void genera_entidades(s_GameState *gs, s_Assets *assets)
@@ -23,6 +24,9 @@ void genera_entidades(s_GameState *gs, s_Assets *assets)
     movimiento_titanes(gs);
     gravedad_titanes(gs);
     colision_titanes(gs);
+
+    if(gs->pantalla_actual == 3)
+        titan_hembra(gs);
 
 }
 
@@ -35,8 +39,6 @@ void activa_entidades(s_GameState *gs)
         for(i=0 ; i<gs->pantalla[pA].num_entidades ; i++) //Desctiva todas las entidades de la pantalla
             if(gs->pantalla[pA].entidades[i].vida > 0)
             {
-                if(gs->pantalla[pA].entidades[i].tipo == 2)
-                    continue;
                 gs->pantalla[pA].entidades[i].activo = true;
             }
     }
@@ -48,6 +50,23 @@ void activa_entidades(s_GameState *gs)
                 gs->pantalla[pA].entidades[i].activo = false;
     }
 
+}
+
+void titan_hembra(s_GameState *gs)
+{
+    gs->titanHembra.hitbox.x = gs->titanHembra.x + 80;
+    gs->titanHembra.hitbox.y = gs->titanHembra.y + 20;
+    gs->titanHembra.hitbox.ancho = 135;
+    gs->titanHembra.hitbox.alto = 425;
+
+    if(gs->input.ClickIzq && colision(gs, gs->levi.hitboxAtaque, gs->titanHembra.hitbox))
+        gs->titanHembra.vida -= 10;
+
+    if(gs->titanHembra.vida <= 0)
+    {
+        gs->titanHembra.activa = false;
+        gs->nivelCompletado = true;
+    }
 }
 
 void movimiento_titanes(s_GameState *gs)
@@ -67,6 +86,11 @@ void movimiento_titanes(s_GameState *gs)
             cx = leviMitadX - titanMitadX;
             cy = leviMitadY - titanMitadY;
             distanciaX= fabsf(leviMitadX - titanMitadX); //Valor absoluto para calcular las distancias
+
+            if(gs->pantalla[pA].entidades[i].tiempoGolpeRegistrado > 0)
+                gs->pantalla[pA].entidades[i].tiempoGolpeRegistrado -= 1.0f/FPS;
+
+            //printf("TiempoGolpe: %.1f\n", gs->pantalla[pA].entidades[i].tiempoGolpeRegistrado);
 
             if(gs->pantalla[pA].entidades[i].tipo == 1) ///////////////////Titan 1////////////////////////////
             {
@@ -280,10 +304,10 @@ void ataque_titanes(s_GameState *gs, int i, float cy, float cx)
             }
 
             else if(fabsf(cx) <= 40 && cy > -90 && gs->levi.agarrado == false)
-                entidad[i].casoAtaque = (rand()%10) + 2; //Golpe melee
+                entidad[i].casoAtaque = (rand()%8) + 2; //Golpe melee
 
             else if(fabsf(cx) <= 40 && cy > -90 && gs->levi.agarrado == true) //Golpe melee
-                entidad[i].casoAtaque = (rand()%8) + 2;
+                entidad[i].casoAtaque = (rand()%6) + 2;
 
             else 
                 entidad[i].casoAtaque = 0;
@@ -297,7 +321,7 @@ void ataque_titanes(s_GameState *gs, int i, float cy, float cx)
         else if(entidad[i].casoAtaque >= 1 && entidad[i].casoAtaque < 8)
             titan2_ataque2(gs, i, entidad, cx, cy);
         
-        else if(entidad[i].casoAtaque >= 7) 
+        else if(entidad[i].casoAtaque >= 8) 
             titan2_ataque3(gs, i, entidad, cx, cy);
     }
 
@@ -344,7 +368,6 @@ void titan1_ataque1(s_GameState *gs, int i, s_Entidades *entidad, float cx, floa
             entidad[i].hitboxAtaqueBasico.x += 2;
             entidad[i].distanciaRecorridaAtaque += 2;
             entidad[i].quieto = true;
-            entidad[i].tiempoAtaqueActivo -= 1.0f/FPS;
             if(entidad[i].distanciaRecorridaAtaque >= 90)
             {
                 entidad[i].cooldownAtaque = 2;
@@ -361,6 +384,12 @@ void titan1_ataque1(s_GameState *gs, int i, s_Entidades *entidad, float cx, floa
             entidad[i].hitboxAtaqueBasico.ancho = 40;
             entidad[i].patadaActiva = true;
         }
+    }
+
+    if(colision(gs, gs->levi.hitbox, entidad[i].hitboxAtaqueBasico) && entidad[i].tiempoGolpeRegistrado <= 0)
+    {
+        entidad[i].tiempoGolpeRegistrado = 1.0f;
+        aplicar_dano(gs, 4, 3.0f, entidad[i].ataqueDerecha);
     }
     
 }
@@ -379,7 +408,7 @@ void titan1_ataque2(s_GameState *gs, int i, s_Entidades *entidad, float cx, floa
         else if(entidad[i].cooldownMordida <= 0)
         {
             if(colision(gs, gs->levi.hitbox, entidad[i].hitboxAtaqueBasico))
-                printf("Cagaste\n");
+                aplicar_dano(gs, 10, 0, false);
         }
     }
 
@@ -426,6 +455,11 @@ void titan1_ataque2(s_GameState *gs, int i, s_Entidades *entidad, float cx, floa
             entidad[i].cooldownMordida = 1.0f; //Tiempo de espera antes que el titan pueda morder justo despues de agarrar
             cambiar_animacion(gs, IDLE);
             agarre_titanes(gs, i);
+        }
+        else if(colision(gs, gs->levi.hitbox, entidad[i].hitboxAtaqueBasico) && entidad[i].tiempoGolpeRegistrado <= 0)
+        {
+            entidad[i].tiempoGolpeRegistrado = 1.0f;
+            aplicar_dano(gs, 2, 0, false);
         }
 
         if(entidad[i].distanciaRecorridaAtaque >= 250)
@@ -497,8 +531,11 @@ void titan2_ataque1(s_GameState *gs, int i, s_Entidades *entidad, float cx, floa
             entidad[i].hitboxAtaqueBasico.alto = 60;
             entidad[i].hitboxAtaqueBasico.ancho = 60;
 
-            if(colision(gs, gs->levi.hitbox, entidad[i].hitboxAtaqueBasico))
-                printf("Mordido pa\n");
+            if(colision(gs, gs->levi.hitbox, entidad[i].hitboxAtaqueBasico) && entidad[i].tiempoGolpeRegistrado <= 0)
+            {
+                entidad[i].tiempoGolpeRegistrado = 1.0f;
+                aplicar_dano(gs, 2, 0, false);
+            }
         }
         else 
         {
@@ -526,6 +563,13 @@ void titan2_ataque2(s_GameState *gs, int i, s_Entidades *entidad, float cx, floa
             entidad[i].hitboxAtaqueBasico.ancho = 50;
             entidad[i].quieto = true;
             entidad[i].tiempoAtaqueActivo -= 1.0f/FPS;
+
+            if(colision(gs, gs->levi.hitbox, entidad[i].hitboxAtaqueBasico) && entidad[i].tiempoGolpeRegistrado <= 0)
+            {
+                entidad[i].tiempoGolpeRegistrado = entidad[i].tiempoAtaqueActivo;
+                aplicar_dano(gs, 1, 0.5f, entidad[i].viendoDerecha);
+            }
+
             if(entidad[i].tiempoAtaqueActivo <= 0)
             {
                 entidad[i].cooldownAtaque = 1;
@@ -546,6 +590,13 @@ void titan2_ataque2(s_GameState *gs, int i, s_Entidades *entidad, float cx, floa
             entidad[i].hitboxAtaqueBasico.ancho = 50;
             entidad[i].quieto = true;
             entidad[i].tiempoAtaqueActivo -= 1.0f/FPS;
+
+            if(colision(gs, gs->levi.hitbox, entidad[i].hitboxAtaqueBasico) && entidad[i].tiempoGolpeRegistrado <= 0)
+            {
+                entidad[i].tiempoGolpeRegistrado = entidad[i].tiempoAtaqueActivo;
+                aplicar_dano(gs, 1, 0.5f, entidad[i].viendoDerecha);
+            }
+
             if(entidad[i].tiempoAtaqueActivo <= 0)
             {
                 entidad[i].cooldownAtaque = 1;
@@ -668,9 +719,10 @@ void agarre_titanes(s_GameState *gs, int i)
                 entidad[i].tiempoMordidaActivo = 0.4f; 
             }
 
-            if(colision(gs, gs->levi.hitbox, entidad[i].mordidaHB))
+            if(colision(gs, gs->levi.hitbox, entidad[i].mordidaHB) && entidad[i].tiempoGolpeRegistrado <= 0)
             {
-                printf("Mordida\n");
+                entidad[i].tiempoGolpeRegistrado = 0.5f;
+                aplicar_dano(gs, 2, 0, false);
             }
 
             entidad[i].cooldownMordida = 2.0f; 
@@ -724,10 +776,15 @@ void agarre_titanes(s_GameState *gs, int i)
     }
 }
 
-void aplicar_dano(s_GameState *gs, int dano, float empuje)
+void aplicar_dano(s_GameState *gs, int dano, float empuje, bool ataqueDerecha)
 {
+    if(ataqueDerecha == false)
+        empuje = (-empuje);
+
     gs->levi.vida -= dano;
     gs->levi.velocidadX = empuje;
+
+    printf("Golpe registrado; Vida: %d\n", gs->levi.vida);
 
 }
 
@@ -831,7 +888,6 @@ void colision_levi_titan(s_GameState *gs)
         if(colision(gs, gs->levi.hitbox, gs->pantalla[pA].entidades[i].hitboxTitan))
         {
             continue;    
-
         }
     }
 
