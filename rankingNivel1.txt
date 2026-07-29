@@ -1,0 +1,5 @@
+jugador 2500
+jugador 2200
+jugador 2200
+jugador 1500
+0 0

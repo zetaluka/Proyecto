@@ -29,9 +29,12 @@ void fin_animacion(s_GameState *gs);
 void levi_ataques(s_GameState *gs);
 void actualizar_transicion(s_GameState *gs);
 void verifica_estado_nivel(s_GameState *gs);
+void guarda_puntuacion(s_GameState *gs, int cantidad);
+int carga_puntuacion(s_GameState *gs);
+void logica_menu(s_GameState *gs);
 
 //====Funcion principal====//
-void update(s_GameState *gs, s_Assets *assets)
+void update(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display)
 {
     switch(gs->estadoPantalla) //Detecta en que estado esta, ejemplo: Menu, jugando, pausa, etc.
     {
@@ -51,9 +54,68 @@ void update(s_GameState *gs, s_Assets *assets)
 
 void update_menu(s_GameState *gs, s_Assets *assets)
 {
-    
+    if(gs->nivelCompletado == true && gs->puntuacionGuardada == false)
+    {
+        guarda_puntuacion(gs, carga_puntuacion(gs));
+        gs->puntuacionGuardada = true;
+    }
+
+    logica_menu(gs);
 }
 
+void logica_menu(s_GameState *gs)
+{
+    int lim;
+
+    if(gs->estadoMenu == MAIN)
+        lim = 3;
+    else if(gs->estadoMenu == JUGAR)
+        lim = 1;
+
+    if(gs->input.keyS && gs->contMenu < lim)
+    {
+        gs->contMenu++;
+        gs->input.keyS = false;
+    }
+    else if(gs->input.keyW && gs->contMenu > 0)
+    {
+        gs->contMenu--;
+        gs->input.keyW = false;
+    }
+
+    if(gs->input.keyEnter || gs->input.keyE)
+    {
+        if(gs->estadoMenu == MAIN)
+        {
+            if(gs->contMenu == 0)
+            {
+                gs->contMenu = 0;
+                gs->input.keyEnter = false;
+                gs->input.keyE = false;
+                gs->estadoMenuAnterior = gs->estadoMenu;
+                gs->estadoMenu = JUGAR;
+            }
+        }
+        else if(gs->estadoMenu == JUGAR)
+        {
+            if(gs->contMenu == 0)
+            {
+                gs->contMenu = 0;
+                gs->input.keyEnter = false;
+                gs->input.keyE = false;
+                gs->estadoPantalla = PANTALLA_JUGANDO;
+            }
+        }
+    }
+
+    if(gs->input.keyEsc)
+    {
+        gs->input.keyEnter = false;
+        gs->contMenu = 0;
+        gs->estadoMenu = gs->estadoMenuAnterior;
+    }
+
+}
 
 void update_jugando(s_GameState *gs, s_Assets *assets) //Funcion si para cuando se este en la pantalla de juego
 {
@@ -1522,5 +1584,55 @@ void actualizar_transicion(s_GameState *gs)
         }
     }
 
+}
+
+int carga_puntuacion(s_GameState *gs)
+{
+    FILE* fpunt = fopen("rankingNivel1.txt","r");
+    int cantidad = 0;
+
+    if(fpunt == NULL)
+        return 0;
+
+    //Carga las puntuaciones y las guarda en el arreglo, a la vez, obtiene la cantidad de puntuaciones que hay en el archivo
+    while (cantidad < 10 && fscanf(fpunt, "%s %d", gs->puntuaciones[cantidad].nombre, &gs->puntuaciones[cantidad].puntuacion) == 2) 
+    {
+        cantidad++;
+    }
+
+    fclose(fpunt);
+    return cantidad;
+}
+
+void guarda_puntuacion(s_GameState *gs, int cantidad)
+{
+    printf("puntuacion de levi al guardar: %d\n", gs->levi.puntuacion);
+    FILE* fpunt = fopen("rankingNivel1.txt","w");
+    int i;
+
+    gs->puntuacionJugador.puntuacion = gs->levi.puntuacion;
+
+    if (fpunt == NULL)
+        return;
+
+    for(i=9; i>0; i--)
+    {
+        if(gs->puntuacionJugador.puntuacion > gs->puntuaciones[i-1].puntuacion) //Si la puntuacion del jugador es mayor mueve hacia abajo la que estaba
+            gs->puntuaciones[i] = gs->puntuaciones[i-1];
+        else 
+            break; //Cuando ya no es mayor que la que sigue se rompe
+    }
+
+    gs->puntuaciones[i] = gs->puntuacionJugador; //Reemplaza la posicion correspondiente en el arreglo con la puntuacion obtenida por el jugador
+
+    if(cantidad < 10)
+        cantidad++;
+
+    for(i=0;i<cantidad;i++) //Guarda exactamente la cantidad necesaria en el archivo
+    {
+        fprintf(fpunt, "%s %d\n", gs->puntuaciones[i].nombre, gs->puntuaciones[i].puntuacion); 
+    }
+    
+    fclose(fpunt);
 }
 //================================================//

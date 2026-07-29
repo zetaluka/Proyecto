@@ -870,8 +870,7 @@ void hitbox_entidades(s_GameState *gs, s_Assets *assets)
                 gs->pantalla[pA].entidades[i].hitboxNuca.alto = 20;
                 gs->pantalla[pA].entidades[i].hitboxNuca.ancho = 60;
 
-            }
-            
+            } 
         }
     
     //==========//

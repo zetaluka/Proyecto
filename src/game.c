@@ -20,12 +20,14 @@ void game_init(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display)
     //gs->escala = 1.0f; //Variable que multiplica fondos, elementos, hitbox, etc. Para si en un futuro quiero cambiar de resolucion, redefino la variable y se escala todo.
     actualiza_res(gs, display);
     gs->ejecutando =1;
-    gs->estadoPantalla = PANTALLA_JUGANDO;
+    gs->estadoPantalla = PANTALLA_MENU;
     gs->pantalla_actual = 0;
     gs->nivel = 1;
     gs->nivelCompletado = false;
     gs->variables.gravedad = 0.8;
     gs->input.keyG = true;
+    gs->estadoMenu = MAIN;
+    strcpy(gs->puntuacionJugador.nombre, "jugador");
 
     //Inicializacion de levi
     gs->levi.vida = 10;
@@ -46,8 +48,7 @@ void game_init(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display)
     gs->levi.animacion.repetir = true;
 
     //Inicia fdata
-
-    if ((gs->variables.fdata = fopen("mapa1.txt","r")) == NULL)
+    if((gs->variables.fdata = fopen("mapa1.txt","r")) == NULL)
     {
         printf("Error al abrir el archivo");
         exit(1);
@@ -362,10 +363,10 @@ void genera_casa1(s_GameState *gs, int i, int j)
     gs->pantalla[pA].num_elementos++;
 
     while(colision(gs, gs->pantalla[pA].elementos[nE].hitbox, gs->pantalla[pA].hitbox[0]) == false)
-        {
-            gs->pantalla[pA].elementos[nE].y++;
-            gs->pantalla[pA].elementos[nE].hitbox.y++;
-        }
+    {
+        gs->pantalla[pA].elementos[nE].y++;
+        gs->pantalla[pA].elementos[nE].hitbox.y++;
+    }
 
 }
 
@@ -425,10 +426,10 @@ void genera_casa3(s_GameState *gs, int i, int j)
     gs->pantalla[pA].num_elementos++;
 
     while(colision(gs, gs->pantalla[pA].elementos[nE].hitbox, gs->pantalla[pA].hitbox[0]) == false)
-        {
-            gs->pantalla[pA].elementos[nE].y++;
-            gs->pantalla[pA].elementos[nE].hitbox.y++;
-        }
+    {
+        gs->pantalla[pA].elementos[nE].y++;
+        gs->pantalla[pA].elementos[nE].hitbox.y++;
+    }
 
 }
 
@@ -453,9 +454,9 @@ void genera_puesto_comida(s_GameState *gs, int i, int j)
     gs->pantalla[pA].num_elementos++;
 
     while(colision(gs, gs->pantalla[pA].elementos[nE].hitbox, gs->pantalla[pA].hitbox[0]) == false)
-        {
-            gs->pantalla[pA].elementos[nE].y++;
-            gs->pantalla[pA].elementos[nE].hitbox.y++;
-        }
+    {
+        gs->pantalla[pA].elementos[nE].y++;
+        gs->pantalla[pA].elementos[nE].hitbox.y++;
+    }
 
 }

@@ -65,6 +65,12 @@ void input_update(s_GameState *gs, ALLEGRO_EVENT* evento)
             case ALLEGRO_KEY_3:
                 gs->input.key3 = true;
                 break;
+            case ALLEGRO_KEY_ENTER: 
+                gs->input.keyEnter = true;
+                break;
+            case ALLEGRO_KEY_ESCAPE:
+                gs->input.keyEsc = true;
+                break;
             
         }
 
@@ -116,7 +122,12 @@ void input_update(s_GameState *gs, ALLEGRO_EVENT* evento)
             case ALLEGRO_KEY_3:
                 gs->input.key3 = false;
                 break;
-            
+            case ALLEGRO_KEY_ENTER: 
+                gs->input.keyEnter = false;
+                break;
+            case ALLEGRO_KEY_ESCAPE:
+                gs->input.keyEsc = false;
+                break;
             /*case ALLEGRO_KEY_H:
                 gs->input.keyH = false;
                 break;*/

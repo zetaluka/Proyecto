@@ -3,6 +3,8 @@
 void dibujar_texto_borde(s_GameState *gs, ALLEGRO_FONT *fuente, ALLEGRO_COLOR colorTexto, ALLEGRO_COLOR colorBorde, float x, float y, int flags, const char *texto, float grosor);
 void transicion(s_GameState *gs, s_Assets *assets);
 void jugando_ui(s_GameState *gs, s_Assets *assets);
+void menu(s_GameState *gs, s_Assets *assets);
+void opciones(s_GameState *gs, s_Assets *assets);
 
 //====Funcion principal====//
 void render_ui(s_GameState *gs, s_Assets *assets)
@@ -19,14 +21,125 @@ void render_ui(s_GameState *gs, s_Assets *assets)
     switch(gs->estadoPantalla)
     {
         case PANTALLA_MENU:
+            menu(gs, assets);
             break;
         case PANTALLA_JUGANDO:
             jugando_ui(gs, assets);
             break;
 
     }
-    
+
     al_flip_display(); 
+}
+
+void menu(s_GameState *gs, s_Assets *assets)
+{
+    opciones(gs, assets);
+
+}
+
+void opciones(s_GameState *gs, s_Assets *assets)
+{
+   //Parametros al_draw_scaled_bitmap: Spritesheet, frameX, frameY, ancho, alto, x , y , (ancho destino, alto destino (escalado)), flags
+
+    char texto[20];
+
+    if(gs->estadoMenu == MAIN)
+    {
+        if(gs->contMenu == 0)
+        {
+            strcpy(texto, "JUGAR");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada2, 0, 0, 1450, 210, 10, 175, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), 205, 180, ALLEGRO_ALIGN_LEFT, texto, 3);
+            strcpy(gs->opcion, "jugar");
+        }
+        else
+        {
+            strcpy(texto, "JUGAR");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada1, 0, 0, 1450, 210, 10, 175, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 205, 180, ALLEGRO_ALIGN_LEFT, texto, 3);
+        }
+
+        if(gs->contMenu == 1)
+        {
+            strcpy(texto, "RANKING");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada2, 0, 0, 1450, 210, 10, 250, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), 195, 255, ALLEGRO_ALIGN_LEFT, texto, 3);
+            strcpy(gs->opcion, "ranking");
+        }
+
+        else
+        {
+            strcpy(texto, "RANKING");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada1, 0, 0, 1450, 210, 10, 250, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 195, 255, ALLEGRO_ALIGN_LEFT, texto, 3);
+            strcpy(gs->opcion, "ranking");
+        }
+
+        if(gs->contMenu == 2)
+        {
+            strcpy(texto, "OPCIONES");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada2, 0, 0, 1450, 210, 10, 325, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), 195, 330, ALLEGRO_ALIGN_LEFT, texto, 3);
+            strcpy(gs->opcion, "opciones");
+        }
+
+        else
+        {
+            strcpy(texto, "OPCIONES");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada1, 0, 0, 1450, 210, 10, 325, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 195, 330, ALLEGRO_ALIGN_LEFT, texto, 3);
+        }
+
+        if(gs->contMenu == 3)
+        {
+            strcpy(texto, "SALIR");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada2, 0, 0, 1450, 210, 10, 400, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), 215, 405, ALLEGRO_ALIGN_LEFT, texto, 3);
+        }
+
+        else
+        {
+            strcpy(texto, "SALIR");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada1, 0, 0, 1450, 210, 10, 400, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 215, 405, ALLEGRO_ALIGN_LEFT, texto, 3);
+        }
+    }
+
+    else if(gs->estadoMenu == JUGAR)
+    {
+        if(gs->contMenu == 0)
+        {
+            strcpy(texto, "NIVEL UNO");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada2, 0, 0, 1450, 210, 10, 250, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), 195, 255, ALLEGRO_ALIGN_LEFT, texto, 3);
+            strcpy(gs->opcion, "ranking");
+        }
+
+        else
+        {
+            strcpy(texto, "NIVEL UNO");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada1, 0, 0, 1450, 210, 10, 250, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 195, 255, ALLEGRO_ALIGN_LEFT, texto, 3);
+            strcpy(gs->opcion, "ranking");
+        }
+
+        if(gs->contMenu == 1)
+        {
+            strcpy(texto, "NIVEL DOS");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada2, 0, 0, 1450, 210, 10, 325, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), 195, 330, ALLEGRO_ALIGN_LEFT, texto, 3);
+            strcpy(gs->opcion, "opciones");
+        }
+
+        else
+        {
+            strcpy(texto, "NIVEL DOS");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada1, 0, 0, 1450, 210, 10, 325, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 195, 330, ALLEGRO_ALIGN_LEFT, texto, 3);
+        }
+    }
+
 }
 
 void jugando_ui(s_GameState *gs, s_Assets *assets)
@@ -39,9 +152,8 @@ void jugando_ui(s_GameState *gs, s_Assets *assets)
 
     //============Escudos=============//
 
-    al_draw_scaled_bitmap(assets->assetsPantalla.escudoLegion, 0, 0, al_get_bitmap_width(assets->assetsPantalla.escudoLegion),
-    al_get_bitmap_height(assets->assetsPantalla.escudoLegion), (SCREEN_X - 100) , 55 ,
-    al_get_bitmap_width(assets->assetsPantalla.escudoLegion), al_get_bitmap_height(assets->assetsPantalla.escudoLegion), 0);
+    al_draw_scaled_bitmap(assets->assetsPantalla.escudoLegion, 0, 0, al_get_bitmap_width(assets->assetsPantalla.escudoLegion), al_get_bitmap_height(assets->assetsPantalla.escudoLegion), (SCREEN_X - 100) , 55 ,
+        al_get_bitmap_width(assets->assetsPantalla.escudoLegion), al_get_bitmap_height(assets->assetsPantalla.escudoLegion), 0);
 
     sprintf(texto, "x%d", gs->levi.inventario.escudos);
     dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), (SCREEN_X -30), 55, ALLEGRO_ALIGN_RIGHT, texto, 1.5);

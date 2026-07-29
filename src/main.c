@@ -10,6 +10,9 @@ int main(void) {
    al_install_mouse();
    al_init_image_addon();
    al_install_keyboard();
+   al_set_new_display_flags(ALLEGRO_OPENGL); 
+   al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 1, ALLEGRO_SUGGEST);
+   al_set_new_display_option(ALLEGRO_SAMPLES, 4, ALLEGRO_SUGGEST); 
 
    ALLEGRO_TIMER* timer_juego = al_create_timer(1.0);
    ALLEGRO_TIMER* timer_fps = al_create_timer(1.0/FPS);
@@ -34,6 +37,7 @@ int main(void) {
    s_GameState gs = {0};
    s_Assets assets;
    assets_load(&assets);
+   
    game_init(&gs, &assets, display);
 
    while (gs.ejecutando) 
@@ -51,7 +55,7 @@ int main(void) {
          if(evento.timer.source == timer_fps)
          {
             genera_entidades(&gs, &assets);
-            update(&gs, &assets);
+            update(&gs, &assets, display);
             render_gameview(&gs,&assets);
             render_ui(&gs, &assets);
          }

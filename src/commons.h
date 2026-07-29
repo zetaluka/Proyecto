@@ -66,6 +66,8 @@ typedef struct
     ALLEGRO_BITMAP* dash;
     ALLEGRO_BITMAP* dashSB[14];
     ALLEGRO_BITMAP* transicion;
+    ALLEGRO_BITMAP* espada1;
+    ALLEGRO_BITMAP* espada2;
 
 } s_AssetsPantalla;
 
@@ -331,8 +333,8 @@ typedef struct
 typedef struct
 {
     int viendoDerecha;
-    int puntuacion;
     int contSoltarse;
+    int puntuacion;
     int vida;
     float gravedad;
     float cooldownAtaque;
@@ -377,6 +379,14 @@ typedef enum {
     PANTALLA_GAME_OVER
 } e_EstadoPantalla;
 
+typedef enum{
+    MAIN,
+    JUGAR,
+    RANKING,
+    OPCIONES,
+    SALIR
+} e_EstadoMenu;
+
 typedef struct { //input.c actualiza a través de la variable s_GameState, update.c lo lee y reacciona.
     bool keyW;
     bool keyS;
@@ -395,6 +405,8 @@ typedef struct { //input.c actualiza a través de la variable s_GameState, updat
     bool key1;
     bool key2;
     bool key3;
+    bool keyEnter;
+    bool keyEsc;
     float mouseX;
     float mouseY;
 } s_InputState;
@@ -425,6 +437,12 @@ typedef struct
 
 typedef struct 
 {
+    char nombre[50];
+    int puntuacion;
+} s_Puntuacion;
+
+typedef struct 
+{
     s_Animacion gas[MAXGAS];
     s_Animacion transicion;
     int contGas;
@@ -446,9 +464,17 @@ typedef struct {
     s_Camara camara;
     s_Animaciones animaciones;
     s_TitanHembra titanHembra;
+    s_Puntuacion puntuaciones[10];
+    s_Puntuacion puntuacionJugador;
+    e_EstadoMenu estadoMenu;
+    e_EstadoMenu estadoMenuAnterior;
     int pantalla_actual;
     int nivel; 
+    int menuPantallas;
+    int contMenu;
     float escala;
+    char opcion[20];
+    bool puntuacionGuardada;
     bool nivelCompletado;
 
     bool ejecutando; 
@@ -458,7 +484,7 @@ typedef struct {
 //==========Prototipos de funciones==========//
 void game_init(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display);
 void input_update(s_GameState *gs, ALLEGRO_EVENT* evento);
-void update(s_GameState *gs, s_Assets *assets);
+void update(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display);
 void render_gameview(s_GameState *gs, s_Assets *assets);
 void render_ui(s_GameState *gs, s_Assets *assets);
 void assets_load(s_Assets *assets);

@@ -3,7 +3,7 @@
 
 void levi_sprites(s_GameState *gs, s_Assets *assets);
 void pantalla_0(s_Assets *assets, s_GameState *gs);
-void menu(s_GameState *gs, s_Assets *assets);
+void dibujar_menu(s_GameState *gs, s_Assets *assets);
 void jugando(s_Assets *assets, s_GameState *gs);
 void pantalla_1(s_Assets *assets, s_GameState *gs);
 void muestra_hitbox(s_GameState *gs, s_Assets *assets);
@@ -22,7 +22,7 @@ void render_gameview(s_GameState *gs, s_Assets *assets)
     switch (gs->estadoPantalla)
     {
         case PANTALLA_MENU:
-            menu(gs, assets);
+            dibujar_menu(gs, assets);
             break;
         case PANTALLA_JUGANDO:
             jugando(assets, gs); 
@@ -34,10 +34,9 @@ void render_gameview(s_GameState *gs, s_Assets *assets)
     return;
 }
 
-void menu(s_GameState *gs, s_Assets *assets)
+void dibujar_menu(s_GameState *gs, s_Assets *assets)
 {
     al_draw_bitmap(assets->assetsPantalla.fondo_menu, 0, 0, 0);
-
 }
 
 void jugando(s_Assets *assets, s_GameState *gs)

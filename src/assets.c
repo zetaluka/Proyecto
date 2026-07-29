@@ -91,9 +91,9 @@ int carga_fondo(s_Assets *assets)
         return 1;
     }
 
-    assets->assetsPantalla.fondo_menu = al_load_bitmap("assets/imgs/fondo_menu.jpg");
+    assets->assetsPantalla.fondo_menu = al_load_bitmap("assets/imgs/fondomenu2.jpg");
     if(!assets->assetsPantalla.fondo_menu){
-        printf("Error cargando ondo_menu");
+        printf("Error cargando fondo_menu");
         return 1;
     }
 
@@ -197,9 +197,17 @@ int carga_objetos(s_Assets *assets)
         return 1;
     }
 
-    printf("Ancho transicion: %d, frames reales: %f\n",
-    al_get_bitmap_width(assets->assetsPantalla.transicion),
-    al_get_bitmap_width(assets->assetsPantalla.transicion) / 1280.0f);
+    assets->assetsPantalla.espada1 = al_load_bitmap("assets/imgs/espada.png");
+    if(!assets->assetsPantalla.espada1){
+        printf("Error cargando espada.png");
+        return 1;
+    }
+
+    assets->assetsPantalla.espada2 = al_load_bitmap("assets/imgs/espada2.png");
+    if(!assets->assetsPantalla.espada2){
+        printf("Error cargando espada2.png");
+        return 1;
+    }
 
     for(int i=0; i<14; i++)
         assets->assetsPantalla.dashSB[i] = al_create_sub_bitmap(assets->assetsPantalla.dash, i*280, 0, 280, 160);
