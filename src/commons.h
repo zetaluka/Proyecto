@@ -66,6 +66,8 @@ typedef struct
     ALLEGRO_BITMAP* dash;
     ALLEGRO_BITMAP* dashSB[14];
     ALLEGRO_BITMAP* transicion;
+    ALLEGRO_BITMAP* transicion2;
+    ALLEGRO_BITMAP* imgGameOver;
     ALLEGRO_BITMAP* espada1;
     ALLEGRO_BITMAP* espada2;
 
@@ -90,6 +92,7 @@ typedef struct
 typedef struct{
 
     ALLEGRO_FONT* shingekiFont30;
+    ALLEGRO_FONT* shingekiFont20;
     ALLEGRO_FONT* minimalistTemplateFont50;    
     ALLEGRO_FONT* minimalistTemplateFont25;
 
@@ -212,7 +215,7 @@ typedef struct {
     float dirX;
     float dirY;
     float distanciaRestante;
-   s_Hitbox manoHB;
+    s_Hitbox manoHB;
 } s_AgarreTitan;
 
 typedef struct 
@@ -264,6 +267,7 @@ typedef struct
     s_Elementos elementos[MAXELEMENTOS];
     bool pantallaCargada;
     char fondo[30];
+    int cantTitanes;
     int num_elementos;
     int num_entidades;
     int num_hitbox;
@@ -332,6 +336,10 @@ typedef struct
 
 typedef struct
 {
+    int ataque;
+    int ataqueNuca;
+    int puntuacionTitan;
+    int puntuacionNuca;
     int viendoDerecha;
     int contSoltarse;
     int puntuacion;
@@ -384,6 +392,7 @@ typedef enum{
     JUGAR,
     RANKING,
     OPCIONES,
+    CONTROLES,
     SALIR
 } e_EstadoMenu;
 
@@ -445,11 +454,20 @@ typedef struct
 {
     s_Animacion gas[MAXGAS];
     s_Animacion transicion;
+    s_Animacion transicion2;
     int contGas;
     int contGasDS;
     bool cambioPantallaHecho;
     bool gasDS;
 } s_Animaciones;
+
+typedef struct 
+{
+    int contMenu;
+    e_EstadoMenu estadoMenu;
+    e_EstadoMenu estadoMenuAnterior;
+    
+} s_Menu;
 
 
 //====s_GameState====//
@@ -466,14 +484,15 @@ typedef struct {
     s_TitanHembra titanHembra;
     s_Puntuacion puntuaciones[10];
     s_Puntuacion puntuacionJugador;
-    e_EstadoMenu estadoMenu;
-    e_EstadoMenu estadoMenuAnterior;
+    s_Menu menu;
+    s_Menu menuPausa;
+    int contOpcionesGO;  
     int pantalla_actual;
     int nivel; 
-    int menuPantallas;
-    int contMenu;
     float escala;
-    char opcion[20];
+    bool pausa;
+    bool nivel1Ejecutando;
+    bool pantallaCompleta;
     bool puntuacionGuardada;
     bool nivelCompletado;
 
@@ -484,7 +503,7 @@ typedef struct {
 //==========Prototipos de funciones==========//
 void game_init(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display);
 void input_update(s_GameState *gs, ALLEGRO_EVENT* evento);
-void update(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display);
+void update(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display, s_GameState *auxgs);
 void render_gameview(s_GameState *gs, s_Assets *assets);
 void render_ui(s_GameState *gs, s_Assets *assets);
 void assets_load(s_Assets *assets);
@@ -496,6 +515,8 @@ void hitbox_init(s_GameState *gs);
 void comprueba_colision(s_GameState *gs);
 void colision_levi_titan(s_GameState *gs);
 void cambiar_animacion(s_GameState *gs, e_EstadoLevi nuevaAnim);
+void actualiza_res(s_GameState *gs, ALLEGRO_DISPLAY *display);
+int carga_puntuacion(s_GameState *gs);
 bool colision(s_GameState *gs, s_Hitbox h1, s_Hitbox h2);
 
 

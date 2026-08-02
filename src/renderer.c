@@ -128,24 +128,24 @@ void titanes_sprites(s_GameState *gs, s_Assets *assets)
         titanX = round(gs->pantalla[pA].entidades[i].x);
         titanY = round(gs->pantalla[pA].entidades[i].y);
 
-            if(gs->pantalla[pA].entidades[i].vida > 0)
-            {
+        if(gs->pantalla[pA].entidades[i].vida > 0)
+        {
 
-                if(gs->pantalla[pA].entidades[i].tipo == 1)
-                {
-                    if(gs->pantalla[pA].entidades[i].animacion.rotarAnim)
-                        al_draw_scaled_bitmap(assets->titanes.titan1,0, 0, 219, 164, titanX, titanY, 219*2.5, 164*2.5, ALLEGRO_FLIP_HORIZONTAL);
-                    else
-                        al_draw_scaled_bitmap(assets->titanes.titan1,0, 0, 219, 164, titanX, titanY, 219*2.5, 164*2.5, 0);
-                }
-                else if(gs->pantalla[pA].entidades[i].tipo == 2)
-                {
-                    if(gs->pantalla[pA].entidades[i].animacion.rotarAnim)
-                        al_draw_scaled_bitmap(assets->titanes.titan2,0, 0, 127, 128, titanX, titanY, 127*1.5, 127*1.5, ALLEGRO_FLIP_HORIZONTAL);
-                    else
-                        al_draw_scaled_bitmap(assets->titanes.titan2,0, 0, 127, 128, titanX, titanY, 127*1.5, 127*1.5, 0);
-                }
+            if(gs->pantalla[pA].entidades[i].tipo == 1)
+            {
+                if(gs->pantalla[pA].entidades[i].animacion.rotarAnim)
+                    al_draw_scaled_bitmap(assets->titanes.titan1,0, 0, 219, 164, titanX, titanY, 219*2.5, 164*2.5, ALLEGRO_FLIP_HORIZONTAL);
+                else
+                    al_draw_scaled_bitmap(assets->titanes.titan1,0, 0, 219, 164, titanX, titanY, 219*2.5, 164*2.5, 0);
             }
+            else if(gs->pantalla[pA].entidades[i].tipo == 2)
+            {
+                if(gs->pantalla[pA].entidades[i].animacion.rotarAnim)
+                    al_draw_scaled_bitmap(assets->titanes.titan2,0, 0, 127, 128, titanX, titanY, 127*1.5, 127*1.5, ALLEGRO_FLIP_HORIZONTAL);
+                else
+                    al_draw_scaled_bitmap(assets->titanes.titan2,0, 0, 127, 128, titanX, titanY, 127*1.5, 127*1.5, 0);
+            }
+        }
     }
 }
 
@@ -179,6 +179,12 @@ void dibujar_fondo(s_GameState *gs, s_Assets *assets)
 
         else if(gs->pantalla[pA].elementos[i].tipo == 2 && gs->pantalla[pA].elementos[i].activo == true)
             al_draw_bitmap(assets->assetsPantalla.escudoLegion, gs->pantalla[pA].elementos[i].x, gs->pantalla[pA].elementos[i].y, 0);
+
+        else if(gs->pantalla[pA].elementos[i].tipo == 5 && gs->pantalla[pA].elementos[i].activo == true)
+            al_draw_scaled_bitmap(assets->assetsPantalla.galonGas, 0, 0,
+                al_get_bitmap_width(assets->assetsPantalla.galonGas), al_get_bitmap_height(assets->assetsPantalla.galonGas),
+                gs->pantalla[pA].elementos[i].x, gs->pantalla[pA].elementos[i].y,
+                al_get_bitmap_width(assets->assetsPantalla.galonGas) * 0.05, al_get_bitmap_height(assets->assetsPantalla.galonGas) * 0.05, 0);
     }
 
     for(int i = 0; i<nE; i++)

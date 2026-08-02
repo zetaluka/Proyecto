@@ -7,30 +7,34 @@ void genera_titan2(s_GameState *gs, int i, int j);
 void pos_levi(s_GameState *gs, s_Assets *assets, int i, int j);
 void grieta_ODM(s_GameState *gs, int i, int j);
 void genera_escudo_legion(s_GameState *gs, int i, int j);
-void actualiza_res(s_GameState *gs, ALLEGRO_DISPLAY *display);
 void genera_casa1(s_GameState *gs, int i, int j);
 void genera_casa2(s_GameState *gs, int i, int j);
 void genera_casa3(s_GameState *gs, int i, int j);
 void genera_puesto_comida(s_GameState *gs, int i, int j);
 void genera_titan_hembra(s_GameState *gs, int i, int j);
+void genera_gas_elemento(s_GameState *gs, int i, int j); 
 
 //====Funcion principal====//
 void game_init(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display)
 {
     //gs->escala = 1.0f; //Variable que multiplica fondos, elementos, hitbox, etc. Para si en un futuro quiero cambiar de resolucion, redefino la variable y se escala todo.
+    if(gs->nivel1Ejecutando)
+        gs->estadoPantalla = PANTALLA_JUGANDO;
+    else
+        gs->estadoPantalla = PANTALLA_MENU;
+
     actualiza_res(gs, display);
-    gs->ejecutando =1;
-    gs->estadoPantalla = PANTALLA_MENU;
+    gs->ejecutando = 1;
     gs->pantalla_actual = 0;
     gs->nivel = 1;
     gs->nivelCompletado = false;
     gs->variables.gravedad = 0.8;
     gs->input.keyG = true;
-    gs->estadoMenu = MAIN;
+    gs->menu.estadoMenu = MAIN;
     strcpy(gs->puntuacionJugador.nombre, "jugador");
 
     //Inicializacion de levi
-    gs->levi.vida = 10;
+    gs->levi.vida = 50;
     gs->levi.gasRestante = 1000;
     gs->levi.x = 700;
     gs->levi.y = 100;
@@ -54,7 +58,10 @@ void game_init(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display)
         exit(1);
     }
 
-    mapa1(gs, assets);
+    if(gs->nivel1Ejecutando)
+        mapa1(gs, assets);
+
+    gs->pantalla[gs->pantalla_actual].cantTitanes = gs->pantalla[gs->pantalla_actual].num_entidades;
 
     return;
 }
@@ -65,6 +72,10 @@ void actualiza_res(s_GameState *gs, ALLEGRO_DISPLAY *display)
     gs->variables.screenY = al_get_display_height(display);
     gs->escala = (float)gs->variables.screenX / SCREEN_X;
 
+    if(gs->escala > 1)
+        gs->pantallaCompleta = true;
+    else if(gs->escala == 1)
+        gs->pantallaCompleta = false;
 }
 
 void hitbox_init(s_GameState *gs)
@@ -113,7 +124,7 @@ void hitbox_init(s_GameState *gs)
             break;
         
         default:
-            gs->pantalla[pA].hitbox[0] = (s_Hitbox){0 , (SCREEN_Y - 66), gs->pantalla[pA].ancho*TAM_CELDA + 10, 66, BLANCO}; //Suelo
+            gs->pantalla[pA].hitbox[0] = (s_Hitbox){0 , (SCREEN_Y - 66), gs->pantalla[pA].ancho*TAM_CELDA + 30, 66, BLANCO}; //Suelo
             gs->pantalla[pA].hitbox[1] = (s_Hitbox){(-4), (-200), 4, (SCREEN_Y + 200), BLANCO}; //Limite izquierdo de la pantalla
             gs->pantalla[pA].hitbox[2] = (s_Hitbox){0, (-200), gs->pantalla[pA].ancho*TAM_CELDA, 12, BLANCO }; //Limite superior de la pantalla
             gs->pantalla[pA].num_hitbox = 3;
@@ -230,10 +241,13 @@ void mapa1(s_GameState *gs, s_Assets *assets)
                 case 'p':
                     genera_puesto_comida(gs, i, j);
                     break;
-
                 case 'H':
                     genera_titan_hembra(gs, i, j);
                     break;
+                case 'o':
+                    genera_gas_elemento(gs, i, j);
+                    break;
+                
 
             }
         }
@@ -257,6 +271,11 @@ void genera_titan1(s_GameState *gs, int i, int j)
     gs->pantalla[pA].entidades[nE].vida = 700;
     gs->pantalla[pA].entidades[nE].ataque = 500;
     gs->pantalla[pA].entidades[nE].activo = true;
+    gs->pantalla[pA].entidades[nE].viendoDerecha = rand()%2;
+    if(gs->pantalla[pA].entidades[nE].viendoDerecha == false)
+        gs->pantalla[pA].entidades[nE].animacion.rotarAnim = true;
+    else
+        gs->pantalla[pA].entidades[nE].animacion.rotarAnim = false;
     gs->pantalla[pA].num_entidades++;
     gs->pantalla[pA].entidades[nE].tipo = 1;
 
@@ -459,4 +478,24 @@ void genera_puesto_comida(s_GameState *gs, int i, int j)
         gs->pantalla[pA].elementos[nE].hitbox.y++;
     }
 
+}
+
+void genera_gas_elemento(s_GameState *gs, int i, int j)
+{
+    int pA = gs->pantalla_actual, cont;
+    int nE = gs->pantalla[pA].num_elementos;
+
+    if(nE >= MAXELEMENTOS)
+        return;
+
+    gs->pantalla[pA].elementos[nE].x = j*TAM_CELDA;
+    gs->pantalla[pA].elementos[nE].y = i*TAM_CELDA;
+    gs->pantalla[pA].elementos[nE].hitbox.x = gs->pantalla[pA].elementos[nE].x + 10;
+    gs->pantalla[pA].elementos[nE].hitbox.y = gs->pantalla[pA].elementos[nE].y + 20;
+    gs->pantalla[pA].elementos[nE].hitbox.alto = 10;
+    gs->pantalla[pA].elementos[nE].hitbox.ancho = 60;
+    gs->pantalla[pA].elementos[nE].hitbox.color = al_map_rgb(255, 255, 0);
+    gs->pantalla[pA].elementos[nE].tipo = 5;
+    gs->pantalla[pA].elementos[nE].activo = true;
+    gs->pantalla[pA].num_elementos++;
 }

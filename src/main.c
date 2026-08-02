@@ -18,7 +18,7 @@ int main(void) {
    ALLEGRO_TIMER* timer_fps = al_create_timer(1.0/FPS);
    ALLEGRO_EVENT evento;
    ALLEGRO_EVENT_QUEUE* queue = al_create_event_queue();
-   ALLEGRO_DISPLAY* display = al_create_display(1920, 1080);
+   ALLEGRO_DISPLAY* display = al_create_display(1280, 720);
    al_register_event_source(queue, al_get_display_event_source(display));
    
    al_set_window_title(display,"CodeNoKyojin");
@@ -35,10 +35,15 @@ int main(void) {
       4. INICIALIZAR EL ESTADO DEL JUEGO Y LOS ASSETS
       ------------------------------------------------------------ */
    s_GameState gs = {0};
+   s_GameState auxgs = {0};
    s_Assets assets;
    assets_load(&assets);
    
    game_init(&gs, &assets, display);
+
+   gs.pantallaCompleta = true;
+   al_set_display_flag(display, ALLEGRO_FULLSCREEN_WINDOW, gs.pantallaCompleta);
+   actualiza_res(&gs, display);
 
    while (gs.ejecutando) 
    {
@@ -55,7 +60,7 @@ int main(void) {
          if(evento.timer.source == timer_fps)
          {
             genera_entidades(&gs, &assets);
-            update(&gs, &assets, display);
+            update(&gs, &assets, display, &auxgs);
             render_gameview(&gs,&assets);
             render_ui(&gs, &assets);
          }

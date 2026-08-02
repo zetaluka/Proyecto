@@ -18,6 +18,8 @@ void titan_hembra(s_GameState *gs);
 
 void genera_entidades(s_GameState *gs, s_Assets *assets)
 {
+    if(gs->pausa == true)
+        return;
 
     activa_entidades(gs);
     hitbox_entidades(gs, assets);
@@ -123,57 +125,58 @@ void movimiento_titanes(s_GameState *gs)
                             gs->pantalla[pA].entidades[i].viendoDerecha = false;
                         }
                     }
-                }
-                else if(distanciaX > 500) //Si no esta a rango se mueve de un lado para otro
-                {   
-                    if(gs->pantalla[pA].entidades[i].tiempoQuieto > 0)
-                    {
-                        gs->pantalla[pA].entidades[i].tiempoQuieto -= 1.0f/FPS;
-                        if(gs->pantalla[pA].entidades[i].tiempoQuieto <= 0)
-                            gs->pantalla[pA].entidades[i].cambioDireccion = true; 
-                        continue;
-                    }
+                
+                    else if(distanciaX > 500) //Si no esta a rango se mueve de un lado para otro
+                    {   
+                        if(gs->pantalla[pA].entidades[i].tiempoQuieto > 0)
+                        {
+                            gs->pantalla[pA].entidades[i].tiempoQuieto -= 1.0f/FPS;
+                            if(gs->pantalla[pA].entidades[i].tiempoQuieto <= 0)
+                                gs->pantalla[pA].entidades[i].cambioDireccion = true; 
+                            continue;
+                        }
 
-                    if(gs->pantalla[pA].entidades[i].cambioDireccion == true)
-                    {
+                        if(gs->pantalla[pA].entidades[i].cambioDireccion == true)
+                        {
+                            if(gs->pantalla[pA].entidades[i].viendoDerecha == true)
+                            {
+                                gs->pantalla[pA].entidades[i].viendoDerecha = false;
+                                gs->pantalla[pA].entidades[i].cambioDireccion = false;
+                                gs->pantalla[pA].entidades[i].animacion.rotarAnim = true;
+                            }
+                            else if (gs->pantalla[pA].entidades[i].viendoDerecha == false)
+                            {
+                                gs->pantalla[pA].entidades[i].viendoDerecha = true;
+                                gs->pantalla[pA].entidades[i].cambioDireccion = false;
+                                gs->pantalla[pA].entidades[i].animacion.rotarAnim = false;
+                            }
+                        }
+
                         if(gs->pantalla[pA].entidades[i].viendoDerecha == true)
                         {
-                            gs->pantalla[pA].entidades[i].viendoDerecha = false;
-                            gs->pantalla[pA].entidades[i].cambioDireccion = false;
-                            gs->pantalla[pA].entidades[i].animacion.rotarAnim = true;
+                            gs->pantalla[pA].entidades[i].x += gs->pantalla[pA].entidades[i].velocidadX - 1;
+                            gs->pantalla[pA].entidades[i].distanciaRecorrida += gs->pantalla[pA].entidades[i].velocidadX - 1;
+
+                            if(gs->pantalla[pA].entidades[i].distanciaRecorrida >= 120)
+                            {
+                                gs->pantalla[pA].entidades[i].tiempoQuieto = 1.5f;
+                                gs->pantalla[pA].entidades[i].distanciaRecorrida = 0;
+                            }
                         }
-                        else if (gs->pantalla[pA].entidades[i].viendoDerecha == false)
+
+                        else if(gs->pantalla[pA].entidades[i].viendoDerecha == false)
                         {
-                            gs->pantalla[pA].entidades[i].viendoDerecha = true;
-                            gs->pantalla[pA].entidades[i].cambioDireccion = false;
-                            gs->pantalla[pA].entidades[i].animacion.rotarAnim = false;
+                            gs->pantalla[pA].entidades[i].x -= gs->pantalla[pA].entidades[i].velocidadX - 1;
+                            gs->pantalla[pA].entidades[i].distanciaRecorrida += gs->pantalla[pA].entidades[i].velocidadX - 1;
+
+                            if(gs->pantalla[pA].entidades[i].distanciaRecorrida >= 120)
+                            {
+                                gs->pantalla[pA].entidades[i].tiempoQuieto = 1.5f;
+                                gs->pantalla[pA].entidades[i].distanciaRecorrida = 0;
+                            }
                         }
                     }
-
-                    if(gs->pantalla[pA].entidades[i].viendoDerecha == true)
-                    {
-                        gs->pantalla[pA].entidades[i].x += gs->pantalla[pA].entidades[i].velocidadX - 1;
-                        gs->pantalla[pA].entidades[i].distanciaRecorrida += gs->pantalla[pA].entidades[i].velocidadX - 1;
-
-                        if(gs->pantalla[pA].entidades[i].distanciaRecorrida >= 120)
-                        {
-                            gs->pantalla[pA].entidades[i].tiempoQuieto = 1.5f;
-                            gs->pantalla[pA].entidades[i].distanciaRecorrida = 0;
-                        }
-                    }
-
-                    else if(gs->pantalla[pA].entidades[i].viendoDerecha == false)
-                    {
-                        gs->pantalla[pA].entidades[i].x -= gs->pantalla[pA].entidades[i].velocidadX - 1;
-                        gs->pantalla[pA].entidades[i].distanciaRecorrida += gs->pantalla[pA].entidades[i].velocidadX - 1;
-
-                        if(gs->pantalla[pA].entidades[i].distanciaRecorrida >= 120)
-                        {
-                            gs->pantalla[pA].entidades[i].tiempoQuieto = 1.5f;
-                            gs->pantalla[pA].entidades[i].distanciaRecorrida = 0;
-                        }
-                    }
-                }
+            }
 
                 if(gs->pantalla[pA].entidades[i].cooldownAtaque > 0) //Reestablece las hb
                 {
@@ -407,8 +410,8 @@ void titan1_ataque2(s_GameState *gs, int i, s_Entidades *entidad, float cx, floa
             entidad[i].cooldownMordida -= 1.0f/FPS;
         else if(entidad[i].cooldownMordida <= 0)
         {
-            if(colision(gs, gs->levi.hitbox, entidad[i].hitboxAtaqueBasico))
-                aplicar_dano(gs, 10, 0, false);
+            if(colision(gs, gs->levi.hitbox, entidad[i].hitboxAtaqueBasico) && gs->levi.vida > 0)
+                aplicar_dano(gs, gs->levi.vida, 0, false);
         }
     }
 
@@ -686,7 +689,8 @@ void agarre_titanes(s_GameState *gs, int i)
 
     if(entidad[i].tipo == 1)
     {
-        printf("Agarrado por dina\n");
+        //if(gs->levi.vida > 0)
+            //printf("Agarrado por dina\n");
         gs->levi.y = entidad[i].agarre.manoHB.y - 35;
         gs->levi.x = entidad[i].agarre.manoHB.x - 35;
     }

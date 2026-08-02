@@ -27,7 +27,13 @@ int carga_fuentes(s_Assets *assets)
 {
     assets->shingekiFont30 = al_load_font("assets/fonts/Ditty.ttf", 30, 0);
     if(!assets->shingekiFont30){
-        printf("Error cargando shingekiFont\n");
+        printf("Error cargando shingekiFont30\n");
+        exit(1);
+    }
+
+    assets->shingekiFont20 = al_load_font("assets/fonts/Ditty.ttf", 20, 0);
+    if(!assets->shingekiFont20){
+        printf("Error cargando shingekiFont20\n");
         exit(1);
     }
 
@@ -53,12 +59,6 @@ int carga_sprites_levi(s_Assets *assets)
         printf("Error cargando levi_spritesheet");
         exit(1);
     }
-
-    /*assets->levi.levi = al_load_bitmap("assets/imgs/levi.png");
-    if(!assets->levi.levi){
-        printf("Error cargando levi.png");
-        exit(1);
-    }*/
 
     return 0;
 }
@@ -194,6 +194,18 @@ int carga_objetos(s_Assets *assets)
     assets->assetsPantalla.transicion = al_load_bitmap("assets/imgs/transicion.png");
     if(!assets->assetsPantalla.transicion){
         printf("Error cargando transicion.png");
+        return 1;
+    }
+
+    assets->assetsPantalla.transicion2 = al_load_bitmap("assets/imgs/transicion2.png");
+    if(!assets->assetsPantalla.transicion2){
+        printf("Error cargando transicion2.png");
+        return 1;
+    }
+
+    assets->assetsPantalla.imgGameOver = al_load_bitmap("assets/imgs/imgGameOver.png");
+    if(!assets->assetsPantalla.imgGameOver){
+        printf("Error cargando imgGameOver.png");
         return 1;
     }
 
