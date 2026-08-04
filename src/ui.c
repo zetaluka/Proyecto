@@ -309,8 +309,8 @@ void dibuja_controles(s_GameState *gs, s_Assets *assets)
     dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 250, 0, "CLICK IZQ: ATAQUE BASICO", 3);
     dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 300, 0, "CLICK DER: EQUIPO DE MANIOBRAS / ODM", 3);
     dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 350, 0, "F: DASH", 3);
-    dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 400, 0, "1 (w/ODM): HABILIDAD 1", 3);
-    dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 450, 0, "2 (w/ODM): HABILIDAD 2", 3);
+    dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 400, 0, "1 (CON EQUIPO DE MANIOBRAS): HABILIDAD 1", 3);
+    dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 450, 0, "2 (CON EQUIPO DE MANIOBRAS): HABILIDAD 2", 3);
     dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 500, 0, "3 : RECARGAR GAS", 3);
 
 
@@ -332,13 +332,58 @@ void jugando_ui(s_GameState *gs, s_Assets *assets)
     sprintf(texto, "x%d", gs->levi.inventario.escudos);
     dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), (SCREEN_X -30), 55, ALLEGRO_ALIGN_RIGHT, texto, 1.5);
 
+
+    //==================Hud=====================//
+
+    al_draw_scaled_bitmap(assets->assetsPantalla.HUD, 0, 0, al_get_bitmap_width(assets->assetsPantalla.HUD), 
+        al_get_bitmap_height(assets->assetsPantalla.HUD), 0 , 200 , al_get_bitmap_width(assets->assetsPantalla.HUD) * 0.24, 
+        al_get_bitmap_height(assets->assetsPantalla.HUD) * 0.24, 0);
+
     al_draw_scaled_bitmap(assets->assetsPantalla.galonGas, 0, 0, al_get_bitmap_width(assets->assetsPantalla.galonGas), al_get_bitmap_height(assets->assetsPantalla.galonGas), 
-        10 , 200 , al_get_bitmap_width(assets->assetsPantalla.galonGas) * 0.04, al_get_bitmap_height(assets->assetsPantalla.galonGas) * 0.04, 0);
+        7 , 240 , al_get_bitmap_width(assets->assetsPantalla.galonGas) * 0.045, al_get_bitmap_height(assets->assetsPantalla.galonGas) * 0.045, 0);
 
     sprintf(texto, "x%d", gs->levi.inventario.gasODM);
-    dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 30, 215, ALLEGRO_ALIGN_LEFT, texto, 1.5);
+    dibujar_texto_borde(gs, assets->minimalistTemplateFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 57, 265, ALLEGRO_ALIGN_LEFT, texto, 1.5);
+
+    if(gs->levi.cooldownHabilidad1 <= 0)
+        al_draw_scaled_bitmap(assets->assetsPantalla.habilidades[0], 0, 0, 120, 80, 5, 297, 120*0.62, 80*0.62, 0);
+    else if(gs->levi.cooldownHabilidad1 > 0)
+    {
+        al_draw_scaled_bitmap(assets->assetsPantalla.habilidades[1], 0, 0, 120, 80, 5, 297, 120*0.62, 80*0.62, 0);
+        sprintf(texto, "%.1f", gs->levi.cooldownHabilidad1);
+        dibujar_texto_borde(gs, assets->minimalistTemplateFont40, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 28, 305, ALLEGRO_ALIGN_LEFT, texto, 1.5);
+    }
+
+    if(gs->levi.cooldownHabilidad2 <= 0)
+        al_draw_scaled_bitmap(assets->assetsPantalla.habilidades[2], 0, 0, 120, 80, 5, 355, 120*0.62, 80*0.62, 0);
+    else if(gs->levi.cooldownHabilidad2 > 0)
+    {
+        al_draw_scaled_bitmap(assets->assetsPantalla.habilidades[3], 0, 0, 120, 80, 5, 355, 120*0.62, 80*0.62, 0);
+        sprintf(texto, "%.1f", gs->levi.cooldownHabilidad2);
+        dibujar_texto_borde(gs, assets->minimalistTemplateFont40, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 28, 363, ALLEGRO_ALIGN_LEFT, texto, 1.5);
+    }
+
+    if(gs->levi.dash.cantDash > 0)
+    {
+        al_draw_scaled_bitmap(assets->assetsPantalla.habilidades[4], 0, 0, 120, 80, 5, 413, 120*0.62, 80*0.62, 0);
+        sprintf(texto, "x%d", gs->levi.dash.cantDash);
+        dibujar_texto_borde(gs, assets->minimalistTemplateFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 57, 450, ALLEGRO_ALIGN_LEFT, texto, 1.5);
+        sprintf(texto, "%d/2", gs->levi.dash.flagDash);
+        dibujar_texto_borde(gs, assets->minimalistTemplateFont25, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 10, 453, ALLEGRO_ALIGN_LEFT, texto, 1.5);
+    }
+    else if(gs->levi.dash.cantDash <= 0)
+    {
+        al_draw_scaled_bitmap(assets->assetsPantalla.habilidades[5], 0, 0, 120, 80, 5, 413, 120*0.62, 80*0.62, 0);
+        sprintf(texto, "x%d", gs->levi.dash.cantDash);
+        dibujar_texto_borde(gs, assets->minimalistTemplateFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 57, 450, ALLEGRO_ALIGN_LEFT, texto, 1.5);
+        sprintf(texto, "%d/2", gs->levi.dash.flagDash);
+        dibujar_texto_borde(gs, assets->minimalistTemplateFont25, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 10, 453, ALLEGRO_ALIGN_LEFT, texto, 1.5);
+    }
 
     //============================//
+
+     sprintf(texto, "Puntuacion: %d", gs->levi.puntuacion);
+        dibujar_texto_borde(gs, assets->minimalistTemplateFont40, al_map_rgb(230, 225, 210), al_map_rgb(0,0,0), 20, 100, ALLEGRO_ALIGN_LEFT, texto, 2);
 
     al_draw_scaled_bitmap(assets->assetsPantalla.marcoVida, 0, 0, al_get_bitmap_width(assets->assetsPantalla.marcoVida), al_get_bitmap_height(assets->assetsPantalla.marcoVida),
         10, 20, al_get_bitmap_width(assets->assetsPantalla.marcoVida) * 0.1f, al_get_bitmap_height(assets->assetsPantalla.marcoVida) * 0.1f, 0);
@@ -358,8 +403,6 @@ void jugando_ui(s_GameState *gs, s_Assets *assets)
         dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(230, 225, 210), al_map_rgb(0, 0, 0), SCREEN_X/2, 50, 
             ALLEGRO_ALIGN_CENTER, texto, 2); 
     }
-
-
 
     //==============================//
 

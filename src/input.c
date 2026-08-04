@@ -34,31 +34,28 @@ void input_update(s_GameState *gs, ALLEGRO_EVENT* evento)
                     gs->input.keyH = true;
                 else if(gs->input.keyH)
                     gs->input.keyH = false;
-                printf("%d",gs->input.keyH);
                 break;
             case ALLEGRO_KEY_G:
                 if(!gs->input.keyG)
                     gs->input.keyG = true;
                 else if(gs->input.keyG)
                     gs->input.keyG = false;
-                printf("%d",gs->input.keyG);
                 break;
             case ALLEGRO_KEY_F:
                 gs->input.keyF = true;
                 break;
-
             case ALLEGRO_KEY_E:
                 gs->input.keyE = true;
                 break;
-
             case ALLEGRO_KEY_R:
                 gs->input.keyR = true;
                 break;
-
+            case ALLEGRO_KEY_C:
+                gs->input.keyC = true;
+                break;
             case ALLEGRO_KEY_1:
                 gs->input.key1 = true;
                 break;
-
             case ALLEGRO_KEY_2:
                 gs->input.key2 = true;
                 break;
@@ -70,10 +67,8 @@ void input_update(s_GameState *gs, ALLEGRO_EVENT* evento)
                 break;
             case ALLEGRO_KEY_ESCAPE:
                 gs->input.keyEsc = true;
-                break;
-            
+                break; 
         }
-
     }
 
     else if(evento->type == ALLEGRO_EVENT_KEY_UP)
@@ -104,15 +99,15 @@ void input_update(s_GameState *gs, ALLEGRO_EVENT* evento)
             case ALLEGRO_KEY_F:
                 gs->input.keyF = false;
                 break;
-
             case ALLEGRO_KEY_E:
                 gs->input.keyE = false;
                 break;
-
             case ALLEGRO_KEY_R:
                 gs->input.keyR = false;
                 break;
-
+            case ALLEGRO_KEY_C:
+                gs->input.keyC = true;
+                break;
             case ALLEGRO_KEY_1:
                 gs->input.key1 = false;
                 break;

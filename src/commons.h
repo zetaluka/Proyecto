@@ -70,13 +70,15 @@ typedef struct
     ALLEGRO_BITMAP* imgGameOver;
     ALLEGRO_BITMAP* espada1;
     ALLEGRO_BITMAP* espada2;
+    ALLEGRO_BITMAP* HUD;
+    ALLEGRO_BITMAP* habilidadesHud;
+    ALLEGRO_BITMAP* habilidades[6];
 
 } s_AssetsPantalla;
 
 
 typedef struct{
     ALLEGRO_BITMAP* levi_SS;
-    //ALLEGRO_BITMAP* levi;
 
 } s_LeviSprites;
 
@@ -84,7 +86,7 @@ typedef struct
 {
     ALLEGRO_BITMAP* titan1;
     ALLEGRO_BITMAP* titan2;
-    ALLEGRO_BITMAP* titan_hembra
+    ALLEGRO_BITMAP* titan_hembra;
 
 } s_TitanesSprites;
 
@@ -93,8 +95,10 @@ typedef struct{
 
     ALLEGRO_FONT* shingekiFont30;
     ALLEGRO_FONT* shingekiFont20;
-    ALLEGRO_FONT* minimalistTemplateFont50;    
+    ALLEGRO_FONT* minimalistTemplateFont50; 
+    ALLEGRO_FONT* minimalistTemplateFont40;    
     ALLEGRO_FONT* minimalistTemplateFont25;
+    ALLEGRO_FONT* minimalistTemplateFont30;
 
     s_AssetsPantalla assetsPantalla;
     s_LeviSprites levi;
@@ -113,6 +117,7 @@ typedef enum
     ATERRIZANDO,
     ODM,
     DASH,
+    AGARRADO,
     SALIDA_DASH,
     SALIDA_ODM_ATAQUE1,
     SALIDA_ODM_ATAQUE2,
@@ -121,6 +126,7 @@ typedef enum
     ODM_ATAQUE1,
     ODM_ATAQUE2,
     PARRY,
+    PARRY_EXITOSO,
     SALIDA_TITAN_AGARRE,
     ODM_ATAQUE_BASICO,
     ODM_NORMAL_ATAQUE_BASICO
@@ -218,6 +224,21 @@ typedef struct {
     s_Hitbox manoHB;
 } s_AgarreTitan;
 
+typedef enum{
+    QUIETO,
+    CAMINANDOTITAN,
+    SALTO,
+    ATERRIZAJE,
+    MORDISCO,
+    ATAQUE,
+    AGARRANDO,
+    INTENTO_AGARRE,
+    LEVANTANDOSE,
+    PATADA,
+    SPAWN,
+
+} e_EstadoTitan;
+
 typedef struct 
 {
     int x;
@@ -245,6 +266,7 @@ typedef struct
     s_Hitbox hitboxNuca;
     s_AnimacionTitanes animacion;
     s_AgarreTitan agarre;
+    e_EstadoTitan estadoTitan;
     bool agarreFase2Activa;
     bool agarreFase3Activa;
     bool ataqueDerecha;
@@ -289,7 +311,7 @@ typedef struct
     bool activa;
     s_Hitbox hitbox;
     s_Hitbox hitboxAtaque1;
-    s_Hitbox hitboxAtaque2
+    s_Hitbox hitboxAtaque2;
 } s_TitanHembra;
 
 
@@ -344,6 +366,7 @@ typedef struct
     int contSoltarse;
     int puntuacion;
     int vida;
+    float tiempoInvulnerabilidad;
     float gravedad;
     float cooldownAtaque;
     float x;
@@ -352,9 +375,12 @@ typedef struct
     float velocidadY;
     float cooldownHabilidad1;
     float cooldownHabilidad2;
+    float tiempoParryActivo;
+    float cooldownParry;
     float distanciaYRecorrida;
     float gasRestante;
     bool invulnerabilidad;
+    bool habilitaAumentaDash;
     bool agarrado;
     bool distanciaYRegistrada;
     bool leviAtacando;
@@ -363,12 +389,15 @@ typedef struct
     bool doble_salto;
     bool levi_suelo;
     bool levi_vuelo;
+    bool ataqueHecho;
+    bool parryRecompensa;
     s_Inventario inventario;
     s_Dash dash;
     s_ODM ODM;
     s_Hitbox hitbox;
     s_Hitbox hitboxAtaque;
     s_Hitbox hitboxODM;
+    s_Hitbox parryHB;
     s_AnimacionLevi animacion;
     e_EstadoLevi estadoLevi;
 } s_Levi;
@@ -409,6 +438,7 @@ typedef struct { //input.c actualiza a través de la variable s_GameState, updat
     bool keyF; //Dash de levi
     bool keyE;
     bool keyR;
+    bool keyC;
     bool ClickIzq;
     bool ClickDer;
     bool key1;

@@ -278,6 +278,7 @@ void genera_titan1(s_GameState *gs, int i, int j)
         gs->pantalla[pA].entidades[nE].animacion.rotarAnim = false;
     gs->pantalla[pA].num_entidades++;
     gs->pantalla[pA].entidades[nE].tipo = 1;
+    gs->pantalla[pA].entidades[nE].estadoTitan = SPAWN;
 
 }
 
@@ -298,6 +299,7 @@ void genera_titan2(s_GameState *gs, int i, int j)
     gs->pantalla[pA].entidades[nE].activo = true;
     gs->pantalla[pA].num_entidades++;
     gs->pantalla[pA].entidades[nE].tipo = 2;
+    gs->pantalla[pA].entidades[nE].estadoTitan = SPAWN;
 
 }
 

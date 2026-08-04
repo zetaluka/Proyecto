@@ -35,6 +35,7 @@ void logica_menu(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display, s_
 void menu_pausa(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display, s_GameState *auxgs);
 void interactua_inventario(s_GameState *gs);
 void update_game_over(s_GameState *gs, s_Assets *assets, s_GameState *auxgs, ALLEGRO_DISPLAY *display);
+void parry(s_GameState *gs);
 
 //====Funcion principal====//
 void update(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display, s_GameState *auxgs)
@@ -712,80 +713,84 @@ void levi_ataques(s_GameState *gs)
 {
     gs->levi.leviAtacando = false;
 
-    if(gs->levi.cooldownAtaque > 0)
-        gs->levi.cooldownAtaque -= 1.0f/FPS;
-
-    if(gs->levi.cooldownHabilidad1 > 0)
-        gs->levi.cooldownHabilidad1 -= 1.0f/FPS;
-
-    if(gs->levi.cooldownHabilidad2 > 0)
-        gs->levi.cooldownHabilidad2 -= 1.0f/FPS;
-
     if(gs->levi.ODM.activo && gs->input.key1 && gs->levi.cooldownHabilidad1 <= 0)
+    {
         gs->levi.habilidad1Activa = true;
+        gs->levi.cooldownHabilidad1 = 5;
+    }
     if(gs->levi.ODM.activo && gs->input.key2 && gs->levi.cooldownHabilidad2 <= 0)
+    {
         gs->levi.habilidad2Activa = true;
+        gs->levi.cooldownHabilidad2 = 10;
+    }
 
     if(gs->levi.estadoLevi == SALIDA_TITAN_AGARRE)
     {
+        gs->levi.habilitaAumentaDash = false;
         gs->levi.hitboxAtaque.x = gs->levi.hitbox.x - 40;
         gs->levi.hitboxAtaque.y = gs->levi.hitbox.y + gs->levi.hitbox.alto/2 - 20;
         gs->levi.hitboxAtaque.alto = 7;
         gs->levi.hitboxAtaque.ancho = 110;
-        gs->levi.ataque = 15;
-        gs->levi.ataqueNuca = 30;
-        gs->levi.puntuacionTitan = 50;
-        gs->levi.puntuacionNuca = 75;
+        gs->levi.ataque = 50;
+        gs->levi.ataqueNuca = 100;
+        gs->levi.puntuacionTitan = 15;
+        gs->levi.puntuacionNuca = 50;
         gs->levi.leviAtacando = true;
+        gs->levi.invulnerabilidad = true;
     }
 
-    else if(gs->levi.estadoLevi == PARRY)
+    else if(gs->levi.estadoLevi == PARRY_EXITOSO && gs->levi.ataqueHecho == false)
     {
+        gs->levi.habilitaAumentaDash = true;
         gs->levi.hitboxAtaque.x = gs->levi.hitbox.x - 40;
         gs->levi.hitboxAtaque.y = gs->levi.hitbox.y + gs->levi.hitbox.alto/2 - 20;
         gs->levi.hitboxAtaque.alto = 7;
         gs->levi.hitboxAtaque.ancho = 110;
-        gs->levi.ataque = 75;
-        gs->levi.ataqueNuca = 100;
+        gs->levi.ataque = 250;
+        gs->levi.ataqueNuca = 1000;
         gs->levi.puntuacionTitan = 500;
         gs->levi.puntuacionNuca = 750;
         gs->levi.leviAtacando = true;
+        gs->levi.ataqueHecho = true;
     }
 
     else if(gs->levi.habilidad1Activa)
     {
+        gs->levi.habilitaAumentaDash = false;
         gs->levi.hitboxAtaque.x = gs->levi.x + 20;
         gs->levi.hitboxAtaque.y = gs->levi.y + 5;
         gs->levi.hitboxAtaque.alto = 60;
         gs->levi.hitboxAtaque.ancho = 90;
         gs->input.key1 = false;
         gs->levi.leviAtacando = true;
-        //gs->levi.cooldownHabilidad1 = 5;
         gs->levi.ataque = 50;
         gs->levi.ataqueNuca = 75;
         gs->levi.puntuacionTitan = 50;
         gs->levi.puntuacionNuca = 75;
+        gs->levi.invulnerabilidad = true;
         cambiar_animacion(gs, ODM_ATAQUE1);
     }
 
     else if(gs->levi.habilidad2Activa)
     {
+        gs->levi.habilitaAumentaDash = false;
         gs->levi.hitboxAtaque.x = gs->levi.x + 20;
         gs->levi.hitboxAtaque.y = gs->levi.y;
         gs->levi.hitboxAtaque.alto = 75;
         gs->levi.hitboxAtaque.ancho = 85;
         gs->input.key2 = false;
         gs->levi.leviAtacando = true;
-        //gs->levi.cooldownHabilidad2 = 10;
         gs->levi.ataque = 70;
         gs->levi.ataqueNuca = 90;  
         gs->levi.puntuacionTitan = 50;
         gs->levi.puntuacionNuca = 75;
+        gs->levi.invulnerabilidad = true;
         cambiar_animacion(gs, ODM_ATAQUE2);
     }
 
     else if(gs->levi.ODM.engancheTitan)
     {
+        gs->levi.habilitaAumentaDash = true;
         gs->levi.hitboxAtaque.x = gs->levi.hitbox.x - 40;
         gs->levi.hitboxAtaque.y = gs->levi.hitbox.y + gs->levi.hitbox.alto/2;
         gs->levi.hitboxAtaque.alto = 7;
@@ -794,6 +799,7 @@ void levi_ataques(s_GameState *gs)
         gs->levi.ataqueNuca = 10000;
         gs->levi.puntuacionTitan = 100;
         gs->levi.puntuacionNuca = 500;
+        gs->levi.invulnerabilidad = false;
 
         if(gs->input.ClickIzq && gs->levi.cooldownAtaque <= 0)
         {
@@ -806,6 +812,9 @@ void levi_ataques(s_GameState *gs)
 
     else
     {
+        if(!gs->levi.dash.activo)
+            gs->levi.invulnerabilidad = false;
+        gs->levi.habilitaAumentaDash = true;
         gs->levi.leviAtacando = false;
 
         if(gs->levi.hitboxODM.x >= gs->levi.hitbox.x + gs->levi.hitbox.ancho/2)
@@ -858,10 +867,23 @@ void colision_levi_ataque(s_GameState *gs)
 {
     int i, pA = gs->pantalla_actual;
 
+    if(gs->levi.cooldownAtaque > 0)
+        gs->levi.cooldownAtaque -= 1.0f/FPS;
+
+    if(gs->levi.cooldownHabilidad1 > 0)
+        gs->levi.cooldownHabilidad1 -= 1.0f/FPS;
+
+    if(gs->levi.cooldownHabilidad2 > 0)
+        gs->levi.cooldownHabilidad2 -= 1.0f/FPS;
+
+    if(gs->levi.tiempoInvulnerabilidad > 0)
+        gs->levi.tiempoInvulnerabilidad -= 1.0f/FPS;
+
     if(gs->levi.agarrado == true)
         return;
 
     levi_ataques(gs);
+    parry(gs);
 
     if(gs->levi.leviAtacando)
     {
@@ -881,7 +903,8 @@ void colision_levi_ataque(s_GameState *gs)
                 {
                     gs->pantalla[pA].entidades[i].activo = false;
                     gs->levi.puntuacion += gs->levi.puntuacionNuca;
-                    gs->pantalla[pA].cantTitanes--;
+                    if(gs->levi.habilitaAumentaDash)
+                        gs->levi.dash.flagDash++;
                     printf("Puntuacion: %d\n",gs->levi.puntuacion);
                 }
 
@@ -902,6 +925,60 @@ void colision_levi_ataque(s_GameState *gs)
                     printf("Puntuacion: %d\n",gs->levi.puntuacion);
                 }
             }
+        }
+    }
+}
+
+void parry(s_GameState *gs)
+{
+    if(gs->levi.cooldownParry > 0)
+        gs->levi.cooldownParry -= 1.0/FPS;
+
+    if(gs->input.keyC)
+    {
+        gs->input.keyC = false;
+        if(gs->levi.cooldownParry <= 0)
+        {
+            gs->input.keyC = false;
+            gs->levi.tiempoParryActivo = 0.3f;
+            gs->levi.cooldownParry = 1.5f;
+            gs->variables.bloquearControles = true;
+            cambiar_animacion(gs, PARRY);
+        }
+    }
+
+    if(gs->levi.tiempoParryActivo > 0 )
+    {
+        gs->levi.tiempoParryActivo -= 1.0f/FPS;
+        gs->levi.parryHB.x = gs->levi.x + 20;
+        gs->levi.parryHB.y = gs->levi.y + 30;
+        gs->levi.parryHB.ancho = 80;
+        gs->levi.parryHB.alto = 35;
+    }
+    else 
+    {
+        gs->levi.parryHB.x = 0;
+        gs->levi.parryHB.y = 0;
+        gs->levi.parryHB.ancho = 0;
+        gs->levi.parryHB.alto = 0;
+    }
+
+    for(int i=0; i<gs->pantalla[gs->pantalla_actual].num_entidades;i++)
+    {
+
+        if(gs->levi.tiempoParryActivo <= 0) 
+            break;
+
+        if(colision(gs, gs->levi.parryHB, gs->pantalla[gs->pantalla_actual].entidades[i].hitboxAtaqueBasico) && gs->levi.tiempoParryActivo > 0
+            && gs->levi.ataqueHecho == false)
+        {
+            printf("Colision\n");
+            gs->levi.dash.cantDash++;
+            gs->levi.cooldownHabilidad1 = 0;
+            gs->levi.cooldownHabilidad2 = 0;
+            gs->levi.tiempoInvulnerabilidad = 0.3f;
+            gs->levi.tiempoParryActivo = 0;
+            cambiar_animacion(gs, PARRY_EXITOSO);
         }
     }
 }
@@ -1278,6 +1355,7 @@ void levi_dash(s_GameState *gs)
 
     if(gs->levi.dash.activo)
     {
+        gs->levi.invulnerabilidad = true; 
         if(gs->levi.agarrado)
             gs->levi.dash.distanciaRestante = 0;
         gs->input.keyF = false;
@@ -1558,19 +1636,6 @@ void cambiar_animacion(s_GameState *gs, e_EstadoLevi nuevaAnim)
             gs->variables.gravedad = 0;
             break; 
 
-        case PARRY:
-
-            gs->levi.animacion.bloquearAnimacion = true;
-            gs->levi.animacion.cantidadFrames = 3;
-            gs->levi.animacion.velocidadAnim = 9;
-            gs->levi.animacion.repetir = false;
-            gs->levi.animacion.fila_ss = LEVI_SS_ALTO * 9;
-            gs->levi.animacion.contadorAnim = 0;
-            gs->levi.animacion.bloquearAnimacion = true;
-            gs->variables.gravedad = 0;
-            break; 
-
-
         case ODM_ATAQUE_BASICO:
 
             gs->levi.animacion.bloquearAnimacion = true;
@@ -1661,6 +1726,28 @@ void cambiar_animacion(s_GameState *gs, e_EstadoLevi nuevaAnim)
             gs->levi.animacion.contadorAnim = 0;
             gs->variables.bloquearControles = false;
             break;
+
+        case PARRY:
+
+            gs->levi.animacion.bloquearAnimacion = false;
+            gs->levi.animacion.cantidadFrames = 5;
+            gs->levi.animacion.velocidadAnim = 5;
+            gs->levi.animacion.repetir = false;
+            gs->levi.animacion.fila_ss = LEVI_SS_ALTO * 18;
+            gs->levi.animacion.contadorAnim = 0;
+            gs->levi.animacion.bloquearAnimacion = true;
+            break;
+    
+        case PARRY_EXITOSO:
+
+            gs->levi.animacion.bloquearAnimacion = true;
+            gs->levi.animacion.cantidadFrames = 6;
+            gs->levi.animacion.velocidadAnim = 2;
+            gs->levi.animacion.repetir = false;
+            gs->levi.animacion.fila_ss = LEVI_SS_ALTO * 9;
+            gs->levi.animacion.contadorAnim = 0;
+            gs->variables.gravedad = 0;
+            break; 
             
     }   
 
@@ -1714,11 +1801,13 @@ void fin_animacion(s_GameState *gs)
     }
 
     else if(gs->levi.estadoLevi == SALIDA_DASH || gs->levi.estadoLevi == ATAQUE_BASICO || gs->levi.estadoLevi == SALIDA_ODM_ATAQUE1 
-        || gs->levi.estadoLevi == SALIDA_ODM_ATAQUE2 || gs->levi.estadoLevi == SALIDA_TITAN_AGARRE || gs->levi.estadoLevi == PARRY)
+        || gs->levi.estadoLevi == SALIDA_ODM_ATAQUE2 || gs->levi.estadoLevi == SALIDA_TITAN_AGARRE || gs->levi.estadoLevi == PARRY
+        || gs->levi.estadoLevi == PARRY_EXITOSO)
     {
         gs->levi.animacion.bloquearAnimacion = false;
         gs->variables.bloquearControles = false;
         gs->variables.gravedad = 0.8;
+        gs->levi.ataqueHecho = false;
 
         if(gs->levi.estadoLevi == SALIDA_ODM_ATAQUE1 || gs->levi.estadoLevi == SALIDA_ODM_ATAQUE2)
             gs->levi.animacion.rotarAnim = true;

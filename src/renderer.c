@@ -68,6 +68,12 @@ void levi_sprites(s_GameState *gs, s_Assets *assets)
 
     dibuja_gas(gs,assets);
 
+    if(gs->levi.agarrado)
+    {
+        al_draw_bitmap_region(assets->levi.levi_SS, 0, LEVI_SS_ALTO*19, LEVI_SS_ANCHO, LEVI_SS_ALTO, leviX, leviY, 0);
+        return;
+    }
+
     if(!gs->levi.dash.activo)
     {
         if(gs->levi.animacion.rotarAnim == true)
@@ -122,6 +128,7 @@ void titanes_sprites(s_GameState *gs, s_Assets *assets)
 {
     int i, pA = gs->pantalla_actual;
     int titanX, titanY;
+    ALLEGRO_BITMAP* sprite; 
 
     for(i = 0; i < gs->pantalla[pA].num_entidades; i++)
     {
@@ -133,17 +140,27 @@ void titanes_sprites(s_GameState *gs, s_Assets *assets)
 
             if(gs->pantalla[pA].entidades[i].tipo == 1)
             {
+                sprite = al_create_sub_bitmap(assets->titanes.titan1, gs->pantalla[pA].entidades[i].animacion.frameActual*220, 
+                        gs->pantalla[pA].entidades[i].animacion.fila_ss*165, 220, 165);
+
                 if(gs->pantalla[pA].entidades[i].animacion.rotarAnim)
-                    al_draw_scaled_bitmap(assets->titanes.titan1,0, 0, 219, 164, titanX, titanY, 219*2.5, 164*2.5, ALLEGRO_FLIP_HORIZONTAL);
+                    al_draw_scaled_bitmap(sprite,0, 0, 220, 165, titanX, titanY, 219*2.5, 164*2.5, ALLEGRO_FLIP_HORIZONTAL);
                 else
-                    al_draw_scaled_bitmap(assets->titanes.titan1,0, 0, 219, 164, titanX, titanY, 219*2.5, 164*2.5, 0);
+                    al_draw_scaled_bitmap(sprite,0, 0, 220, 165, titanX, titanY, 219*2.5, 164*2.5, 0);
+
+                al_destroy_bitmap(sprite);
             }
             else if(gs->pantalla[pA].entidades[i].tipo == 2)
             {
+                sprite = al_create_sub_bitmap(assets->titanes.titan2, gs->pantalla[pA].entidades[i].animacion.frameActual*130, 
+                        gs->pantalla[pA].entidades[i].animacion.fila_ss*130, 130, 130);
+
                 if(gs->pantalla[pA].entidades[i].animacion.rotarAnim)
-                    al_draw_scaled_bitmap(assets->titanes.titan2,0, 0, 127, 128, titanX, titanY, 127*1.5, 127*1.5, ALLEGRO_FLIP_HORIZONTAL);
+                    al_draw_scaled_bitmap(sprite,0, 0, 130, 130, titanX, titanY, 130*1.5, 130*1.5, ALLEGRO_FLIP_HORIZONTAL);
                 else
-                    al_draw_scaled_bitmap(assets->titanes.titan2,0, 0, 127, 128, titanX, titanY, 127*1.5, 127*1.5, 0);
+                    al_draw_scaled_bitmap(sprite,0, 0, 130, 130, titanX, titanY, 130*1.5, 130*1.5, 0);
+
+                al_destroy_bitmap(sprite);
             }
         }
     }
@@ -238,6 +255,9 @@ void muestra_hitbox(s_GameState *gs, s_Assets *assets)
         al_draw_rectangle(gs->levi.hitboxODM.x, gs->levi.hitboxODM.y,
             gs->levi.hitboxODM.x+gs->levi.hitboxODM.ancho, gs->levi.hitboxODM.y+gs->levi.hitboxODM.alto,
             al_map_rgb(255, 0, 0), 2);
+            
+        al_draw_rectangle(gs->levi.parryHB.x, gs->levi.parryHB.y,
+            gs->levi.parryHB.x+gs->levi.parryHB.ancho, gs->levi.parryHB.y+gs->levi.parryHB.alto, al_map_rgb(126, 34, 206), 2);
 
         for(i=0; i<gs->pantalla[pA].num_hitbox; i++)
             al_draw_rectangle(gs->pantalla[pA].hitbox[i].x, gs->pantalla[pA].hitbox[i].y,

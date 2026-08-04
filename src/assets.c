@@ -43,9 +43,21 @@ int carga_fuentes(s_Assets *assets)
         exit(1);
     }
 
+    assets->minimalistTemplateFont40 = al_load_font("assets/fonts/MinimalistTemplate.otf", 40, 0);
+    if(!assets->minimalistTemplateFont40){
+        printf("Error cargando minimalistTemplateFont40\n");
+        exit(1);
+    }
+
     assets->minimalistTemplateFont25 = al_load_font("assets/fonts/MinimalistTemplate.otf", 25, 0);
     if(!assets->minimalistTemplateFont25){
         printf("Error cargando minimalistTemplateFont25\n");
+        exit(1);
+    }
+
+    assets->minimalistTemplateFont30 = al_load_font("assets/fonts/MinimalistTemplate.otf", 30, 0);
+    if(!assets->minimalistTemplateFont30){
+        printf("Error cargando minimalistTemplateFont30\n");
         exit(1);
     }
 
@@ -209,6 +221,12 @@ int carga_objetos(s_Assets *assets)
         return 1;
     }
 
+    assets->assetsPantalla.HUD = al_load_bitmap("assets/imgs/HUDHabilidades.png");
+    if(!assets->assetsPantalla.HUD){
+        printf("Error cargando HUD.png");
+        return 1;
+    }
+
     assets->assetsPantalla.espada1 = al_load_bitmap("assets/imgs/espada.png");
     if(!assets->assetsPantalla.espada1){
         printf("Error cargando espada.png");
@@ -220,6 +238,16 @@ int carga_objetos(s_Assets *assets)
         printf("Error cargando espada2.png");
         return 1;
     }
+
+    assets->assetsPantalla.habilidadesHud = al_load_bitmap("assets/imgs/habilidadesImg.png");
+    if(!assets->assetsPantalla.habilidadesHud){
+        printf("Error cargando habilidadesHud.png");
+        return 1;
+    }
+
+    for(int i = 0; i < 6; i++)
+         assets->assetsPantalla.habilidades[i] = al_create_sub_bitmap(assets->assetsPantalla.habilidadesHud,i * 120,0,120,80);
+
 
     for(int i=0; i<14; i++)
         assets->assetsPantalla.dashSB[i] = al_create_sub_bitmap(assets->assetsPantalla.dash, i*280, 0, 280, 160);
