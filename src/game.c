@@ -13,25 +13,23 @@ void genera_casa3(s_GameState *gs, int i, int j);
 void genera_puesto_comida(s_GameState *gs, int i, int j);
 void genera_titan_hembra(s_GameState *gs, int i, int j);
 void genera_gas_elemento(s_GameState *gs, int i, int j); 
+void genera_hitbox_arbol(s_GameState *gs, int i, int j);
 
 //====Funcion principal====//
 void game_init(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display)
 {
     //gs->escala = 1.0f; //Variable que multiplica fondos, elementos, hitbox, etc. Para si en un futuro quiero cambiar de resolucion, redefino la variable y se escala todo.
-    if(gs->nivel1Ejecutando)
+    if(gs->nivel1Ejecutando || gs->tutorialEjecutando)
         gs->estadoPantalla = PANTALLA_JUGANDO;
     else
         gs->estadoPantalla = PANTALLA_MENU;
 
-    actualiza_res(gs, display);
     gs->ejecutando = 1;
     gs->pantalla_actual = 0;
     gs->nivel = 1;
     gs->nivelCompletado = false;
     gs->variables.gravedad = 0.8;
-    gs->input.keyG = true;
     gs->menu.estadoMenu = MAIN;
-    strcpy(gs->puntuacionJugador.nombre, "jugador");
 
     //Inicializacion de levi
     gs->levi.vida = 50;
@@ -51,19 +49,99 @@ void game_init(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display)
     gs->levi.animacion.velocidadAnim = 12;
     gs->levi.animacion.repetir = true;
 
+    lee_opciones(gs, display);
+    actualiza_res(gs, display);
+
     //Inicia fdata
-    if((gs->variables.fdata = fopen("mapa1.txt","r")) == NULL)
+    if(gs->nivel1Ejecutando)
+    {
+        if((gs->variables.fdata = fopen("mapa1.txt","r")) == NULL)
+        {
+            printf("Error al abrir el archivo");
+            exit(1);
+        }
+    }
+
+    else if(gs->tutorialEjecutando)
+    {
+        if((gs->variables.fdata = fopen("tutorial.txt","r")) == NULL)
+        {
+            printf("Error al abrir el archivo");
+            exit(1);
+        }
+    }
+    
+    if(gs->nivel1Ejecutando || gs->tutorialEjecutando)
+        mapa(gs, assets);
+
+    return;
+}
+
+void guarda_opciones(s_GameState *gs)
+{
+    FILE *fdata;
+
+    if((fdata = fopen("opciones.txt","w")) == NULL)
     {
         printf("Error al abrir el archivo");
         exit(1);
     }
 
-    if(gs->nivel1Ejecutando)
-        mapa1(gs, assets);
+    if(gs->pantallaCompleta)
+        fprintf(fdata, "true\n");
+    else
+        fprintf(fdata, "false\n");
 
-    gs->pantalla[gs->pantalla_actual].cantTitanes = gs->pantalla[gs->pantalla_actual].num_entidades;
+    if(gs->levi.vestuario)
+        fprintf(fdata, "true\n");
+    else
+        fprintf(fdata, "false\n");  
 
-    return;
+    fclose(fdata);    
+
+}
+
+void lee_opciones(s_GameState *gs , ALLEGRO_DISPLAY *display)
+{
+    FILE* fdata;
+    char linea[10];
+
+    if((fdata = fopen("opciones.txt","r")) == NULL)
+    {
+        gs->pantallaCompleta = false;
+        gs->levi.vestuario = false;
+        al_set_display_flag(display, ALLEGRO_FULLSCREEN_WINDOW, gs->pantallaCompleta);
+        guarda_opciones(gs);
+        return;
+    }
+
+    if(fgets(linea, sizeof(linea), fdata) == NULL)
+        exit(1);
+
+    if(strcmp(linea, "true\n") == 0)
+    {
+        gs->pantallaCompleta = true;
+        al_set_display_flag(display, ALLEGRO_FULLSCREEN_WINDOW, gs->pantallaCompleta);
+    }
+    else if(strcmp(linea, "false\n") == 0)
+    {
+        gs->pantallaCompleta = false;
+        al_set_display_flag(display, ALLEGRO_FULLSCREEN_WINDOW, gs->pantallaCompleta);
+    }
+
+    if(fgets(linea, sizeof(linea), fdata) == NULL)
+        exit(1);
+    
+        if(strcmp(linea, "true\n") == 0)
+    {
+        gs->levi.vestuario = true;
+    }
+    else if(strcmp(linea, "false\n") == 0)
+    {
+        gs->levi.vestuario = false;
+    }
+
+    fclose(fdata);
 }
 
 void actualiza_res(s_GameState *gs, ALLEGRO_DISPLAY *display)
@@ -71,17 +149,11 @@ void actualiza_res(s_GameState *gs, ALLEGRO_DISPLAY *display)
     gs->variables.screenX = al_get_display_width(display);
     gs->variables.screenY = al_get_display_height(display);
     gs->escala = (float)gs->variables.screenX / SCREEN_X;
-
-    if(gs->escala > 1)
-        gs->pantallaCompleta = true;
-    else if(gs->escala == 1)
-        gs->pantallaCompleta = false;
 }
 
 void hitbox_init(s_GameState *gs)
 {
     int pA = gs->pantalla_actual;
-    float anchoPantalla = gs->pantalla[pA].ancho * TAM_CELDA;
 
     //Orden de variables: x, y, ancho, alto, color
     switch(gs->pantalla_actual)
@@ -133,8 +205,11 @@ void hitbox_init(s_GameState *gs)
 
 }
 
-void mapa1(s_GameState *gs, s_Assets *assets)
+void mapa(s_GameState *gs, s_Assets *assets)
 {
+    //Funcion que abre un archivo y lee el mapa, ademas lee el fondo a ocupar en la pantalla y la cantidad de filas y columnas necesarias para crear un arreglo que pueda contener
+    //el tamano necesario para crear mapas de distintos tamanos
+
     int i = 0, j, pA = gs->pantalla_actual, fil, col;
     char linea[BUFFER];
 
@@ -166,13 +241,11 @@ void mapa1(s_GameState *gs, s_Assets *assets)
         else if(i == 1)
         {
             sscanf(linea, "%d", &gs->pantalla[pA].alto);
-            //printf("%d\n", gs->pantalla[pA].alto);
         }
 
         else if(i == 2)
         {
             sscanf(linea, "%d", &gs->pantalla[pA].ancho);
-            //printf("%d\n",gs->pantalla[pA].ancho);
         }
 
     }
@@ -247,7 +320,9 @@ void mapa1(s_GameState *gs, s_Assets *assets)
                 case 'o':
                     genera_gas_elemento(gs, i, j);
                     break;
-                
+                case 'A':
+                    genera_hitbox_arbol(gs, i, j);
+                    break;
 
             }
         }
@@ -280,6 +355,10 @@ void genera_titan1(s_GameState *gs, int i, int j)
     gs->pantalla[pA].entidades[nE].tipo = 1;
     gs->pantalla[pA].entidades[nE].estadoTitan = SPAWN;
 
+    if(gs->tutorialEjecutando)
+        gs->pantalla[pA].entidades[nE].animacion.rotarAnim = true;
+
+
 }
 
 void genera_titan2(s_GameState *gs, int i, int j)
@@ -301,30 +380,43 @@ void genera_titan2(s_GameState *gs, int i, int j)
     gs->pantalla[pA].entidades[nE].tipo = 2;
     gs->pantalla[pA].entidades[nE].estadoTitan = SPAWN;
 
+    if(gs->tutorialEjecutando)
+    {
+        gs->pantalla[pA].entidades[nE].vida = 5;
+        gs->pantalla[pA].entidades[nE].animacion.fila_ss = 7;
+        gs->pantalla[pA].entidades[nE].animacion.frameActual = 2; 
+        gs->pantalla[pA].entidades[nE].animacion.rotarAnim = true;
+    }
+
 }
 
 void genera_titan_hembra(s_GameState *gs, int i, int j)
 {
     gs->titanHembra.x = j*TAM_CELDA;
     gs->titanHembra.y = i*TAM_CELDA;
-    gs->titanHembra.vida = 1;
+    gs->titanHembra.vida = 50000;
     gs->titanHembra.velocidadX = 5;
     gs->titanHembra.activa = true;
+    gs->titanHembra.estadoTH = IDLE;
+    gs->titanHembra.animacion.cantidadFrames = 4;
+    gs->titanHembra.animacion.contadorAnim = 0;
+    gs->titanHembra.animacion.frameActual = 0;
+    gs->titanHembra.animacion.fila_ss = 0;
+    gs->titanHembra.animacion.velocidadAnim = 10;
+    gs->titanHembra.animacion.repetir = true;
+    gs->titanHembra.animacion.rotarAnim = true;
 
 }
 
 void pos_levi(s_GameState *gs, s_Assets *assets, int i, int j)
 {
-    int pA = gs->pantalla_actual;
-
     gs->levi.x = j*TAM_CELDA;
     gs->levi.y = i*TAM_CELDA;
-
 }
 
 void grieta_ODM(s_GameState *gs, int i, int j)
 {
-    int pA = gs->pantalla_actual, cont;
+    int pA = gs->pantalla_actual;
     int nE = gs->pantalla[pA].num_elementos;
 
     if(nE >= MAXELEMENTOS)
@@ -344,7 +436,7 @@ void grieta_ODM(s_GameState *gs, int i, int j)
 
 void genera_escudo_legion(s_GameState *gs, int i, int j)
 {
-    int pA = gs->pantalla_actual, cont;
+    int pA = gs->pantalla_actual;
     int nE = gs->pantalla[pA].num_elementos;
 
     if(nE >= MAXELEMENTOS)
@@ -365,7 +457,7 @@ void genera_escudo_legion(s_GameState *gs, int i, int j)
 
 void genera_casa1(s_GameState *gs, int i, int j)
 {
-    int pA = gs->pantalla_actual, cont;
+    int pA = gs->pantalla_actual;
     int nE = gs->pantalla[pA].num_elementos;
 
     if(nE >= MAXELEMENTOS)
@@ -393,7 +485,7 @@ void genera_casa1(s_GameState *gs, int i, int j)
 
 void genera_casa2(s_GameState *gs, int i, int j)
 {
-    int pA = gs->pantalla_actual, cont;
+    int pA = gs->pantalla_actual;
     int nE = gs->pantalla[pA].num_elementos;
 
     if(nE >= MAXELEMENTOS)
@@ -428,7 +520,7 @@ void genera_casa2(s_GameState *gs, int i, int j)
 
 void genera_casa3(s_GameState *gs, int i, int j)
 {
-    int pA = gs->pantalla_actual, cont;
+    int pA = gs->pantalla_actual;
     int nE = gs->pantalla[pA].num_elementos;
 
     if(nE >= MAXELEMENTOS)
@@ -456,7 +548,7 @@ void genera_casa3(s_GameState *gs, int i, int j)
 
 void genera_puesto_comida(s_GameState *gs, int i, int j)
 {
-    int pA = gs->pantalla_actual, cont;
+    int pA = gs->pantalla_actual;
     int nE = gs->pantalla[pA].num_elementos;
 
     if(nE >= MAXELEMENTOS)
@@ -484,7 +576,7 @@ void genera_puesto_comida(s_GameState *gs, int i, int j)
 
 void genera_gas_elemento(s_GameState *gs, int i, int j)
 {
-    int pA = gs->pantalla_actual, cont;
+    int pA = gs->pantalla_actual;
     int nE = gs->pantalla[pA].num_elementos;
 
     if(nE >= MAXELEMENTOS)
@@ -498,6 +590,26 @@ void genera_gas_elemento(s_GameState *gs, int i, int j)
     gs->pantalla[pA].elementos[nE].hitbox.ancho = 60;
     gs->pantalla[pA].elementos[nE].hitbox.color = al_map_rgb(255, 255, 0);
     gs->pantalla[pA].elementos[nE].tipo = 5;
+    gs->pantalla[pA].elementos[nE].activo = true;
+    gs->pantalla[pA].num_elementos++;
+}
+
+void genera_hitbox_arbol(s_GameState *gs, int i, int j)
+{
+    int pA = gs->pantalla_actual;
+    int nE = gs->pantalla[pA].num_elementos;
+
+    if(nE >= MAXELEMENTOS)
+        return;
+
+    gs->pantalla[pA].elementos[nE].x = j*TAM_CELDA;
+    gs->pantalla[pA].elementos[nE].y = i*TAM_CELDA;
+    gs->pantalla[pA].elementos[nE].hitbox.x = gs->pantalla[pA].elementos[nE].x;
+    gs->pantalla[pA].elementos[nE].hitbox.y = gs->pantalla[pA].elementos[nE].y;
+    gs->pantalla[pA].elementos[nE].hitbox.alto = 585;
+    gs->pantalla[pA].elementos[nE].hitbox.ancho = 67;
+    gs->pantalla[pA].elementos[nE].hitbox.color = al_map_rgb(255, 255, 0);
+    gs->pantalla[pA].elementos[nE].tipo = 6;
     gs->pantalla[pA].elementos[nE].activo = true;
     gs->pantalla[pA].num_elementos++;
 }

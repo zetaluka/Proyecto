@@ -18,6 +18,8 @@
 #include <allegro5/color.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_image.h>
+#include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_acodec.h>
 
 //==========Defines==========//
 #define SCREEN_X 1280
@@ -41,7 +43,6 @@
 #define MAXGAS 100
 #define BLANCO al_map_rgb(220, 220, 220)
 
-
 //==========Estructuras==========//
 
 //==Structs Assets==//
@@ -54,7 +55,6 @@ typedef struct
     ALLEGRO_BITMAP* fondo_menu;
     ALLEGRO_BITMAP* marcoVida;
     ALLEGRO_BITMAP* galonGas;
-    ALLEGRO_BITMAP* cubo;
     ALLEGRO_BITMAP* grieta;
     ALLEGRO_BITMAP* escudoLegion;
     ALLEGRO_BITMAP* grietaODM;
@@ -73,12 +73,14 @@ typedef struct
     ALLEGRO_BITMAP* HUD;
     ALLEGRO_BITMAP* habilidadesHud;
     ALLEGRO_BITMAP* habilidades[6];
+    ALLEGRO_BITMAP* cabezaTH;
 
 } s_AssetsPantalla;
 
 
 typedef struct{
     ALLEGRO_BITMAP* levi_SS;
+    ALLEGRO_BITMAP* levi_SS_SC;
 
 } s_LeviSprites;
 
@@ -87,6 +89,8 @@ typedef struct
     ALLEGRO_BITMAP* titan1;
     ALLEGRO_BITMAP* titan2;
     ALLEGRO_BITMAP* titan_hembra;
+    ALLEGRO_BITMAP* titanHembraFase1;
+    ALLEGRO_BITMAP* titanHembraFase2;
 
 } s_TitanesSprites;
 
@@ -172,6 +176,15 @@ typedef struct
     bool activo;
 } s_Animacion;
 
+typedef struct 
+{
+    ALLEGRO_SAMPLE* sfx_odm;
+    ALLEGRO_SAMPLE* sfx_attack;
+    ALLEGRO_AUDIO_STREAM *musica_menu;
+    float cdSfxAttack;
+} s_Audio;
+
+
 //==============================//
 
 typedef struct 
@@ -179,7 +192,6 @@ typedef struct
     float x;
     float y;
 } s_Posiciones;
-
 
 typedef struct 
 {
@@ -228,6 +240,7 @@ typedef enum{
     QUIETO,
     CAMINANDOTITAN,
     SALTO,
+    SENTADO,
     ATERRIZAJE,
     MORDISCO,
     ATAQUE,
@@ -299,19 +312,46 @@ typedef struct
     
 } s_Pantalla;
 
+typedef enum{
+    IDLE_TH,
+    CAMINANDO_TH,
+    ATAQUE1_TH,
+    ATAQUE2_TH,
+    PATADA1_TH,
+    PATADA2_TH,
+    CUBRIRNUCA_TH,
+    IDLE_CNTH,
+    ATAQUE1_CNTH,
+    PATADA1_CNTH,
+    CRISTALIZACION_TH,
+
+} e_EstadoTH;
+
 typedef struct 
 {
     int vida;
+    int casoMovimiento;
+    int casoAtaque;
+    float cdCasoMovimiento;
     float x;
     float y;
     float velocidadX;
     float velocidadY;
     float tiempoAtaqueActivo;
     float cooldownAtaque;
+    bool segundoGolpe;
+    bool fase2Activa;
+    bool atacando;
     bool activa;
+    bool viendoDer;
+    bool THQuieta;
+    bool nucaCubierta;
+    bool ataqueHecho;
+    s_AnimacionTitanes animacion;
     s_Hitbox hitbox;
     s_Hitbox hitboxAtaque1;
     s_Hitbox hitboxAtaque2;
+    e_EstadoTH estadoTH;
 } s_TitanHembra;
 
 
@@ -332,7 +372,6 @@ typedef struct
     bool animDashActiva;
     s_Hitbox hitboxDash;
     s_AnimacionLevi animDash;
-
 } s_Dash;
 
 typedef struct 
@@ -359,6 +398,7 @@ typedef struct
 typedef struct
 {
     int ataque;
+    int ataqueMA;
     int ataqueNuca;
     int puntuacionTitan;
     int puntuacionNuca;
@@ -366,6 +406,8 @@ typedef struct
     int contSoltarse;
     int puntuacion;
     int vida;
+    int contModoAckerman;
+    int aumentaMA;
     float tiempoInvulnerabilidad;
     float gravedad;
     float cooldownAtaque;
@@ -379,6 +421,9 @@ typedef struct
     float cooldownParry;
     float distanciaYRecorrida;
     float gasRestante;
+    float tiempoModoAckerman;
+    float velocidadMA;
+    bool vestuario;
     bool invulnerabilidad;
     bool habilitaAumentaDash;
     bool agarrado;
@@ -413,7 +458,8 @@ typedef struct
 typedef enum {
     PANTALLA_MENU,
     PANTALLA_JUGANDO,
-    PANTALLA_GAME_OVER
+    PANTALLA_GAME_OVER,
+    PANTALLA_NIVEL_COMPLETADO
 } e_EstadoPantalla;
 
 typedef enum{
@@ -439,6 +485,7 @@ typedef struct { //input.c actualiza a través de la variable s_GameState, updat
     bool keyE;
     bool keyR;
     bool keyC;
+    bool keyX;
     bool ClickIzq;
     bool ClickDer;
     bool key1;
@@ -457,8 +504,12 @@ typedef struct
     int screenY;
     float cooldownHitbox;
     float gravedad;
+    char nombreTemp[40];
     s_Posiciones grietas[5];
     FILE *fdata;
+    bool nombreIngresado;
+    bool ingresandoNombre;
+    bool agarradoPorTitan1;
     bool desactivarHitbox;
     bool cambioSentido;
     bool detenerEntidades;
@@ -499,6 +550,12 @@ typedef struct
     
 } s_Menu;
 
+typedef struct{
+    int fase;
+    bool teclaPulsada;
+    bool requisitoCumplido;
+
+} s_Tutorial;
 
 //====s_GameState====//
 typedef struct {
@@ -516,11 +573,14 @@ typedef struct {
     s_Puntuacion puntuacionJugador;
     s_Menu menu;
     s_Menu menuPausa;
+    s_Tutorial tutorial;
+    s_Audio audio;
     int contOpcionesGO;  
     int pantalla_actual;
     int nivel; 
     float escala;
     bool pausa;
+    bool tutorialEjecutando;
     bool nivel1Ejecutando;
     bool pantallaCompleta;
     bool puntuacionGuardada;
@@ -533,21 +593,23 @@ typedef struct {
 //==========Prototipos de funciones==========//
 void game_init(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display);
 void input_update(s_GameState *gs, ALLEGRO_EVENT* evento);
-void update(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display, s_GameState *auxgs);
+void update(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display, s_GameState *auxgs, ALLEGRO_EVENT *evento);
 void render_gameview(s_GameState *gs, s_Assets *assets);
 void render_ui(s_GameState *gs, s_Assets *assets);
-void assets_load(s_Assets *assets);
+void assets_load(s_Assets *assets, s_GameState *gs);
 void genera_entidades(s_GameState *gs, s_Assets *assets);
 
 //==========Prototipos de funciones no principales======//
-void mapa1(s_GameState *gs, s_Assets *assets);
+void mapa(s_GameState *gs, s_Assets *assets);
 void hitbox_init(s_GameState *gs);
 void comprueba_colision(s_GameState *gs);
-void colision_levi_titan(s_GameState *gs);
 void cambiar_animacion(s_GameState *gs, e_EstadoLevi nuevaAnim);
 void actualiza_res(s_GameState *gs, ALLEGRO_DISPLAY *display);
+void guarda_opciones(s_GameState *gs);
+void lee_opciones(s_GameState *gs, ALLEGRO_DISPLAY *display);
+void ingresa_nombre(s_GameState *gs, ALLEGRO_EVENT* evento);
 int carga_puntuacion(s_GameState *gs);
+int carga_sfx(s_GameState *gs);
 bool colision(s_GameState *gs, s_Hitbox h1, s_Hitbox h2);
-
 
 #endif

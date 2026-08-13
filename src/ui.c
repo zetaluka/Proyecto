@@ -5,11 +5,11 @@ void transicion(s_GameState *gs, s_Assets *assets);
 void transicion2(s_GameState *gs, s_Assets *assets);
 void jugando_ui(s_GameState *gs, s_Assets *assets);
 void menu(s_GameState *gs, s_Assets *assets);
-void opciones(s_GameState *gs, s_Assets *assets);
 void muestra_puntuaciones(s_GameState *gs, s_Assets *assets);
 void pausa(s_GameState *gs, s_Assets *assets);
 void game_over(s_GameState *gs, s_Assets *assets);
 void dibuja_controles(s_GameState *gs, s_Assets *assets);
+void tutorial(s_GameState *gs, s_Assets *assets);
 
 //====Funcion principal====//
 void render_ui(s_GameState *gs, s_Assets *assets)
@@ -34,18 +34,12 @@ void render_ui(s_GameState *gs, s_Assets *assets)
         case PANTALLA_GAME_OVER:
             game_over(gs, assets);
             break;
-
     }
 
     al_flip_display(); 
 }
 
 void menu(s_GameState *gs, s_Assets *assets)
-{
-    opciones(gs, assets);
-}
-
-void opciones(s_GameState *gs, s_Assets *assets)
 {
    //Parametros al_draw_scaled_bitmap: Spritesheet, frameX, frameY, ancho, alto, x , y , (ancho destino, alto destino (escalado)), flags
 
@@ -127,14 +121,14 @@ void opciones(s_GameState *gs, s_Assets *assets)
 
         if(gs->menu.contMenu == 1)
         {
-            strcpy(texto, "NIVEL DOS");
+            strcpy(texto, "TUTORIAL");
             al_draw_scaled_bitmap(assets->assetsPantalla.espada2, 0, 0, 1450, 210, 10, 325, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
             dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), 195, 330, ALLEGRO_ALIGN_LEFT, texto, 3);
         }
 
         else
         {
-            strcpy(texto, "NIVEL DOS");
+            strcpy(texto, "TUTORIAL");
             al_draw_scaled_bitmap(assets->assetsPantalla.espada1, 0, 0, 1450, 210, 10, 325, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
             dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 195, 330, ALLEGRO_ALIGN_LEFT, texto, 3);
         }
@@ -149,22 +143,47 @@ void opciones(s_GameState *gs, s_Assets *assets)
             else
                 strcpy(texto, "PANTALLA COMPLETA: OFF");
             al_draw_scaled_bitmap(assets->assetsPantalla.espada2, 0, 0, 1450, 210, 10, 325, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
-            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), 195, 330, ALLEGRO_ALIGN_LEFT, texto, 3);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), 140, 330, ALLEGRO_ALIGN_LEFT, texto, 3);
         }
-
-        else
+        else 
         {
             if(gs->pantallaCompleta == true)
                 strcpy(texto, "PANTALLA COMPLETA: ON");
             else
                 strcpy(texto, "PANTALLA COMPLETA: OFF");
             al_draw_scaled_bitmap(assets->assetsPantalla.espada1, 0, 0, 1450, 210, 10, 325, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
-            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 195, 330, ALLEGRO_ALIGN_LEFT, texto, 3);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 140, 330, ALLEGRO_ALIGN_LEFT, texto, 3);
+        }
+
+        if(gs->menu.contMenu == 1)
+        {
+            if(gs->levi.vestuario == true)
+                strcpy(texto, "VESTUARIO: CON CAPA");
+            else
+                strcpy(texto, "VESTUARIO: SIN CAPA");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada2, 0, 0, 1450, 210, 10, 400, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), 140, 405, ALLEGRO_ALIGN_LEFT, texto, 3);
+        }
+        else
+        {
+            if(gs->levi.vestuario == true)
+                strcpy(texto, "VESTUARIO: CON CAPA");
+            else
+                strcpy(texto, "VESTUARIO: SIN CAPA");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada1, 0, 0, 1450, 210, 10, 400, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 140, 405, ALLEGRO_ALIGN_LEFT, texto, 3);
         }
     }
 
     else if(gs->menu.estadoMenu == RANKING)
         muestra_puntuaciones(gs, assets);
+
+    if(gs->variables.ingresandoNombre)
+    {
+        strcpy(texto, "INGRESA TU NOMBRE:");
+        dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 30, 405, ALLEGRO_ALIGN_LEFT, texto, 3);
+        dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 235, 405, ALLEGRO_ALIGN_LEFT, gs->variables.nombreTemp, 3);
+    }
 
 }
 
@@ -312,7 +331,8 @@ void dibuja_controles(s_GameState *gs, s_Assets *assets)
     dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 400, 0, "1 (CON EQUIPO DE MANIOBRAS): HABILIDAD 1", 3);
     dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 450, 0, "2 (CON EQUIPO DE MANIOBRAS): HABILIDAD 2", 3);
     dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 500, 0, "3 : RECARGAR GAS", 3);
-
+    dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 550, 0, "C : PARRY / DESVIAR ATAQUE", 3);
+    dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 600, 0, "X : MODO ACKERMAN", 3);
 
 }
 
@@ -321,8 +341,8 @@ void jugando_ui(s_GameState *gs, s_Assets *assets)
     char texto[20];
 
     sprintf(texto, "%02d: %02d", gs->tiempoJugado.minutos, gs->tiempoJugado.segundos);
-    al_draw_text(assets->minimalistTemplateFont50, al_map_rgb(220, 220, 220), (SCREEN_X-100), 10, 0, texto); //arreglar...
-    al_draw_text(assets->shingekiFont30,al_map_rgb(220, 220, 220), SCREEN_X/2, 0, ALLEGRO_ALIGN_CENTER, "CodeNoKyojin");
+    al_draw_text(assets->minimalistTemplateFont50, al_map_rgb(220, 220, 220), (SCREEN_X-100), 10, 0, texto); 
+    al_draw_text(assets->shingekiFont30,al_map_rgb(220, 220, 220), SCREEN_X/2, 0, ALLEGRO_ALIGN_CENTER, "Attack on Titan");
 
     //============Escudos=============//
 
@@ -386,22 +406,46 @@ void jugando_ui(s_GameState *gs, s_Assets *assets)
         dibujar_texto_borde(gs, assets->minimalistTemplateFont40, al_map_rgb(230, 225, 210), al_map_rgb(0,0,0), 20, 100, ALLEGRO_ALIGN_LEFT, texto, 2);
 
     al_draw_scaled_bitmap(assets->assetsPantalla.marcoVida, 0, 0, al_get_bitmap_width(assets->assetsPantalla.marcoVida), al_get_bitmap_height(assets->assetsPantalla.marcoVida),
-        10, 20, al_get_bitmap_width(assets->assetsPantalla.marcoVida) * 0.1f, al_get_bitmap_height(assets->assetsPantalla.marcoVida) * 0.1f, 0);
+        10, 20, al_get_bitmap_width(assets->assetsPantalla.marcoVida) * 0.1f, al_get_bitmap_height(assets->assetsPantalla.marcoVida) * 0.15f, 0);
 
     if(gs->levi.vida > 0)
-        al_draw_line(20, 33, gs->levi.vida * 5, 33, al_map_rgb(200, 35, 35), 10);
+        al_draw_line(20, 32, gs->levi.vida * 4.6 + 20, 32, al_map_rgb(200, 35, 35), 8);
+    
+    if(gs->levi.tiempoModoAckerman > 0)
+        al_draw_line(20, 45, gs->levi.tiempoModoAckerman * 23 + 20, 45, al_map_rgb(70, 170, 240), 8);
+    else   
+        al_draw_line(20, 45, gs->levi.aumentaMA* 23 + 20, 45, al_map_rgb(220, 220, 220), 8);
 
     al_draw_scaled_bitmap(assets->assetsPantalla.galonGas, 0, 0, al_get_bitmap_width(assets->assetsPantalla.galonGas), al_get_bitmap_height(assets->assetsPantalla.galonGas),
-        0, 0, al_get_bitmap_width(assets->assetsPantalla.galonGas) * 0.15f, al_get_bitmap_height(assets->assetsPantalla.galonGas) * 0.15f, ALLEGRO_FLIP_HORIZONTAL);
+        0, 15, al_get_bitmap_width(assets->assetsPantalla.galonGas) * 0.15f, al_get_bitmap_height(assets->assetsPantalla.galonGas) * 0.15f, ALLEGRO_FLIP_HORIZONTAL);
 
     if(gs->levi.gasRestante > 0)
-        al_draw_line(20, 67, (gs->levi.gasRestante * 0.167) + 20, 67, al_map_rgb(120, 128, 135), 7);
+        al_draw_line(20, 82, (gs->levi.gasRestante * 0.167) + 20, 82, al_map_rgb(120, 128, 135), 7);
+
+    if(gs->levi.cooldownParry > 0)
+        al_draw_filled_circle(30, 150, 10, al_map_rgb(0, 0, 0));
+    else 
+        al_draw_filled_circle(30, 150, 10, al_map_rgb(76, 217, 100));
 
     if(gs->levi.agarrado)
     {
-        sprintf(texto, "PRESIONA R: %d/5", gs->levi.contSoltarse);
-        dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(230, 225, 210), al_map_rgb(0, 0, 0), SCREEN_X/2, 50, 
+        if(gs->variables.agarradoPorTitan1)
+            sprintf(texto, "PRESIONA ESPACIO: %d/10", gs->levi.contSoltarse);
+        else
+            sprintf(texto, "PRESIONA ESPACIO: %d/5", gs->levi.contSoltarse);
+        dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255, 0 ,0), al_map_rgb(0, 0, 0), SCREEN_X/2, 200, 
             ALLEGRO_ALIGN_CENTER, texto, 2); 
+    }
+
+    if(gs->titanHembra.activa)
+    {
+        al_draw_line(315, 57, 965, 57, al_map_rgb(0, 0, 0), 10);
+
+        if(gs->titanHembra.vida > 25000)
+            al_draw_line(315, 57, (gs->titanHembra.vida * 0.013) + 320, 57, al_map_rgb(219, 68, 107), 10);
+        else 
+            al_draw_line(315, 57, (gs->titanHembra.vida * 0.013) + 315, 57, al_map_rgb(138, 180, 214), 10);
+        al_draw_scaled_bitmap(assets->assetsPantalla.cabezaTH, 0, 0, 33, 33, (gs->titanHembra.vida * 0.013) + 310, 40, 33, 33, 0);
     }
 
     //==============================//
@@ -414,6 +458,9 @@ void jugando_ui(s_GameState *gs, s_Assets *assets)
 
     if(gs->pausa)
         pausa(gs, assets);
+
+    if(gs->tutorialEjecutando)
+        tutorial(gs, assets);
 
 }
 
@@ -475,4 +522,84 @@ void game_over(s_GameState *gs, s_Assets *assets)
             dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 575, ALLEGRO_ALIGN_CENTER, texto, 3);
         }
     }
+    else if(gs->nivelCompletado)
+    {
+        strcpy(texto, "GANASTE!!");
+        dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 500, ALLEGRO_ALIGN_CENTER, texto, 3);
+
+        sprintf(texto, "PUNTUACION: %d", gs->puntuacionJugador.puntuacion);
+        dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 575, ALLEGRO_ALIGN_CENTER, texto, 3);
+
+       if(gs->contOpcionesGO == 0)
+        {
+            strcpy(texto, "VOLVER AL MENU PRINCIPAL");
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), SCREEN_X/2, 650, ALLEGRO_ALIGN_CENTER, texto, 3);
+        }
+
+        else
+        {
+            strcpy(texto, "VOLVER AL MENU PRINCIPAL");
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 650, ALLEGRO_ALIGN_CENTER, texto, 3);
+        } 
+    }
+}
+
+void tutorial(s_GameState *gs, s_Assets *assets)
+{
+    if(gs->levi.agarrado)
+        return;
+
+    switch(gs->tutorial.fase)
+    {
+        case 0:
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 100, ALLEGRO_ALIGN_CENTER, "PULSA A/D PARA MOVERTE ", 1.5);
+            break;
+        case 1:
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 100, ALLEGRO_ALIGN_CENTER, "PULSA LSHIFT PARA CORRER", 1.5);
+            break;
+        case 2:
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 100, ALLEGRO_ALIGN_CENTER, "PULSA ESPACIO PARA SALTAR Y ESPACIO EN EL AIRE", 1.5);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 150, ALLEGRO_ALIGN_CENTER, "PARA UN DOBLE SALTO Y SUBIRTE AL PUESTO", 1.5);
+            break;
+        case 3:
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 100, ALLEGRO_ALIGN_CENTER, "PULSA S PARA BAJAR", 1.5);
+            break;
+        case 4:
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 100, ALLEGRO_ALIGN_CENTER, "PULSA CLICK IZQUIERDO PARA ATACAR Y MATAR AL TITAN", 1.5);
+            break;
+        case 5:
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 100, ALLEGRO_ALIGN_CENTER, "PULSA CLICK DERECHO EN LA CASA / GRIETA", 1.5);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 150, ALLEGRO_ALIGN_CENTER, "PARA OCUPAR EL EQUIPO DE MANIOBRAS", 1.5);
+            break;
+        case 6:
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 100, ALLEGRO_ALIGN_CENTER, "OCUPA EL EQUIPO DE MANIOBRAS EN EL TITAN Y ATACALO EN LA NUCA", 1.5);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 150, ALLEGRO_ALIGN_CENTER, "PARA MATARLO INSTANTANEAMENTE", 1.5);
+            break;
+        case 7:
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 100, ALLEGRO_ALIGN_CENTER, "SIGUE AVANZANDO", 1.5);
+            break;
+        case 8:
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 100, ALLEGRO_ALIGN_CENTER, "CON EL EQUIPO DE MANIOBRAS ACTIVADO OCUPA", 1.5);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 150, ALLEGRO_ALIGN_CENTER, "LA TECLA UNO O DOS PARA UTILIZAR UNA HABILIDAD", 1.5);
+            dibujar_texto_borde(gs, assets->shingekiFont20, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 10, 640, ALLEGRO_ALIGN_LEFT, "NOTA: AL OCUPAR UNA HABILIDAD TENDRAS QUE ESPERAR PARA VOLVER A OCUPARLA", 1.5);
+            break;
+        case 9:
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 100, ALLEGRO_ALIGN_CENTER, "PULA F PARA OCUPAR EL DASH Y MATAR AL TITAN", 1.5);
+            break;
+        case 10:
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 100, ALLEGRO_ALIGN_CENTER, "ACERCATE AL TITAN Y PULSA LA C JUSTO ANTES DE QUE IMAPCTE SU ATAQUE", 1.5);
+            dibujar_texto_borde(gs, assets->shingekiFont20, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 10, 640, ALLEGRO_ALIGN_LEFT, "NOTA: SI LOGRAS DESVIAR UN ATAQUE CON UN PARRY SE REESTABLECEN TUS HABILIDADES", 1.5);
+            dibujar_texto_borde(gs, assets->shingekiFont20, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 10, 670, ALLEGRO_ALIGN_LEFT, "AUMENTA TU VIDA, OBTIENES INVULNERABILIDAD MOMENTANEA Y OBTIENES UNA CARGA DEL DASH", 1.5);
+            break;
+        case 11:
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 100, ALLEGRO_ALIGN_CENTER, "CADA DIEZ TITANES QUE MATES CON UN ATAQUE BASICO EN LA NUCA", 1.5);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 150, ALLEGRO_ALIGN_CENTER, "PODRAS OCUPAR EL MODO ACKERMAN EL MODO ACKERMAN CON LA LETRA X,", 1.5);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 200, ALLEGRO_ALIGN_CENTER, "DONDE SE TE REDUCIRA EL TIEMPO DE ESPERA POR HABILIDAD, AUMENTARA TU VELOCIDAD, ", 1.5);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 250, ALLEGRO_ALIGN_CENTER, "TU ATAQUE Y OBTENDRAS TRES CARGAS DE DASH", 1.5);
+            break;
+        case 12:
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 100, ALLEGRO_ALIGN_CENTER, "PULSA E EN LA PUERTA DE LA CASA PARA TERMINAR EL TUTORIAL", 1.5);
+            break;
+    }
+    
 }

@@ -1,6 +1,5 @@
 #include "commons.h"
 
-
 //====Funcion principal====//
 void input_update(s_GameState *gs, ALLEGRO_EVENT* evento)
 {
@@ -29,7 +28,7 @@ void input_update(s_GameState *gs, ALLEGRO_EVENT* evento)
             case ALLEGRO_KEY_L:
                 gs->input.keyL = true;
                 break;
-            case ALLEGRO_KEY_H:
+            case ALLEGRO_KEY_H: //Usado para debugg, muestra hitboxes
                 if(!gs->input.keyH)
                     gs->input.keyH = true;
                 else if(gs->input.keyH)
@@ -49,6 +48,9 @@ void input_update(s_GameState *gs, ALLEGRO_EVENT* evento)
                 break;
             case ALLEGRO_KEY_R:
                 gs->input.keyR = true;
+                break;
+            case ALLEGRO_KEY_X:
+                gs->input.keyX = true;
                 break;
             case ALLEGRO_KEY_C:
                 gs->input.keyC = true;
@@ -105,6 +107,9 @@ void input_update(s_GameState *gs, ALLEGRO_EVENT* evento)
             case ALLEGRO_KEY_R:
                 gs->input.keyR = false;
                 break;
+            case ALLEGRO_KEY_X:
+                gs->input.keyX = false;
+                break;
             case ALLEGRO_KEY_C:
                 gs->input.keyC = true;
                 break;
@@ -155,12 +160,7 @@ void input_update(s_GameState *gs, ALLEGRO_EVENT* evento)
     {
         gs->input.mouseX = evento->mouse.x;
         gs->input.mouseY = evento->mouse.y;
-        //printf("MOUSE_AXES detectado: x=%d y=%d\n", evento->mouse.x, evento->mouse.y);
     }
-
-    /*if(evento->type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
-        printf("Mouse x = %d, Mouse y = %d\n", evento->mouse.x, evento->mouse.y);*/
-         
 
     return;
 }

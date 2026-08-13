@@ -8,7 +8,7 @@ int carga_sprites_titanes(s_Assets *assets);
 int carga_objetos(s_Assets *assets);
 
 //====Funcion principal====//
-void assets_load(s_Assets *assets)
+void assets_load(s_Assets *assets, s_GameState *gs)
 {
     //al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
     al_set_new_bitmap_flags(0);
@@ -18,11 +18,39 @@ void assets_load(s_Assets *assets)
     carga_sprites_titanes(assets);
     carga_objetos(assets);
     carga_fuentes(assets);
-
+    carga_sfx(gs);
     return;
 }
 
 //====Funciones====//
+int carga_sfx(s_GameState *gs)
+{
+    gs->audio.sfx_odm = al_load_sample("assets/sfx/ODMSound.wav");
+    if (!gs->audio.sfx_odm) {
+        printf("Error cargando sfx_odm\n");
+        exit (1);
+    }
+
+    gs->audio.sfx_attack = al_load_sample("assets/sfx/AttackSound.wav");
+    if (!gs->audio.sfx_attack) {
+        printf("Error cargando sfx_attack\n");
+        exit (1);
+    }
+
+    gs->audio.musica_menu = al_load_audio_stream("assets/sfx/musicaMenu.wav", 4, 2048);
+    if (!gs->audio.musica_menu)
+    {
+        printf("Error cargando musicaMenu\n");
+        exit(1);
+    }
+
+    al_set_audio_stream_playmode(gs->audio.musica_menu, ALLEGRO_PLAYMODE_LOOP);
+    al_set_audio_stream_gain(gs->audio.musica_menu, 0.5);
+    al_attach_audio_stream_to_mixer(gs->audio.musica_menu, al_get_default_mixer());
+
+    return 0;
+}
+
 int carga_fuentes(s_Assets *assets)
 {
     assets->shingekiFont30 = al_load_font("assets/fonts/Ditty.ttf", 30, 0);
@@ -72,6 +100,12 @@ int carga_sprites_levi(s_Assets *assets)
         exit(1);
     }
 
+    assets->levi.levi_SS_SC = al_load_bitmap("assets/imgs/levi_ss_sc.png");
+    if(!assets->levi.levi_SS_SC){
+        printf("Error cargando levi_spritesheet_sc");
+        exit(1);
+    }
+
     return 0;
 }
 
@@ -81,12 +115,6 @@ int carga_fondo(s_Assets *assets)
     assets->assetsPantalla.fondo_base = al_load_bitmap("assets/imgs/fondo_base.png");
     if(!assets->assetsPantalla.fondo_base){
         printf("Error cargando fondo_base");
-        return 1;
-    }
-
-    assets->assetsPantalla.cubo = al_load_bitmap("assets/imgs/cubo.png");
-    if(!assets->assetsPantalla.cubo){
-        printf("Error cargando cubo");
         return 1;
     }
 
@@ -117,6 +145,18 @@ int carga_sprites_titanes(s_Assets *assets)
     assets->titanes.titan_hembra = al_load_bitmap("assets/imgs/titanhembra.png");
     if(!assets->titanes.titan_hembra){
         printf("Error cargando titanhembra");
+        return 1;
+    }
+
+    assets->titanes.titanHembraFase1 = al_load_bitmap("assets/imgs/titanhembra_ss.png");
+    if(!assets->titanes.titanHembraFase1){
+        printf("Error cargando titanHembraFase1");
+        return 1;
+    }
+
+    assets->titanes.titanHembraFase2 = al_load_bitmap("assets/imgs/titanhembra_ss_cristalizada.png");
+    if(!assets->titanes.titanHembraFase2){
+        printf("Error cargando titanHembraFase2");
         return 1;
     }
 
@@ -218,6 +258,12 @@ int carga_objetos(s_Assets *assets)
     assets->assetsPantalla.imgGameOver = al_load_bitmap("assets/imgs/imgGameOver.png");
     if(!assets->assetsPantalla.imgGameOver){
         printf("Error cargando imgGameOver.png");
+        return 1;
+    }
+
+    assets->assetsPantalla.cabezaTH = al_load_bitmap("assets/imgs/cabezaTH.png");
+    if(!assets->assetsPantalla.cabezaTH){
+        printf("Error cargando cabezaTH.png");
         return 1;
     }
 

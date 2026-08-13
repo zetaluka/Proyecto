@@ -10,6 +10,9 @@ int main(void) {
    al_install_mouse();
    al_init_image_addon();
    al_install_keyboard();
+   al_install_audio();
+   al_init_acodec_addon();
+   al_reserve_samples(16);
    al_set_new_display_flags(ALLEGRO_OPENGL); 
    al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 1, ALLEGRO_SUGGEST);
    al_set_new_display_option(ALLEGRO_SAMPLES, 4, ALLEGRO_SUGGEST); 
@@ -37,18 +40,16 @@ int main(void) {
    s_GameState gs = {0};
    s_GameState auxgs = {0};
    s_Assets assets;
-   assets_load(&assets);
-   
+   assets_load(&assets, &gs);
    game_init(&gs, &assets, display);
-
-   gs.pantallaCompleta = true;
-   al_set_display_flag(display, ALLEGRO_FULLSCREEN_WINDOW, gs.pantallaCompleta);
-   actualiza_res(&gs, display);
 
    while (gs.ejecutando) 
    {
       al_wait_for_event(queue, &evento);
       input_update(&gs, &evento);
+
+      if(evento.type == ALLEGRO_EVENT_KEY_CHAR && gs.variables.ingresandoNombre)
+        ingresa_nombre(&gs, &evento);
 
       if (evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
          gs.ejecutando = false;
@@ -60,7 +61,7 @@ int main(void) {
          if(evento.timer.source == timer_fps)
          {
             genera_entidades(&gs, &assets);
-            update(&gs, &assets, display, &auxgs);
+            update(&gs, &assets, display, &auxgs, &evento);
             render_gameview(&gs,&assets);
             render_ui(&gs, &assets);
          }

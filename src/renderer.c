@@ -65,21 +65,32 @@ void levi_sprites(s_GameState *gs, s_Assets *assets)
     float leviXODM = gs->levi.hitbox.x;
     float leviYODM = gs->levi.hitbox.y + 40;
     int numFrameX = gs->levi.animacion.frameActual * LEVI_SS_ANCHO; //Calcula el frame a usar dependiendo del frame actual
+    ALLEGRO_BITMAP* leviSS;
+
+    if(gs->tutorialEjecutando)
+        leviSS = assets->levi.levi_SS_SC;
+    else 
+    {
+        if(gs->levi.vestuario)
+            leviSS = assets->levi.levi_SS;
+        else
+            leviSS = assets->levi.levi_SS_SC;
+    }
 
     dibuja_gas(gs,assets);
 
     if(gs->levi.agarrado)
     {
-        al_draw_bitmap_region(assets->levi.levi_SS, 0, LEVI_SS_ALTO*19, LEVI_SS_ANCHO, LEVI_SS_ALTO, leviX, leviY, 0);
+        al_draw_bitmap_region(leviSS, 0, LEVI_SS_ALTO*19, LEVI_SS_ANCHO, LEVI_SS_ALTO, leviX, leviY, 0);
         return;
     }
 
     if(!gs->levi.dash.activo)
     {
         if(gs->levi.animacion.rotarAnim == true)
-            al_draw_bitmap_region(assets->levi.levi_SS, numFrameX, gs->levi.animacion.fila_ss, LEVI_SS_ANCHO, LEVI_SS_ALTO, leviX, leviY, ALLEGRO_FLIP_HORIZONTAL);
+            al_draw_bitmap_region(leviSS, numFrameX, gs->levi.animacion.fila_ss, LEVI_SS_ANCHO, LEVI_SS_ALTO, leviX, leviY, ALLEGRO_FLIP_HORIZONTAL);
         else
-            al_draw_bitmap_region(assets->levi.levi_SS, numFrameX, gs->levi.animacion.fila_ss, LEVI_SS_ANCHO, LEVI_SS_ALTO, leviX, leviY, 0);
+            al_draw_bitmap_region(leviSS, numFrameX, gs->levi.animacion.fila_ss, LEVI_SS_ANCHO, LEVI_SS_ALTO, leviX, leviY, 0);
 
         if(gs->levi.ODM.engancheActivo == true || gs->levi.ODM.activo == true)
         {
@@ -117,9 +128,24 @@ void dibuja_gas(s_GameState *gs, s_Assets *assets)
 
 void titan_hembra_sprites(s_GameState *gs, s_Assets *assets)
 {
+    int titanX = round(gs->titanHembra.x), titanY = round(gs->titanHembra.y);
+    ALLEGRO_BITMAP* sprite; 
+    ALLEGRO_BITMAP* SS;
+
+    if(gs->titanHembra.fase2Activa)
+        SS = assets->titanes.titanHembraFase2;
+    else
+        SS = assets->titanes.titanHembraFase1;
+
     if(gs->titanHembra.activa == true)
     {
-        al_draw_scaled_bitmap(assets->titanes.titan_hembra, 0, 0, 600, 900, gs->titanHembra.x, gs->titanHembra.y, 600*0.5, 900*0.5, 0);
+        sprite = al_create_sub_bitmap(SS, gs->titanHembra.animacion.frameActual*155, 
+            gs->titanHembra.animacion.fila_ss*110, 155, 110);
+
+        if(gs->titanHembra.animacion.rotarAnim)
+            al_draw_scaled_bitmap(sprite,0, 0, 155, 110, titanX, titanY, 155*4.2, 110*4.2, ALLEGRO_FLIP_HORIZONTAL);
+        else
+            al_draw_scaled_bitmap(sprite,0, 0, 155, 110, titanX, titanY, 155*4.2, 110*4.2, 0);
     }
 
 }
@@ -141,7 +167,7 @@ void titanes_sprites(s_GameState *gs, s_Assets *assets)
             if(gs->pantalla[pA].entidades[i].tipo == 1)
             {
                 sprite = al_create_sub_bitmap(assets->titanes.titan1, gs->pantalla[pA].entidades[i].animacion.frameActual*220, 
-                        gs->pantalla[pA].entidades[i].animacion.fila_ss*165, 220, 165);
+                    gs->pantalla[pA].entidades[i].animacion.fila_ss*165, 220, 165);
 
                 if(gs->pantalla[pA].entidades[i].animacion.rotarAnim)
                     al_draw_scaled_bitmap(sprite,0, 0, 220, 165, titanX, titanY, 219*2.5, 164*2.5, ALLEGRO_FLIP_HORIZONTAL);
@@ -258,6 +284,14 @@ void muestra_hitbox(s_GameState *gs, s_Assets *assets)
             
         al_draw_rectangle(gs->levi.parryHB.x, gs->levi.parryHB.y,
             gs->levi.parryHB.x+gs->levi.parryHB.ancho, gs->levi.parryHB.y+gs->levi.parryHB.alto, al_map_rgb(126, 34, 206), 2);
+
+        al_draw_rectangle(gs->titanHembra.hitboxAtaque1.x, gs->titanHembra.hitboxAtaque1.y,
+            gs->titanHembra.hitboxAtaque1.x+gs->titanHembra.hitboxAtaque1.ancho, gs->titanHembra.hitboxAtaque1.y+gs->titanHembra.hitboxAtaque1.alto, 
+            al_map_rgb(255, 20, 147), 2);
+
+        al_draw_rectangle(gs->titanHembra.hitboxAtaque2.x, gs->titanHembra.hitboxAtaque2.y,
+            gs->titanHembra.hitboxAtaque2.x+gs->titanHembra.hitboxAtaque2.ancho, gs->titanHembra.hitboxAtaque2.y+gs->titanHembra.hitboxAtaque2.alto, 
+            al_map_rgb(255, 20, 147), 2);
 
         for(i=0; i<gs->pantalla[pA].num_hitbox; i++)
             al_draw_rectangle(gs->pantalla[pA].hitbox[i].x, gs->pantalla[pA].hitbox[i].y,
