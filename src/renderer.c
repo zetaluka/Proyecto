@@ -11,6 +11,7 @@ void titanes_sprites(s_GameState *gs, s_Assets *assets);
 void dibujar_fondo(s_GameState *gs, s_Assets *assets);
 void dibuja_gas(s_GameState *gs, s_Assets *assets);
 void titan_hembra_sprites(s_GameState *gs, s_Assets *assets);
+void dibuja_ol1(s_GameState *gs, s_Assets *assets);
 
 //====Funcion principal====//
 void render_gameview(s_GameState *gs, s_Assets *assets)
@@ -146,6 +147,8 @@ void titan_hembra_sprites(s_GameState *gs, s_Assets *assets)
             al_draw_scaled_bitmap(sprite,0, 0, 155, 110, titanX, titanY, 155*4.2, 110*4.2, ALLEGRO_FLIP_HORIZONTAL);
         else
             al_draw_scaled_bitmap(sprite,0, 0, 155, 110, titanX, titanY, 155*4.2, 110*4.2, 0);
+
+        al_destroy_bitmap(sprite);
     }
 
 }
@@ -161,7 +164,7 @@ void titanes_sprites(s_GameState *gs, s_Assets *assets)
         titanX = round(gs->pantalla[pA].entidades[i].x);
         titanY = round(gs->pantalla[pA].entidades[i].y);
 
-        if(gs->pantalla[pA].entidades[i].vida > 0)
+        if(gs->pantalla[pA].entidades[i].activo)
         {
 
             if(gs->pantalla[pA].entidades[i].tipo == 1)
@@ -191,6 +194,41 @@ void titanes_sprites(s_GameState *gs, s_Assets *assets)
         }
     }
 }
+void dibuja_ol1(s_GameState *gs, s_Assets *assets)
+{
+    if(!gs->animaciones.ol1.activo)
+    {
+        gs->animaciones.ol1.cantidadFrames = 4;
+        gs->animaciones.ol1.contadorAnim = 0;
+        gs->animaciones.ol1.frameActual = 0;
+        gs->animaciones.ol1.velocidadAnim = 10;
+        gs->animaciones.ol1.x = 0;
+        gs->animaciones.ol1.y = 0;
+        gs->animaciones.ol1.activo = true;
+    }
+
+    else
+    {
+        if(!gs->pausa)
+        {
+            gs->animaciones.ol1.contadorAnim++;
+
+            if(gs->animaciones.ol1.contadorAnim >= gs->animaciones.ol1.velocidadAnim)
+            {
+                gs->animaciones.ol1.contadorAnim = 0;
+                gs->animaciones.ol1.frameActual++;
+
+                if(gs->animaciones.ol1.frameActual >= gs->animaciones.ol1.cantidadFrames)
+                    gs->animaciones.ol1.frameActual = 0;
+            }
+        }
+    }
+
+    int frameX = gs->animaciones.ol1.frameActual * 1000;
+
+        al_draw_scaled_bitmap(assets->assetsPantalla.fondo_ol1, frameX, 0, 1000, 360, 0, 0, 2000, 720, 0);
+
+}
 
 void dibujar_fondo(s_GameState *gs, s_Assets *assets)
 {
@@ -205,6 +243,15 @@ void dibujar_fondo(s_GameState *gs, s_Assets *assets)
         al_draw_scaled_bitmap(assets->assetsPantalla.fondo_bosque, 0, 0,
             al_get_bitmap_width(assets->assetsPantalla.fondo_bosque), al_get_bitmap_height(assets->assetsPantalla.fondo_bosque), 0, 0,
             al_get_bitmap_width(assets->assetsPantalla.fondo_bosque)*1, al_get_bitmap_height(assets->assetsPantalla.fondo_bosque)*1, 0);
+
+    else if(strcmp("ol1", gs->pantalla[pA].fondo) == 0)
+        dibuja_ol1(gs, assets);
+
+    else if(strcmp("ol2", gs->pantalla[pA].fondo) == 0)
+        al_draw_scaled_bitmap(assets->assetsPantalla.fondo_ol2, 0, 0, 1000, 360, 0, 0, 2000, 720, 0);
+    
+    else if(strcmp("ol3", gs->pantalla[pA].fondo) == 0)
+        al_draw_bitmap(assets->assetsPantalla.fondo_ol3, 0, 0, 0);
 
     else 
         al_draw_scaled_bitmap(assets->assetsPantalla.fondo_base, 0, 0,

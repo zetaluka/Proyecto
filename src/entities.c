@@ -26,6 +26,9 @@ void patada1_TH(s_GameState *gs, float cx, float cy, float distanciaX);
 void patada2_TH(s_GameState *gs, float cx);
 void ataque1_TH(s_GameState *gs, float cx);
 void ataque2_TH(s_GameState *gs, float cx);
+void iniciar_efecto_sangre(s_GameState *gs);
+void modo_oleada(s_GameState *gs);
+void spawn_titan(s_GameState *gs, s_Entidades *entidad);
 
 
 void genera_entidades(s_GameState *gs, s_Assets *assets)
@@ -38,8 +41,11 @@ void genera_entidades(s_GameState *gs, s_Assets *assets)
     movimiento_titanes(gs);
     gravedad_titanes(gs);
     colision_titanes(gs);
+    
+    if(gs->modoOleadaEjecutando)
+        modo_oleada(gs);
 
-    if(gs->pantalla_actual == 3)
+    if(gs->pantalla_actual == 3 || gs->vsTitanHembraEjecutando)
         titan_hembra(gs);
 
 }
@@ -72,6 +78,8 @@ void activa_entidades(s_GameState *gs)
 
 void titan_hembra(s_GameState *gs)
 {
+    if(gs->titanHembra.activa == false)
+        return;
     //====Actualiza la hitbox del titan hembra y reinicia la hitbox de ataque===========//
     gs->titanHembra.y = 205;
     gs->titanHembra.hitbox.x = gs->titanHembra.x + 255;
@@ -91,9 +99,9 @@ void titan_hembra(s_GameState *gs)
     //=======================================================================//
 
     //========Activa fase 2 y verifica si muere=============//
-    if(gs->titanHembra.vida > 25000 || gs->titanHembra.fase2Activa)
+    if(gs->titanHembra.vida > gs->titanHembra.vidaMax/2 || gs->titanHembra.fase2Activa)
         movimiento_TH(gs);
-    else if(gs->titanHembra.vida <= 25000)
+    else if(gs->titanHembra.vida <= gs->titanHembra.vidaMax/2)
         cambiar_animacion_TH(gs, CRISTALIZACION_TH);
 
     if(gs->titanHembra.vida <= 0)
@@ -219,12 +227,12 @@ void movimiento_TH(s_GameState *gs)
     //========================================================================//
 
     //===========Verifica si levi recibe dano del titan hembra=============//
-    if((colision(gs, gs->levi.hitbox, gs->titanHembra.hitboxAtaque1) || colision(gs, gs->levi.hitbox, gs->titanHembra.hitboxAtaque2)) && gs->titanHembra.ataqueHecho == false)
+    if(((gs->titanHembra.hitboxAtaque1.ancho > 0 && colision(gs, gs->levi.hitbox, gs->titanHembra.hitboxAtaque1)) || (gs->titanHembra.hitboxAtaque2.ancho > 0 && colision(gs, gs->levi.hitbox, gs->titanHembra.hitboxAtaque2))) && gs->titanHembra.ataqueHecho == false)
     {
         if(gs->titanHembra.fase2Activa)
-            aplicar_dano(gs, 4, 0, false);
+            aplicar_dano(gs, 8, 0, false);
         else    
-            aplicar_dano(gs, 7, 0, false);
+            aplicar_dano(gs, 4, 0, false);
 
         gs->titanHembra.ataqueHecho = true;
     }
@@ -393,6 +401,12 @@ void movimiento_titanes(s_GameState *gs)
     {
         actualizar_animacion_titanes(gs, i);
 
+        if(gs->pantalla[pA].entidades[i].vida <= 0)
+        {
+            cambiar_animacion_titan(gs, MUERTE, i);
+            continue;
+        }
+
         if(gs->pantalla[pA].entidades[i].activo)
         {
             titanMitadX = gs->pantalla[pA].entidades[i].hitboxTitan.x + (gs->pantalla[pA].entidades[i].hitboxTitan.ancho/2);
@@ -415,30 +429,13 @@ void movimiento_titanes(s_GameState *gs)
 
             if(gs->pantalla[pA].entidades[i].tipo == 1) ///////////////////Titan 1////////////////////////////
             {
-                if(gs->pantalla[pA].entidades[i].quieto == false)
-                {
-                    if(cx < 500 && cx > 0 && distanciaX > 80) //Calcula el rango para empezar a moverse
-                    {
-                        if(!(fabs(cx) <= 140 && cy < 35 && cy > -320)) //Si puede ejecutar ataque 2 no avanza mas de lo necesario
-                        {
-                            gs->pantalla[pA].entidades[i].x += gs->pantalla[pA].entidades[i].velocidadX;
-                            gs->pantalla[pA].entidades[i].animacion.rotarAnim = false;
-                            gs->pantalla[pA].entidades[i].viendoDerecha = true;
-                            cambiar_animacion_titan(gs, CAMINANDOTITAN, i);
-                        }
-                    }
-                    else if(cx > -500 && cx < 0 && distanciaX > 80) //Calcula el rango para empezar a moverse
-                    {
-                        if(!(fabs(cx) <= 140 && cy < 35 && cy > -320)) //Si puede ejecutar ataque 2 no avanza mas de lo necesario
-                        {
-                            gs->pantalla[pA].entidades[i].x -= gs->pantalla[pA].entidades[i].velocidadX;
-                            gs->pantalla[pA].entidades[i].animacion.rotarAnim = true;
-                            gs->pantalla[pA].entidades[i].viendoDerecha = false;
-                            cambiar_animacion_titan(gs, CAMINANDOTITAN, i);
-                        }
-                    }
+
+                bool puedeAtacar = (distanciaX <= 125 && cy > 30) || (distanciaX <= 140 && cy < 35 && cy > -320);
                 
-                    else if(distanciaX > 500) //Si no esta a rango se mueve de un lado para otro
+                if(gs->pantalla[pA].entidades[i].quieto == false && !gs->pantalla[pA].entidades[i].ataqueActivo && !gs->pantalla[pA].entidades[i].patadaActiva && !gs->pantalla[pA].entidades[i].agarreFase2Activa
+                    && !gs->pantalla[pA].entidades[i].agarreFase3Activa)
+                {
+                    if(distanciaX > 500 && !gs->modoOleadaEjecutando) //Si no esta a rango se mueve de un lado para otro
                     {   
                         if(gs->pantalla[pA].entidades[i].tiempoQuieto > 0)
                         {
@@ -491,6 +488,25 @@ void movimiento_titanes(s_GameState *gs)
                             }
                         }
                     }
+                    else if(!puedeAtacar && cx > 0) //Se sigue acercando mientras no tenga angulo/distancia validos para atacar
+                    {
+                        gs->pantalla[pA].entidades[i].x += gs->pantalla[pA].entidades[i].velocidadX;
+                        gs->pantalla[pA].entidades[i].animacion.rotarAnim = false;
+                        gs->pantalla[pA].entidades[i].viendoDerecha = true;
+                        cambiar_animacion_titan(gs, CAMINANDOTITAN, i);
+                    }
+                    else if(!puedeAtacar && cx < 0)
+                    {
+                        gs->pantalla[pA].entidades[i].x -= gs->pantalla[pA].entidades[i].velocidadX;
+                        gs->pantalla[pA].entidades[i].animacion.rotarAnim = true;
+                        gs->pantalla[pA].entidades[i].viendoDerecha = false;
+                        cambiar_animacion_titan(gs, CAMINANDOTITAN, i);
+                    }
+                    else //puedeAtacar == true, se frena y deja que ataque_titanes tome el control
+                    {
+                        if(gs->pantalla[pA].entidades[i].estadoTitan != ATAQUE && gs->pantalla[pA].entidades[i].estadoTitan != PATADA)
+                            cambiar_animacion_titan(gs, QUIETO, i);
+                    }
                 }
 
                 if(gs->pantalla[pA].entidades[i].cooldownAtaque > 0) //Reestablece las hb
@@ -542,21 +558,21 @@ void movimiento_titanes(s_GameState *gs)
                 {
                     if(gs->pantalla[pA].entidades[i].saltoActivo == false && gs->pantalla[pA].entidades[i].tiempoAtaqueActivo <= 0)  
                     {
-                        if(cx < 500 && cx > 0 && distanciaX >= 40)
+                        if(cx > 0 && distanciaX >= 40 && (distanciaX < 500 || gs->modoOleadaEjecutando))
                         {
                             gs->pantalla[pA].entidades[i].x += gs->pantalla[pA].entidades[i].velocidadX;
                             gs->pantalla[pA].entidades[i].animacion.rotarAnim = false;
                             gs->pantalla[pA].entidades[i].viendoDerecha = true;
                             cambiar_animacion_titan(gs, CAMINANDOTITAN, i);
                         }
-                        else if(cx > -500 && cx < 0 && distanciaX >= 40 )
+                        else if(cx < 0 && distanciaX >= 40 && (distanciaX < 500 || gs->modoOleadaEjecutando))
                         {
                             gs->pantalla[pA].entidades[i].x -= gs->pantalla[pA].entidades[i].velocidadX;
                             gs->pantalla[pA].entidades[i].animacion.rotarAnim = true;
                             gs->pantalla[pA].entidades[i].viendoDerecha = false;
                             cambiar_animacion_titan(gs, CAMINANDOTITAN, i);
                         }
-                        else if(distanciaX > 500)
+                        else if(distanciaX > 500 && !gs->modoOleadaEjecutando)
                         {
                             gs->pantalla[pA].entidades[i].quieto = false;
                             cambiar_animacion_titan(gs, SENTADO, i);
@@ -661,10 +677,10 @@ void ataque_titanes(s_GameState *gs, int i, float cy, float cx)
         if(entidad[i].casoAtaque == 1)
             titan2_ataque1(gs, i, entidad, cx, cy);
 
-        else if(entidad[i].casoAtaque >= 1 && entidad[i].casoAtaque < 9)
+        else if(entidad[i].casoAtaque >= 1 && entidad[i].casoAtaque < 6)
             titan2_ataque2(gs, i, entidad, cx, cy);
         
-        else if(entidad[i].casoAtaque >= 9) 
+        else if(entidad[i].casoAtaque >= 6) 
             titan2_ataque3(gs, i, entidad, cx, cy);
     }
 
@@ -957,7 +973,7 @@ void titan2_ataque2(s_GameState *gs, int i, s_Entidades *entidad, float cx, floa
         {
             cambiar_animacion_titan(gs, ATAQUE, i);
 
-            if(entidad[i].animacion.frameActual == 1)
+            if(entidad[i].animacion.frameActual == 0)
                 entidad[i].tiempoAtaqueActivo = 0.4;
         }
     }
@@ -989,7 +1005,7 @@ void titan2_ataque2(s_GameState *gs, int i, s_Entidades *entidad, float cx, floa
         {
             cambiar_animacion_titan(gs, ATAQUE, i);
 
-            if(entidad[i].animacion.frameActual == 1)
+            if(entidad[i].animacion.frameActual == 0)
                 entidad[i].tiempoAtaqueActivo = 0.4;
         }
     }
@@ -1150,10 +1166,10 @@ void agarre_titanes(s_GameState *gs, int i)
     else    
         cont = 5;
 
-    if(gs->input.keySpace)
+    if(gs->input.ClickIzq)
     {
         gs->levi.contSoltarse++;
-        gs->input.keySpace = false;
+        gs->input.ClickIzq = false;
     }
     if(gs->levi.contSoltarse >= cont)  //Reestablece variables para evitar bugs 
     {
@@ -1189,15 +1205,43 @@ void aplicar_dano(s_GameState *gs, int dano, float empuje, bool ataqueDerecha)
 {
     //Aplica dano a levi y si se pasa como parametro el empuje lo empuja esa cantidad
 
+    float multAtaque = 1;
+    float multDif = 1;
+
     if(gs->tutorialEjecutando)
         return;
+
+    if(gs->modoOleadaEjecutando)
+    {
+        if(gs->tiempoJugado.minutos >= 7)
+            multAtaque = 2.5;
+        else if(gs->tiempoJugado.minutos >= 5)
+            multAtaque = 2;
+        else if(gs->tiempoJugado.minutos >= 3)
+            multAtaque = 1.5;   
+        else
+            multAtaque = 1;
+            
+    }
+
+    if(gs->dificultad == DIFICIL)
+    {
+        if(gs->titanHembra.activa)
+            multDif = 2;
+        else
+            multDif = 3;
+    }
+    else 
+        multDif = 1;
 
     if(ataqueDerecha == false)
         empuje = (-empuje);
 
     if(gs->levi.tiempoInvulnerabilidad <= 0 && gs->levi.invulnerabilidad == false)
     {
-        gs->levi.vida -= dano;
+        printf("Dano: %.1f\nmultDif = %.1f\n", dano*multAtaque*multDif, multDif);
+        iniciar_efecto_sangre(gs);
+        gs->levi.vida -= dano*multAtaque*multDif;
         gs->levi.velocidadX = empuje;
         gs->levi.dash.tiempoRecuperacionDash = 0.15f;
         if(gs->titanHembra.activa == false)
@@ -1223,34 +1267,32 @@ void gravedad_titanes(s_GameState *gs)
 
 void colision_titanes(s_GameState *gs)
 {
-    int i, j, pA = gs->pantalla_actual;
+    int i, pA = gs->pantalla_actual;
     int nE = gs->pantalla[pA].num_entidades;
 
     for(i=0;i<nE;i++)
         if(gs->pantalla[pA].entidades[i].activo == true)
-            for(j=0;j<gs->pantalla[pA].num_hitbox;j++)
-                if(colision(gs, gs->pantalla[pA].entidades[i].hitboxTitan, gs->pantalla[pA].hitbox[j]))
+            if(colision(gs, gs->pantalla[pA].entidades[i].hitboxTitan, gs->pantalla[pA].hitbox[0]))
+            {
+                if(gs->pantalla[pA].entidades[i].tipo == 1)
                 {
-                    if(gs->pantalla[pA].entidades[i].tipo == 1)
-                    {
-                        gs->pantalla[pA].entidades[i].y = gs->pantalla[pA].hitbox[j].y - gs->pantalla[pA].entidades[i].hitboxTitan.alto - 23;
-                        gs->pantalla[pA].entidades[i].velocidadY = 0;
-                    }
-                    else if(gs->pantalla[pA].entidades[i].tipo == 2)
-                    {
-                        if(gs->pantalla[pA].entidades[i].frameActivacion)
-                        {
-                            gs->pantalla[pA].entidades[i].frameActivacion = false;
-                            continue;
-                        }
-                        if(gs->pantalla[pA].entidades[i].estadoTitan == SALTO)
-                            cambiar_animacion_titan(gs, ATERRIZAJE, i);
-                        gs->pantalla[pA].entidades[i].saltoActivo = false;
-                        gs->pantalla[pA].entidades[i].y = gs->pantalla[pA].hitbox[j].y - gs->pantalla[pA].entidades[i].hitboxTitan.alto - 22;
-                        gs->pantalla[pA].entidades[i].velocidadY = 0;
-                    }
-                    
+                    gs->pantalla[pA].entidades[i].y = gs->pantalla[pA].hitbox[0].y - gs->pantalla[pA].entidades[i].hitboxTitan.alto - 23;
+                    gs->pantalla[pA].entidades[i].velocidadY = 0;
                 }
+                else if(gs->pantalla[pA].entidades[i].tipo == 2)
+                {
+                    if(gs->pantalla[pA].entidades[i].frameActivacion)
+                    {
+                        gs->pantalla[pA].entidades[i].frameActivacion = false;
+                        continue;
+                    }
+                    if(gs->pantalla[pA].entidades[i].estadoTitan == SALTO)
+                        cambiar_animacion_titan(gs, ATERRIZAJE, i);
+                    gs->pantalla[pA].entidades[i].saltoActivo = false;
+                    gs->pantalla[pA].entidades[i].y = gs->pantalla[pA].hitbox[0].y - gs->pantalla[pA].entidades[i].hitboxTitan.alto - 22;
+                    gs->pantalla[pA].entidades[i].velocidadY = 0;
+                }
+            }
 }
 
 void hitbox_entidades(s_GameState *gs, s_Assets *assets)
@@ -1360,6 +1402,14 @@ void cambiar_animacion_titan(s_GameState *gs, e_EstadoTitan nuevaAnim, int i)
                 entidad[i].animacion.velocidadAnim = 8;
                 entidad[i].animacion.repetir = false;
                 break;
+            case MUERTE:
+                entidad[i].animacion.cantidadFrames = 20;
+                entidad[i].animacion.contadorAnim = 0;
+                entidad[i].animacion.frameActual = 0;
+                entidad[i].animacion.fila_ss = 5;
+                entidad[i].animacion.velocidadAnim = 6;
+                entidad[i].animacion.repetir = false;
+                break;
         }
     }
 
@@ -1447,6 +1497,14 @@ void cambiar_animacion_titan(s_GameState *gs, e_EstadoTitan nuevaAnim, int i)
                 entidad[i].animacion.velocidadAnim = 7;
                 entidad[i].animacion.repetir = false;
                 break;
+            case MUERTE: 
+                entidad[i].animacion.cantidadFrames = 21;
+                entidad[i].animacion.contadorAnim = 0;
+                entidad[i].animacion.frameActual = 0;
+                entidad[i].animacion.fila_ss = 9;
+                entidad[i].animacion.velocidadAnim = 6;
+                entidad[i].animacion.repetir = false;
+                break;
         }
     }
 
@@ -1490,6 +1548,9 @@ void fin_animacion_titan(s_GameState *gs, int i)
                 case PATADA:
                     cambiar_animacion_titan(gs, QUIETO, i);
                     break;
+                case MUERTE:
+                    entidad[i].activo = false;
+                    break;
                 default:
                     entidad[i].animacion.frameActual = entidad[i].animacion.cantidadFrames - 1;
             }
@@ -1506,6 +1567,9 @@ void fin_animacion_titan(s_GameState *gs, int i)
                     break;
                 case ATAQUE:
                     cambiar_animacion_titan(gs, QUIETO, i);
+                    break;
+                case MUERTE:
+                    entidad[i].activo = false;
                     break;
                 default:
                     entidad[i].animacion.frameActual = entidad[i].animacion.cantidadFrames - 1;
@@ -1652,6 +1716,9 @@ void fin_animacion_TH(s_GameState *gs)
     else if(gs->titanHembra.estadoTH == CRISTALIZACION_TH)
     {
         gs->titanHembra.fase2Activa = true;
+        gs->titanHembra.atacando = false;
+        gs->titanHembra.ataqueHecho = false;
+        gs->titanHembra.segundoGolpe = false;
         cambiar_animacion_TH(gs, IDLE_TH);
     }
     else
@@ -1671,4 +1738,115 @@ void fin_animacion_TH(s_GameState *gs)
         else
             cambiar_animacion_TH(gs, IDLE_TH);
     }
+}
+
+void iniciar_efecto_sangre(s_GameState *gs)
+{
+    gs->animaciones.efectoSangre.activo = true;
+    gs->animaciones.efectoSangre.cantidadFrames = 7;
+    gs->animaciones.efectoSangre.contadorAnim = 0;
+    gs->animaciones.efectoSangre.frameActual = 0;
+    gs->animaciones.efectoSangre.velocidadAnim = 5;
+    gs->animaciones.efectoSangre.x = 0;
+    gs->animaciones.efectoSangre.y = 0;
+}
+
+void modo_oleada(s_GameState *gs)
+{
+    int pA = gs->pantalla_actual, i = 0;
+    s_Entidades *entidad = gs->pantalla[gs->pantalla_actual].entidades;
+
+    for(i = 0; i < gs->pantalla[pA].num_entidades; i++)
+        if(entidad[i].activo == false)   
+        {
+            entidad[i] = entidad[gs->pantalla[pA].num_entidades - 1];
+            entidad[gs->pantalla[pA].num_entidades - 1] = (s_Entidades){0};
+            gs->pantalla[pA].num_entidades--;
+            i--;
+        }
+
+    if(gs->oleada.contCdSpawn <= 0)
+        spawn_titan(gs, entidad);
+    else 
+        gs->oleada.contCdSpawn -= 1.0f/FPS;
+
+}
+
+void spawn_titan(s_GameState *gs, s_Entidades *entidad)
+{
+    int pA = gs->pantalla_actual, slot = gs->pantalla[pA].num_entidades;
+    float multVida = 1;
+
+    if(slot >= MAXENTIDADES) 
+        return;
+
+    if(gs->dificultad == NORMAL)
+    {
+        if(gs->tiempoJugado.minutos >= 3)
+        {
+            gs->oleada.cdSpawn = 3;
+            multVida = 2.5;
+        }
+        else if(gs->tiempoJugado.minutos >= 2)
+        {
+            gs->oleada.cdSpawn = 3;
+            multVida = 2;
+        }
+        else if(gs->tiempoJugado.minutos >= 1)
+        {
+            gs->oleada.cdSpawn = 4;
+            multVida = 1.5;
+        }
+        else
+        {
+            gs->oleada.cdSpawn = 5;
+            multVida = 1;
+        }
+    }
+
+    else
+    {
+        if(gs->tiempoJugado.minutos >= 2)
+        {
+            gs->oleada.cdSpawn = 2;
+            multVida = 3;
+        }
+        else if(gs->tiempoJugado.minutos >= 1)
+        {
+            gs->oleada.cdSpawn = 2;
+            multVida = 2;
+        }
+        else
+        {
+            gs->oleada.cdSpawn = 3;
+            multVida = 1;
+        }
+    }
+
+    int lado = (rand()%2) + 1;
+    entidad[slot].tipo = (rand()%2) + 1;
+    entidad[slot].activo = true;
+    entidad[slot].estadoTitan = SPAWN;
+    gs->pantalla[pA].num_entidades++;
+
+    entidad[slot].y = 200;
+
+    if(lado == 1)
+        entidad[slot].x = -350;
+    else
+        entidad[slot].x = (gs->pantalla[pA].ancho * TAM_CELDA) + 50;
+
+    if(entidad[slot].tipo == 1)
+    {
+        entidad[slot].velocidadX = 2;
+        entidad[slot].vida = 700*multVida;
+    }
+    else
+    {
+        entidad[slot].velocidadX = 3;
+        entidad[slot].vida = 300*multVida;
+    }
+
+    gs->oleada.contCdSpawn = gs->oleada.cdSpawn;
+
 }

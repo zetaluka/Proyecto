@@ -111,7 +111,7 @@ void input_update(s_GameState *gs, ALLEGRO_EVENT* evento)
                 gs->input.keyX = false;
                 break;
             case ALLEGRO_KEY_C:
-                gs->input.keyC = true;
+                gs->input.keyC = false;
                 break;
             case ALLEGRO_KEY_1:
                 gs->input.key1 = false;

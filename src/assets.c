@@ -25,6 +25,12 @@ void assets_load(s_Assets *assets, s_GameState *gs)
 //====Funciones====//
 int carga_sfx(s_GameState *gs)
 {
+    gs->audio.sfx_salto = al_load_sample("assets/sfx/saltosfx.wav");
+    if (!gs->audio.sfx_salto) {
+        printf("Error cargando sfx_salto\n");
+        exit (1);
+    }
+
     gs->audio.sfx_odm = al_load_sample("assets/sfx/ODMSound.wav");
     if (!gs->audio.sfx_odm) {
         printf("Error cargando sfx_odm\n");
@@ -37,6 +43,42 @@ int carga_sfx(s_GameState *gs)
         exit (1);
     }
 
+    gs->audio.sfx_attack2 = al_load_sample("assets/sfx/Attack2Sound.wav");
+    if (!gs->audio.sfx_attack2) {
+        printf("Error cargando sfx_attack2\n");
+        exit (1);
+    }
+
+    gs->audio.sfx_dash = al_load_sample("assets/sfx/dashsfx.wav");
+    if (!gs->audio.sfx_dash) {
+        printf("Error cargando sfx_dash\n");
+        exit (1);
+    }
+
+    gs->audio.sfx_habilidad1 = al_load_sample("assets/sfx/habilidad1sfx.wav");
+    if (!gs->audio.sfx_habilidad1) {
+        printf("Error cargando sfx_habilidad1\n");
+        exit (1);
+    }
+
+    gs->audio.sfx_habilidad2 = al_load_sample("assets/sfx/habilidadsfx.wav");
+    if (!gs->audio.sfx_habilidad2) {
+        printf("Error cargando sfx_habilidad2\n");
+        exit (1);
+    }
+
+    gs->audio.sfx_muerteTitan = al_load_sample("assets/sfx/muerteTitan.wav");
+    if (!gs->audio.sfx_muerteTitan) {
+        printf("Error cargando sfx_muerteTitan\n");
+        exit (1);
+    }
+
+    gs->audio.sfx_menu = al_load_sample("assets/sfx/menusfx.wav");
+    if (!gs->audio.sfx_menu) {
+        printf("Error cargando sfx_menu\n");
+        exit (1);
+    }
+
     gs->audio.musica_menu = al_load_audio_stream("assets/sfx/musicaMenu.wav", 4, 2048);
     if (!gs->audio.musica_menu)
     {
@@ -44,9 +86,50 @@ int carga_sfx(s_GameState *gs)
         exit(1);
     }
 
+    gs->audio.musica_AOT = al_load_audio_stream("assets/sfx/aot.wav", 4, 2048);
+    if (!gs->audio.musica_AOT)
+    {
+        printf("Error cargando musicaAOT\n");
+        exit(1);
+    }
+
+    gs->audio.musica_XLTT = al_load_audio_stream("assets/sfx/xltt.wav", 4, 2048);
+    if (!gs->audio.musica_XLTT)
+    {
+        printf("Error cargando musicaXLTT\n");
+        exit(1);
+    }
+
+    gs->audio.musica_SWS = al_load_audio_stream("assets/sfx/sws.wav", 4, 2048);
+    if (!gs->audio.musica_SWS)
+    {
+        printf("Error cargando musicaSWS\n");
+        exit(1);
+    }
+
     al_set_audio_stream_playmode(gs->audio.musica_menu, ALLEGRO_PLAYMODE_LOOP);
     al_set_audio_stream_gain(gs->audio.musica_menu, 0.5);
     al_attach_audio_stream_to_mixer(gs->audio.musica_menu, al_get_default_mixer());
+
+    al_set_audio_stream_playmode(gs->audio.musica_AOT, ALLEGRO_PLAYMODE_LOOP);
+    al_set_audio_stream_gain(gs->audio.musica_AOT, 0.5);
+    al_attach_audio_stream_to_mixer(gs->audio.musica_AOT, al_get_default_mixer());
+
+    al_set_audio_stream_playmode(gs->audio.musica_XLTT, ALLEGRO_PLAYMODE_LOOP);
+    al_set_audio_stream_gain(gs->audio.musica_XLTT, 0.5);
+    al_attach_audio_stream_to_mixer(gs->audio.musica_XLTT, al_get_default_mixer());
+
+    al_set_audio_stream_playmode(gs->audio.musica_SWS, ALLEGRO_PLAYMODE_LOOP);
+    al_set_audio_stream_gain(gs->audio.musica_SWS, 0.5);
+    al_attach_audio_stream_to_mixer(gs->audio.musica_SWS, al_get_default_mixer());
+
+    al_set_audio_stream_playing(gs->audio.musica_menu, false);
+    al_set_audio_stream_playing(gs->audio.musica_AOT, false);
+    al_set_audio_stream_playing(gs->audio.musica_XLTT, false);
+    al_set_audio_stream_playing(gs->audio.musica_SWS, false);
+
+    gs->audio.gainObjetivo = 0.5f;
+    gs->audio.velocidadFade = gs->audio.gainObjetivo / (FPS * 1.0f);
 
     return 0;
 }
@@ -65,27 +148,33 @@ int carga_fuentes(s_Assets *assets)
         exit(1);
     }
 
-    assets->minimalistTemplateFont50 = al_load_font("assets/fonts/MinimalistTemplate.otf", 50, 0);
-    if(!assets->minimalistTemplateFont50){
-        printf("Error cargando minimalistTemplateFont50\n");
+    assets->biggestThingsFont25 = al_load_font("assets/fonts/BiggestThings.ttf", 25, 0);
+    if(!assets->biggestThingsFont25){
+        printf("Error cargando biggestThingsFont25\n");
         exit(1);
     }
 
-    assets->minimalistTemplateFont40 = al_load_font("assets/fonts/MinimalistTemplate.otf", 40, 0);
-    if(!assets->minimalistTemplateFont40){
-        printf("Error cargando minimalistTemplateFont40\n");
+    assets->biggestThingsFont18 = al_load_font("assets/fonts/BiggestThings.ttf", 18, 0);
+    if(!assets->biggestThingsFont18){
+        printf("Error cargando biggestThingsFont18\n");
         exit(1);
     }
 
-    assets->minimalistTemplateFont25 = al_load_font("assets/fonts/MinimalistTemplate.otf", 25, 0);
-    if(!assets->minimalistTemplateFont25){
-        printf("Error cargando minimalistTemplateFont25\n");
+    assets->biggestThingsFont17 = al_load_font("assets/fonts/BiggestThings.ttf", 17, 0);
+    if(!assets->biggestThingsFont17){
+        printf("Error cargando biggestThingsFont17\n");
         exit(1);
     }
 
-    assets->minimalistTemplateFont30 = al_load_font("assets/fonts/MinimalistTemplate.otf", 30, 0);
-    if(!assets->minimalistTemplateFont30){
-        printf("Error cargando minimalistTemplateFont30\n");
+    assets->biggestThingsFont10 = al_load_font("assets/fonts/BiggestThings.ttf", 10, 0);
+    if(!assets->biggestThingsFont10){
+        printf("Error cargando biggestThingsFont10\n");
+        exit(1);
+    }
+
+    assets->biggestThingsFont12 = al_load_font("assets/fonts/BiggestThings.ttf", 12, 0);
+    if(!assets->biggestThingsFont12){
+        printf("Error cargando biggestThingsFont12\n");
         exit(1);
     }
 
@@ -137,6 +226,30 @@ int carga_fondo(s_Assets *assets)
         return 1;
     }
 
+    assets->assetsPantalla.fondo_ol1 = al_load_bitmap("assets/imgs/ol1.jpg");
+    if(!assets->assetsPantalla.fondo_ol1){
+        printf("Error cargando fondo_ol1");
+        return 1;
+    }
+
+    assets->assetsPantalla.fondo_ol2 = al_load_bitmap("assets/imgs/ol2.jpg");
+    if(!assets->assetsPantalla.fondo_ol2){
+        printf("Error cargando fondo_ol2");
+        return 1;
+    }
+
+    assets->assetsPantalla.fondo_ol3 = al_load_bitmap("assets/imgs/ol3.jpg");
+    if(!assets->assetsPantalla.fondo_ol3){
+        printf("Error cargando fondo_ol3");
+        return 1;
+    }
+
+    assets->assetsPantalla.minMapas = al_load_bitmap("assets/imgs/minMapas.png");
+    if(!assets->assetsPantalla.minMapas){
+        printf("Error cargando minMapas");
+        return 1;
+    }
+
 
     return 0;
 }
@@ -177,9 +290,27 @@ int carga_sprites_titanes(s_Assets *assets)
 
 int carga_objetos(s_Assets *assets)
 {
+    assets->assetsPantalla.e_Icon = al_load_bitmap("assets/imgs/e_icon.png");
+    if(!assets->assetsPantalla.e_Icon){
+        printf("Error cargando e_Icon");
+        return 1;
+    }
+
+    assets->assetsPantalla.cuadroTexto = al_load_bitmap("assets/imgs/cuadroTexto.png");
+    if(!assets->assetsPantalla.cuadroTexto){
+        printf("Error cargando cuadroTexto");
+        return 1;
+    }
+
     assets->assetsPantalla.grieta = al_load_bitmap("assets/imgs/grieta.png");
     if(!assets->assetsPantalla.grieta){
         printf("Error cargando grieta");
+        return 1;
+    }
+
+    assets->assetsPantalla.efectoSangre = al_load_bitmap("assets/imgs/efectosangre.png");
+    if(!assets->assetsPantalla.efectoSangre){
+        printf("Error cargando efectoSangre");
         return 1;
     }
 

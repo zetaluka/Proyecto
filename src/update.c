@@ -20,7 +20,7 @@ void actualizar_animacion(s_GameState *gs);
 void activar_hitbox(s_GameState *gs);
 void desactivar_hitbox(s_GameState *gs, float tiempo);
 void aumenta_dash(s_GameState *gs);
-void aumenta_puntuacion(s_GameState *gs, int i, char *tipo);
+void aumenta_puntuacion(s_GameState *gs);
 void vuelve_ODM(s_GameState *gs);
 void genera_gas(s_GameState *gs);
 void actualizar_gas(s_GameState *gs);
@@ -28,8 +28,9 @@ void fin_animacion(s_GameState *gs);
 void levi_ataques(s_GameState *gs);
 void actualizar_transicion(s_GameState *gs);
 void actualizar_transicion2(s_GameState *gs);
+void actualizar_efectoSangre(s_GameState *gs);
 void verifica_estado_nivel(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display);
-void guarda_puntuacion(s_GameState *gs, int cantidad);
+void guarda_puntuacion(s_GameState *gs, int cantidad, const char *archivo);
 void logica_menu(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display, s_GameState *auxgs);
 void menu_pausa(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display, s_GameState *auxgs);
 void interactua_inventario(s_GameState *gs);
@@ -37,23 +38,15 @@ void update_game_over(s_GameState *gs, s_Assets *assets, s_GameState *auxgs, ALL
 void parry(s_GameState *gs);
 void tutorial_upd(s_GameState *gs);
 void modo_ackerman(s_GameState *gs);
+void pop_estado_menu(s_GameState *gs);
+void push_estado_menu(s_GameState *gs, e_EstadoMenu nuevoEstado);
+void guarda_puntuacionTH(s_GameState *gs, int cantidad, const char *archivo);
+void musica(s_GameState *gs);
 
 //====Funcion principal====//
 void update(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display, s_GameState *auxgs, ALLEGRO_EVENT *evento)
 {
-    if(gs->estadoPantalla == PANTALLA_MENU) //Reproduce la cancion del menu
-    {
-        if(!al_get_audio_stream_playing(gs->audio.musica_menu))
-        {
-            al_rewind_audio_stream(gs->audio.musica_menu);
-            al_set_audio_stream_playing(gs->audio.musica_menu, true);
-        }
-    }
-    else
-    {
-        if(al_get_audio_stream_playing(gs->audio.musica_menu))
-            al_set_audio_stream_playing(gs->audio.musica_menu, false);
-    }
+    musica(gs);
 
     switch(gs->estadoPantalla) //Detecta en que estado esta, ejemplo: Menu, jugando, pausa, etc.
     {
@@ -97,6 +90,8 @@ void update_jugando(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display,
     if(gs->tutorialEjecutando)
         tutorial_upd(gs);
 
+    //gs->levi.dash.cantDash = 1;
+
     update_tiempo_jugado(gs);
     update_levi_movimiento(gs);
     hitbox_levi(gs,assets);
@@ -111,9 +106,11 @@ void update_jugando(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display,
     actualizar_animacion(gs);
     actualizar_gas(gs);
     camara_scroll(gs);
+    aumenta_puntuacion(gs);
     transicion_pantalla(gs, assets, auxgs);
-
     verifica_estado_nivel(gs, assets, display);
+    if(gs->animaciones.efectoSangre.activo)
+        actualizar_efectoSangre(gs);
 
     return;
 }
@@ -236,15 +233,23 @@ void update_game_over(s_GameState *gs, s_Assets *assets, s_GameState *auxgs, ALL
     {
         gs->contOpcionesGO++;
         gs->input.keyS = false;
+        al_play_sample(gs->audio.sfx_menu, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
     }
     else if(gs->input.keyW && gs->contOpcionesGO > 0)
     {
         gs->contOpcionesGO--;
         gs->input.keyW = false;
+        al_play_sample(gs->audio.sfx_menu, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
     }
 
     if(gs->levi.vida <= 0)
     {
+        if(gs->modoOleadaEjecutando && gs->puntuacionGuardada == false)
+        {
+            guarda_puntuacion(gs, carga_puntuacion(gs, "rankingModoOleada.txt"), "rankingModoOleada.txt");
+            gs->puntuacionGuardada = true;
+        }
+
         if(gs->input.keyEnter || gs->input.keyE)
         {
             if(gs->contOpcionesGO == 0)
@@ -264,6 +269,8 @@ void update_game_over(s_GameState *gs, s_Assets *assets, s_GameState *auxgs, ALL
                 gs->estadoPantalla = PANTALLA_MENU;
                 gs->nivel1Ejecutando = false;
                 gs->tutorialEjecutando = false;
+                gs->modoOleadaEjecutando = false;
+                gs->vsTitanHembraEjecutando = false;
                 gs->input.keyEnter = false;
                 gs->input.keyE = false;
             }
@@ -274,7 +281,10 @@ void update_game_over(s_GameState *gs, s_Assets *assets, s_GameState *auxgs, ALL
     {
         if(gs->puntuacionGuardada == false)
         {
-            guarda_puntuacion(gs, carga_puntuacion(gs));
+            if(gs->nivel1Ejecutando)
+                guarda_puntuacion(gs, carga_puntuacion(gs, "rankingNivel1.txt"), "rankingNivel1.txt");
+            else if(gs->vsTitanHembraEjecutando)
+                guarda_puntuacionTH(gs, carga_puntuacionTH(gs, "rankingVsTitanHembra.txt"), "rankingVsTitanHembra.txt");
             gs->puntuacionGuardada = true;
         }
         if(gs->input.keyEnter || gs->input.keyE)
@@ -283,6 +293,8 @@ void update_game_over(s_GameState *gs, s_Assets *assets, s_GameState *auxgs, ALL
             gs->estadoPantalla = PANTALLA_MENU;
             gs->nivel1Ejecutando = false;
             gs->tutorialEjecutando = false;
+            gs->modoOleadaEjecutando = false;   
+            gs->vsTitanHembraEjecutando = false;
             gs->input.keyEnter = false;
             gs->input.keyE = false;
         }
@@ -292,6 +304,9 @@ void update_game_over(s_GameState *gs, s_Assets *assets, s_GameState *auxgs, ALL
 
 void update_menu(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display, s_GameState *auxgs, ALLEGRO_EVENT *evento)
 {   
+    if(gs->titanHembra.activa)
+        gs->titanHembra.activa = false;
+
     if(gs->variables.ingresandoNombre)
     {
         if(gs->input.keyEsc)
@@ -311,32 +326,25 @@ void logica_menu(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display, s_
 {
     //Funcion para el menu principal y sus opciones
 
-    int lim;
+    int lim = 0;
     char auxNombre[20];
     s_Audio audioBU;
+    e_Dificultad dificultad = NORMAL;
 
     if(gs->variables.nombreIngresado)
     {
-        if(gs->nivel1Ejecutando == false)
-        {
-            audioBU = gs->audio;
-            strcpy(auxNombre, gs->puntuacionJugador.nombre);
-            *gs = (s_GameState){0};
-            strcpy(gs->puntuacionJugador.nombre, auxNombre);
-            gs->audio = audioBU;
-            gs->ejecutando = true;
-            gs->nivel1Ejecutando = true;
-            game_init(gs, assets, display);
-            *auxgs = *gs;
-        }
+        push_estado_menu(gs, MAIN);
+        gs->menu.estadoMenu = JUGAR;
+        gs->variables.nombreIngresado = false;
+        
     }
 
     if(gs->menu.estadoMenu == MAIN)
         lim = 3;
     else if(gs->menu.estadoMenu == JUGAR)
-        lim = 1;
+        lim = 4;
     else if(gs->menu.estadoMenu == RANKING)
-        lim = 0;
+        lim = 2;
     else if(gs->menu.estadoMenu == OPCIONES)
         lim = 1;
 
@@ -344,12 +352,53 @@ void logica_menu(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display, s_
     {
         gs->menu.contMenu++;
         gs->input.keyS = false;
+        al_play_sample(gs->audio.sfx_menu, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
     }
     else if(gs->input.keyW && gs->menu.contMenu > 0)
     {
         gs->menu.contMenu--;
         gs->input.keyW = false;
+        al_play_sample(gs->audio.sfx_menu, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
     }
+
+    if(gs->menu.estadoMenu == OLEADA)
+    {
+        if(gs->input.keyD && gs->menu.contMapa < 2)
+        {
+            gs->input.keyD = false;
+            gs->menu.contMapa++;
+            al_play_sample(gs->audio.sfx_menu, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+        }
+        else if(gs->input.keyA && gs->menu.contMapa > 0)
+        {
+            gs->input.keyA = false;
+            gs->menu.contMapa--;
+            al_play_sample(gs->audio.sfx_menu, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+        }
+    }
+
+    if(gs->menu.estadoMenu == JUGAR && gs->menu.contMenu == 0)
+    {
+        if(gs->input.keyD && gs->menu.contDif < 1)
+        {
+            gs->input.keyD = false;
+            gs->menu.contDif++;
+            al_play_sample(gs->audio.sfx_menu, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+            printf("contDif: %d\n", gs->menu.contDif);
+        }
+        else if(gs->input.keyA && gs->menu.contDif > 0)
+        {
+            gs->input.keyA = false;
+            gs->menu.contDif--;
+            al_play_sample(gs->audio.sfx_menu, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+            printf("contDif: %d\n", gs->menu.contDif);
+        }
+    }
+
+    if(gs->menu.contDif == 0)
+        dificultad = NORMAL;
+    else if(gs->menu.contDif == 1)
+        dificultad = DIFICIL;
 
     if(gs->input.keyEnter || gs->input.keyE)
     {
@@ -360,8 +409,14 @@ void logica_menu(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display, s_
                 gs->menu.contMenu = 0;
                 gs->input.keyEnter = false;
                 gs->input.keyE = false;
-                gs->menu.estadoMenuAnterior = gs->menu.estadoMenu;
-                gs->menu.estadoMenu = JUGAR;
+
+                if(strlen(gs->puntuacionJugador.nombre) == 0)
+                    gs->variables.ingresandoNombre = true;
+                else 
+                {
+                    push_estado_menu(gs, MAIN);
+                    gs->menu.estadoMenu = JUGAR;
+                }
             }
 
             else if(gs->menu.contMenu == 1)
@@ -369,7 +424,7 @@ void logica_menu(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display, s_
                 gs->menu.contMenu = 0;
                 gs->input.keyEnter = false;
                 gs->input.keyE = false;
-                gs->menu.estadoMenuAnterior = gs->menu.estadoMenu;
+                push_estado_menu(gs, MAIN);
                 gs->menu.estadoMenu = RANKING;
             }
 
@@ -378,7 +433,7 @@ void logica_menu(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display, s_
                 gs->menu.contMenu = 0;
                 gs->input.keyEnter = false;
                 gs->input.keyE = false;
-                gs->menu.estadoMenuAnterior = gs->menu.estadoMenu;
+                push_estado_menu(gs, MAIN);
                 gs->menu.estadoMenu = OPCIONES;
             }
 
@@ -390,10 +445,60 @@ void logica_menu(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display, s_
 
         else if(gs->menu.estadoMenu == JUGAR)
         {
-            if(gs->menu.contMenu == 0)
-                gs->variables.ingresandoNombre = true;
+            if(gs->menu.contMenu == 1)
+            {
+                audioBU = gs->audio;
+                strcpy(auxNombre, gs->puntuacionJugador.nombre);
+                *gs = (s_GameState){0};
+                strcpy(gs->puntuacionJugador.nombre, auxNombre);
+                gs->audio = audioBU;
+                gs->ejecutando = true;
+                gs->nivel1Ejecutando = true;
+                gs->dificultad = dificultad;
+                game_init(gs, assets, display);
+                *auxgs = *gs;
+            }
 
-            else if(gs->menu.contMenu == 1)
+            else if(gs->menu.contMenu == 2)
+            {
+                gs->menu.estadoMenu = OLEADA;
+                gs->menu.contMenu = 0;
+                gs->input.keyEnter = false;
+                gs->input.keyE = false;
+                /*
+                if(gs->modoOleadaEjecutando == false)
+                {
+                    audioBU = gs->audio;
+                    *gs = (s_GameState){0};
+                    gs->audio = audioBU;
+                    gs->ejecutando = true;
+                    gs->modoOleadaEjecutando = true;
+                    game_init(gs, assets, display);
+                    *auxgs = *gs;
+                }*/
+            }
+
+            else if(gs->menu.contMenu == 3)
+            {
+                gs->menu.contMenu = 0;
+                gs->input.keyEnter = false;
+                gs->input.keyE = false;
+                if(gs->vsTitanHembraEjecutando == false)
+                {
+                    audioBU = gs->audio;
+                    strcpy(auxNombre, gs->puntuacionJugador.nombre);
+                    *gs = (s_GameState){0};
+                    strcpy(gs->puntuacionJugador.nombre, auxNombre);
+                    gs->audio = audioBU;
+                    gs->ejecutando = true;
+                    gs->vsTitanHembraEjecutando = true;
+                    gs->dificultad = dificultad;
+                    game_init(gs, assets, display);
+                    *auxgs = *gs;
+                }
+            }
+
+            else if(gs->menu.contMenu == 4)
             {
                 gs->menu.contMenu = 0;
                 gs->input.keyEnter = false;
@@ -408,6 +513,28 @@ void logica_menu(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display, s_
                     game_init(gs, assets, display);
                     *auxgs = *gs;
                 }
+            }
+        }
+
+        else if(gs->menu.estadoMenu == OLEADA)
+        {
+            gs->menu.contMenu = 0;
+            gs->input.keyEnter = false;
+            gs->input.keyE = false;
+            if(gs->modoOleadaEjecutando == false)
+            {
+                int auxContMapa = gs->menu.contMapa;
+                strcpy(auxNombre, gs->puntuacionJugador.nombre);
+                audioBU = gs->audio;
+                *gs = (s_GameState){0};
+                gs->menu.contMapa = auxContMapa;
+                strcpy(gs->puntuacionJugador.nombre, auxNombre);
+                gs->audio = audioBU;
+                gs->ejecutando = true;
+                gs->modoOleadaEjecutando = true;
+                gs->dificultad = dificultad;
+                game_init(gs, assets, display);
+                *auxgs = *gs;
             }
         }
 
@@ -438,13 +565,43 @@ void logica_menu(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display, s_
                 guarda_opciones(gs);
             }
         }
+        else if(gs->menu.estadoMenu == RANKING)
+        {
+            if(gs->menu.contMenu == 0)
+            {
+                gs->input.keyEnter = false;
+                gs->input.keyE = false;
+                gs->menu.contMenu = 0;
+                push_estado_menu(gs, RANKING);
+                gs->menu.estadoMenu = RANKINGNIVEL1;
+            }
+
+            else if(gs->menu.contMenu == 1)
+            {
+                gs->input.keyEnter = false;
+                gs->input.keyE = false;
+                gs->menu.contMenu = 0;
+                push_estado_menu(gs, RANKING);
+                gs->menu.estadoMenu = RANKINGOLEADA;
+            }
+
+            else if(gs->menu.contMenu == 2)
+            {
+                gs->input.keyEnter = false;
+                gs->input.keyE = false;
+                gs->menu.contMenu = 0;
+                push_estado_menu(gs, RANKING);
+                gs->menu.estadoMenu = RANKINGVSTITANHEMBRA;
+            }
+        }
     }
 
     if(gs->input.keyEsc)
     {
         gs->input.keyEnter = false;
+        gs->input.keyEsc = false;
         gs->menu.contMenu = 0;
-        gs->menu.estadoMenu = gs->menu.estadoMenuAnterior;
+        pop_estado_menu(gs);
     }
 
 }
@@ -464,11 +621,13 @@ void menu_pausa(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display, s_G
     {
         gs->menuPausa.contMenu++;
         gs->input.keyS = false;
+        al_play_sample(gs->audio.sfx_menu, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
     }
     else if(gs->input.keyW && gs->menuPausa.contMenu > 0)
     {
         gs->menuPausa.contMenu--;
         gs->input.keyW = false;
+        al_play_sample(gs->audio.sfx_menu, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
     }
 
     if(gs->input.keyEnter || gs->input.keyE)
@@ -520,6 +679,8 @@ void menu_pausa(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display, s_G
                 gs->estadoPantalla = PANTALLA_MENU;
                 gs->nivel1Ejecutando = false;
                 gs->tutorialEjecutando = false;
+                gs->modoOleadaEjecutando = false;
+                gs->vsTitanHembraEjecutando = false;
                 gs->input.keyEnter = false;
                 gs->input.keyE = false;
             }    
@@ -653,6 +814,7 @@ void update_levi_movimiento(s_GameState *gs)
         gs->levi.animacion.bloquearAnimacion = false;
         gs->variables.bloquearControles = false;
         gs->levi.gasRestante -= 10;
+        al_play_sample(gs->audio.sfx_salto, 0.3, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
         cambiar_animacion(gs, SALTANDO);
 
     }
@@ -842,7 +1004,7 @@ void transicion_pantalla(s_GameState *gs, s_Assets *assets, s_GameState *auxgs) 
 
 void hitbox_levi(s_GameState *gs, s_Assets *assets) //Actualiza la hitbox del personaje principal
 {
-    gs->levi.hitbox.alto = LEVI_SS_ALTO - LEVI_HB_OFFSET_Y;  
+    gs->levi.hitbox.alto = LEVI_SS_ALTO - LEVI_HB_OFFSET_Y - 1;  
     gs->levi.hitbox.ancho = LEVI_HB_RECORTE - 18;
     gs->levi.hitbox.x = gs->levi.x + LEVI_HB_RECORTE + 3;
     gs->levi.hitbox.y = gs->levi.y + LEVI_HB_OFFSET_Y;
@@ -894,11 +1056,13 @@ void levi_ataques(s_GameState *gs)
     {
         gs->levi.habilidad1Activa = true;
         gs->levi.cooldownHabilidad1 = 5;
+        al_play_sample(gs->audio.sfx_habilidad1, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
     }
     if(gs->levi.ODM.activo && gs->input.key2 && gs->levi.cooldownHabilidad2 <= 0)
     {
         gs->levi.habilidad2Activa = true;
         gs->levi.cooldownHabilidad2 = 10;
+        al_play_sample(gs->audio.sfx_habilidad2, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
     }
 
     if(gs->levi.estadoLevi == SALIDA_TITAN_AGARRE)
@@ -923,7 +1087,7 @@ void levi_ataques(s_GameState *gs)
         gs->levi.hitboxAtaque.y = gs->levi.hitbox.y + gs->levi.hitbox.alto/2 - 20;
         gs->levi.hitboxAtaque.alto = 7;
         gs->levi.hitboxAtaque.ancho = 110;
-        gs->levi.ataque = 250;
+        gs->levi.ataque = 125;
         gs->levi.ataqueNuca = 1000;
         gs->levi.puntuacionTitan = 750;
         gs->levi.puntuacionNuca = 1500;
@@ -933,6 +1097,12 @@ void levi_ataques(s_GameState *gs)
 
     else if(gs->levi.habilidad1Activa)
     {
+        if(gs->levi.estadoLevi != ODM_ATAQUE1 && gs->levi.habilidad1Reiniciada)
+        {
+            al_play_sample(gs->audio.sfx_habilidad1, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+            gs->levi.habilidad1Reiniciada = false;
+        }
+
         gs->levi.habilitaAumentaDash = false;
         gs->levi.hitboxAtaque.x = gs->levi.x + 20;
         gs->levi.hitboxAtaque.y = gs->levi.y + 5;
@@ -942,14 +1112,20 @@ void levi_ataques(s_GameState *gs)
         gs->levi.leviAtacando = true;
         gs->levi.ataque = 50;
         gs->levi.ataqueNuca = 75;
-        gs->levi.puntuacionTitan = 50;
-        gs->levi.puntuacionNuca = 75;
+        gs->levi.puntuacionTitan = 75;
+        gs->levi.puntuacionNuca = 150;
         gs->levi.invulnerabilidad = true;
         cambiar_animacion(gs, ODM_ATAQUE1);
     }
 
     else if(gs->levi.habilidad2Activa)
     {
+        if(gs->levi.estadoLevi != ODM_ATAQUE2 && gs->levi.habilidad2Reiniciada)
+        {
+            al_play_sample(gs->audio.sfx_habilidad2, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+            gs->levi.habilidad2Reiniciada = false;
+        }
+
         gs->levi.habilitaAumentaDash = false;
         gs->levi.hitboxAtaque.x = gs->levi.x + 20;
         gs->levi.hitboxAtaque.y = gs->levi.y;
@@ -959,8 +1135,8 @@ void levi_ataques(s_GameState *gs)
         gs->levi.leviAtacando = true;
         gs->levi.ataque = 70;
         gs->levi.ataqueNuca = 90;  
-        gs->levi.puntuacionTitan = 50;
-        gs->levi.puntuacionNuca = 75;
+        gs->levi.puntuacionTitan = 75;
+        gs->levi.puntuacionNuca = 150;
         gs->levi.invulnerabilidad = true;
         cambiar_animacion(gs, ODM_ATAQUE2);
     }
@@ -1017,7 +1193,7 @@ void levi_ataques(s_GameState *gs)
         if(gs->input.ClickIzq && gs->levi.cooldownAtaque <= 0)
         {
             gs->levi.ataque = 100;
-            gs->levi.ataqueNuca = 10000;
+            gs->levi.ataqueNuca = 2500;
             gs->levi.puntuacionTitan = 100;
             gs->levi.puntuacionNuca = 500;
 
@@ -1045,6 +1221,10 @@ void colision_levi_ataque(s_GameState *gs)
     //Detecta los ataques de levi a los titanes y los desactiva si los mata / da recompensas
 
     int i, pA = gs->pantalla_actual;
+    float mulPunt = 1;
+
+    if(gs->dificultad == DIFICIL)
+        mulPunt = 2;
 
     if(gs->levi.cooldownAtaque > 0)
         gs->levi.cooldownAtaque -= 1.0f/FPS;
@@ -1074,7 +1254,7 @@ void colision_levi_ataque(s_GameState *gs)
     {
         for(i=0;i<gs->pantalla[pA].num_entidades;i++)
         {
-            if(gs->pantalla[pA].entidades[i].activo == false)
+            if(gs->pantalla[pA].entidades[i].activo == false || gs->pantalla[pA].entidades[i].muriendo == true)
                 continue;
             if(colision(gs, gs->levi.hitboxAtaque, gs->pantalla[pA].entidades[i].hitboxNuca)) //Comprueba si colisiona en la nuca, si es asi rompe el bucle
             {
@@ -1091,14 +1271,32 @@ void colision_levi_ataque(s_GameState *gs)
 
                 if(gs->pantalla[pA].entidades[i].vida <= 0) //Desactiva al titan en caso de que no tenga vida
                 {
-                    gs->pantalla[pA].entidades[i].activo = false;
-                    gs->levi.puntuacion += gs->levi.puntuacionNuca;
+                    gs->pantalla[pA].entidades[i].muriendo = true;
+                    if(gs->variables.multiplicador < 5)
+                        gs->variables.flagPunt++;
+                    gs->levi.puntuacion += gs->levi.puntuacionNuca*gs->variables.multiplicador*mulPunt;
                     if(gs->levi.habilitaAumentaDash)
                     {
+                        if(gs->modoOleadaEjecutando)
+                        {
+                            gs->levi.gasRestante += 100;
+
+                            if(gs->pantalla[pA].entidades[i].tipo == 1)
+                                gs->levi.vida += 5;
+
+                            if(gs->levi.vida >= 50)
+                                gs->levi.vida = 50;
+                            if(gs->levi.gasRestante >= 1000)
+                                gs->levi.gasRestante = 1000;
+                        }
+
+                        gs->levi.cooldownHabilidad1 = 0;
+                        gs->levi.cooldownHabilidad2 = 0;
                         gs->levi.dash.flagDash++;
                         if(gs->levi.aumentaMA < 10)
                             gs->levi.aumentaMA++;
                     }
+                    gs->variables.resetPunt = true;
                 }
 
                 continue;
@@ -1111,7 +1309,7 @@ void colision_levi_ataque(s_GameState *gs)
 
                 if(gs->audio.cdSfxAttack <= 0)
                 {
-                    al_play_sample(gs->audio.sfx_attack, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+                    al_play_sample(gs->audio.sfx_attack2, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
                     gs->audio.cdSfxAttack = 0.5f;
                 }
 
@@ -1119,8 +1317,11 @@ void colision_levi_ataque(s_GameState *gs)
 
                 if(gs->pantalla[pA].entidades[i].vida <= 0) //Desactiva al titan en caso de que no tenga vida
                 {
-                    gs->pantalla[pA].entidades[i].activo = false;
-                    gs->levi.puntuacion += gs->levi.puntuacionTitan;
+                    gs->pantalla[pA].entidades[i].muriendo = true;
+                    if(gs->variables.multiplicador < 5)
+                        gs->variables.flagPunt++;
+                    gs->levi.puntuacion += gs->levi.puntuacionTitan*gs->variables.multiplicador*mulPunt;
+                    gs->variables.resetPunt = true;
                 }
             }
         }
@@ -1135,10 +1336,12 @@ void colision_levi_ataque(s_GameState *gs)
 
             gs->titanHembra.vida -= gs->levi.ataque * gs->levi.ataqueMA;
 
-            if(gs->titanHembra.vida <= 0) //Desactiva al titan en caso de que no tenga vida
+            if(gs->titanHembra.vida <= 0 && gs->titanHembra.puntuacionDada == false) //Desactiva al titan en caso de que no tenga vida
             {
-                gs->levi.puntuacion += 1000;
+                printf("Entro\n");
+                gs->levi.puntuacion += 5000*mulPunt;
                 gs->nivelCompletado = true;
+                gs->titanHembra.puntuacionDada = true;
             }
         }
     }
@@ -1187,18 +1390,30 @@ void parry(s_GameState *gs)
             break;
 
         //Verifica si el parry fue exitoso y le da sus recompensas
-        if(colision(gs, gs->levi.parryHB, gs->pantalla[gs->pantalla_actual].entidades[i].hitboxAtaqueBasico) && gs->levi.tiempoParryActivo > 0
-            && gs->levi.ataqueHecho == false && gs->pantalla[gs->pantalla_actual].entidades[i].activo) 
+        if((colision(gs, gs->levi.parryHB, gs->pantalla[gs->pantalla_actual].entidades[i].hitboxAtaqueBasico) || colision(gs, gs->levi.parryHB, gs->pantalla[gs->pantalla_actual].entidades[i].agarre.manoHB)) 
+            && gs->levi.tiempoParryActivo > 0 && gs->levi.ataqueHecho == false && gs->pantalla[gs->pantalla_actual].entidades[i].activo) 
         {
             if(gs->tutorialEjecutando)
                 gs->tutorial.requisitoCumplido = true;
 
+            if(gs->modoOleadaEjecutando)
+            {
+                gs->levi.contModoAckerman += 1;
+                gs->levi.gasRestante += 100;
+                if(gs->levi.gasRestante >= 1000)
+                    gs->levi.gasRestante = 1000;
+            }
+
+            gs->variables.contPunt = 10.0f;
             gs->levi.dash.cantDash++;
             gs->levi.cooldownHabilidad1 = 0;
             gs->levi.cooldownHabilidad2 = 0;
             gs->levi.tiempoInvulnerabilidad = 0.5f;
             gs->levi.tiempoParryActivo = 0;
-            gs->levi.vida += 10;
+            if(gs->dificultad == NORMAL)
+                gs->levi.vida += 10;
+            else if(gs->dificultad == DIFICIL)
+                gs->levi.vida += 5;
             if(gs->levi.vida >= 50)
                 gs->levi.vida = 50;
             gs->levi.cooldownParry = 0.1f;
@@ -1207,13 +1422,22 @@ void parry(s_GameState *gs)
     }
 
     //Comportamiento especial del parry para el titan hembra (mas recompensas y ligera diferencia en la mecanica)
-    if((colision(gs, gs->levi.parryHB, gs->titanHembra.hitboxAtaque1) || colision(gs, gs->levi.parryHB, gs->titanHembra.hitboxAtaque2)) && gs->levi.tiempoParryActivo > 0 && gs->levi.ataqueHecho == false)
+    if((colision(gs, gs->levi.parryHB, gs->titanHembra.hitboxAtaque1) || colision(gs, gs->levi.parryHB, gs->titanHembra.hitboxAtaque2)) && gs->levi.tiempoParryActivo > 0 && gs->levi.ataqueHecho == false && !gs->animaciones.transicion.activo
+        && !gs->animaciones.transicion2.activo)
     {
         gs->levi.dash.cantDash++;
         gs->levi.cooldownHabilidad1 = 0;
         gs->levi.cooldownHabilidad2 = 0;
-        gs->levi.tiempoInvulnerabilidad = 0.5f;
-        gs->levi.vida += 5;
+        gs->levi.tiempoInvulnerabilidad = 0.8f;
+        if(gs->dificultad == NORMAL)
+            gs->levi.vida += 5;
+        else if(gs->dificultad == DIFICIL)
+        {
+            if(gs->titanHembra.fase2Activa)
+                gs->levi.vida += 10;
+            else 
+                gs->levi.vida += 5;
+        }
         gs->levi.gasRestante += 50;
         if(gs->levi.gasRestante >= 1000)
             gs->levi.gasRestante = 1000;
@@ -1595,6 +1819,11 @@ void levi_dash(s_GameState *gs)
         cy = mouseY - (gs->levi.y + gs->levi.hitbox.alto); //Calcula cateto y
         distancia = sqrt(cx*cx + cy*cy); //Calcula la hipotenusa (distancia de levi al punto)
 
+        if(gs->levi.habilidad1Activa && gs->levi.estadoLevi == ODM_ATAQUE1)
+            gs->levi.habilidad1Reiniciada = true;
+        if(gs->levi.habilidad2Activa && gs->levi.estadoLevi == ODM_ATAQUE2)
+            gs->levi.habilidad2Reiniciada = true;
+
         gs->levi.dash.activo = true;
         gs->levi.dash.distanciaRestante = 250; //Distancia fija a recorrer
         gs->levi.dash.cooldown = 1; 
@@ -1616,6 +1845,7 @@ void levi_dash(s_GameState *gs)
         else if(cx > 0 )
             gs->levi.animacion.rotarAnim = false;
 
+        al_play_sample(gs->audio.sfx_dash, 0.5, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
         cambiar_animacion(gs, DASH);
         desactivar_hitbox(gs, 0.5f);
 
@@ -1650,6 +1880,10 @@ void levi_dash(s_GameState *gs)
 void colision_levi_dash(s_GameState *gs)
 {
     int pA = gs->pantalla_actual, i;
+    float multPunt = 1;
+
+    if(gs->dificultad == DIFICIL)
+        multPunt = 2;
 
     if(gs->tutorialEjecutando && gs->tutorial.fase < 9)
         return;
@@ -1661,17 +1895,19 @@ void colision_levi_dash(s_GameState *gs)
 
     for(i=0;i<gs->pantalla[pA].num_entidades;i++)
     {
-        if(gs->pantalla[pA].entidades[i].activo == false)
+        if(gs->pantalla[pA].entidades[i].activo == false || gs->pantalla[pA].entidades[i].muriendo == true)
             continue;
         if(colision(gs, gs->levi.dash.hitboxDash, gs->pantalla[pA].entidades[i].hitboxNuca)) //Comprueba si pega en la nuca, si es asi rompe el bucle
         {
             gs->pantalla[pA].entidades[i].vida = 0;
-            gs->pantalla[pA].entidades[i].activo = false;
             
             if(gs->pantalla[pA].entidades[i].vida <= 0)
             {
-                gs->pantalla[pA].entidades[i].activo = false;
-                gs->levi.puntuacion += 500; 
+                gs->pantalla[pA].entidades[i].muriendo = true;
+                gs->variables.resetPunt = true;
+                if(gs->variables.multiplicador < 5)
+                    gs->variables.flagPunt++;
+                gs->levi.puntuacion += 500*gs->variables.multiplicador*multPunt; 
             }
             continue;
         }
@@ -1682,21 +1918,26 @@ void colision_levi_dash(s_GameState *gs)
 
             if(gs->pantalla[pA].entidades[i].vida <= 0)
             {
-                gs->pantalla[pA].entidades[i].activo = false;
+                gs->pantalla[pA].entidades[i].muriendo = true;
+                gs->variables.resetPunt = true;
+                if(gs->variables.multiplicador < 5)
+                    gs->variables.flagPunt++;
                 gs->levi.puntuacion += 100;
             }
         }
 
     }
 
-    if(colision(gs, gs->levi.hitboxAtaque, gs->titanHembra.hitbox)) //Comprueba si pega en cualquier parte de la hitbox del titan
+    if(colision(gs, gs->levi.dash.hitboxDash, gs->titanHembra.hitbox)) //Comprueba si pega en cualquier parte de la hitbox del titan
         {
             gs->titanHembra.vida -= 75;
 
-            if(gs->titanHembra.vida <= 0) //Desactiva al titan en caso de que no tenga vida
+            if(gs->titanHembra.vida <= 0 && gs->titanHembra.puntuacionDada == false) //Desactiva al titan en caso de que no tenga vida
             {
-                gs->levi.puntuacion += 1000;
+                printf("Entro\n");
+                gs->levi.puntuacion += 5000*multPunt;
                 gs->nivelCompletado = true;
+                gs->titanHembra.puntuacionDada = true;
             }
         }
 
@@ -2158,29 +2399,75 @@ void desactivar_hitbox(s_GameState *gs, float tiempo)
         }
 }
 
-void aumenta_puntuacion(s_GameState *gs, int i, char *tipo)
+void aumenta_puntuacion(s_GameState *gs)
 {
-    if(strcmp(tipo,"ataque/nuca") == 0)
+    if(gs->variables.resetPunt)
     {
-        gs->levi.puntuacion += 500;
+        gs->variables.resetPunt = false;
+        gs->variables.contPunt = 10.0f;
+
+        switch(gs->variables.multiplicador)
+        {
+            case 1:
+                if(gs->variables.flagPunt >= 2)
+                {
+                    gs->variables.multiplicador++;
+                    gs->variables.flagPunt = 0;
+                }
+                break;
+            case 2:
+                if(gs->variables.flagPunt >= 3)
+                {
+                    gs->variables.multiplicador++;
+                    gs->variables.flagPunt = 0;
+                }
+                break;
+            case 3:
+                if(gs->variables.flagPunt >= 4)
+                {
+                    gs->variables.multiplicador++;
+                    gs->variables.flagPunt = 0;
+                }
+                break;
+            case 4:
+                if(gs->variables.flagPunt >= 5)
+                {
+                    gs->variables.multiplicador++;
+                    gs->variables.flagPunt = 0;
+                }
+                break;
+        }
+    }
+
+    if(gs->variables.contPunt > 0)
+        gs->variables.contPunt -= 1.0f/FPS;
+    else if(gs->variables.contPunt <= 0)
+    {
+        gs->variables.flagPunt = 0;
+        gs->variables.multiplicador = 1;
+    }
+
+    /*if(strcmp(tipo,"ataque/nuca") == 0)
+    {
+        gs->levi.puntuacion += 500*gs->variables.multiplicador;
         gs->levi.dash.flagDash++;
     }
 
     if(strcmp(tipo,"dash/nuca"))
     {
-        gs->levi.puntuacion += 500;
+        gs->levi.puntuacion += 500*gs->variables.multiplicador;
         gs->levi.dash.flagDash++;
     }
 
     if(strcmp(tipo,"ataque/cuerpo"))
     {
-        gs->levi.puntuacion += 100;
+        gs->levi.puntuacion += 100*gs->variables.multiplicador;
     }
 
     if(strcmp(tipo,"dash/cuerpo"))
     {
-        gs->levi.puntuacion += 500;
-    }
+        gs->levi.puntuacion += 500*gs->variables.multiplicador;
+    }*/
 
 }
 
@@ -2222,16 +2509,35 @@ void actualizar_transicion2(s_GameState *gs)
 
 }
 
-int carga_puntuacion(s_GameState *gs)
+void actualizar_efectoSangre(s_GameState *gs)
 {
-    FILE* fpunt = fopen("rankingNivel1.txt","r");
+
+    if(gs->animaciones.efectoSangre.activo == true)
+    {
+        gs->animaciones.efectoSangre.contadorAnim++;
+
+        if(gs->animaciones.efectoSangre.contadorAnim >= gs->animaciones.efectoSangre.velocidadAnim)
+        {
+            gs->animaciones.efectoSangre.contadorAnim = 0;
+            gs->animaciones.efectoSangre.frameActual++;
+
+            if(gs->animaciones.efectoSangre.frameActual >= gs->animaciones.efectoSangre.cantidadFrames)
+                gs->animaciones.efectoSangre.activo = false;
+        }
+    }
+
+}
+
+int carga_puntuacion(s_GameState *gs, const char *archivo)
+{
+    FILE* fpunt = fopen(archivo,"r");
     int cantidad = 0;
 
     if(fpunt == NULL)
         return 0;
 
     //Carga las puntuaciones y las guarda en el arreglo, a la vez, obtiene la cantidad de puntuaciones que hay en el archivo
-    while (cantidad < 10 && fscanf(fpunt, "%s %d", gs->puntuaciones[cantidad].nombre, &gs->puntuaciones[cantidad].puntuacion) == 2) 
+    while (cantidad < 10 && fscanf(fpunt, "%s %d %s", gs->puntuaciones[cantidad].nombre, &gs->puntuaciones[cantidad].puntuacion, gs->puntuaciones[cantidad].dificultad) == 3) 
     {
         cantidad++;
     }
@@ -2240,10 +2546,15 @@ int carga_puntuacion(s_GameState *gs)
     return cantidad;
 }
 
-void guarda_puntuacion(s_GameState *gs, int cantidad)
+void guarda_puntuacion(s_GameState *gs, int cantidad, const char *archivo)
 {
-    FILE* fpunt = fopen("rankingNivel1.txt","w");
+    FILE* fpunt = fopen(archivo,"w");
     int i;
+
+    if(gs->dificultad == NORMAL)
+        strcpy(gs->puntuacionJugador.dificultad, "(NORMAL)");
+    else if(gs->dificultad == DIFICIL)
+        strcpy(gs->puntuacionJugador.dificultad, "(DIFICIL)");
 
     if(gs->levi.inventario.escudos >= 10)
         gs->levi.puntuacion += 2000;
@@ -2268,10 +2579,80 @@ void guarda_puntuacion(s_GameState *gs, int cantidad)
 
     for(i=0;i<cantidad;i++) //Guarda exactamente la cantidad necesaria en el archivo
     {
-        fprintf(fpunt, "%s %d\n", gs->puntuaciones[i].nombre, gs->puntuaciones[i].puntuacion); 
+        fprintf(fpunt, "%s %d %s\n", gs->puntuaciones[i].nombre, gs->puntuaciones[i].puntuacion, gs->puntuaciones[i].dificultad); 
     }
     
     fclose(fpunt);
+}
+
+void guarda_puntuacionTH(s_GameState *gs, int cantidad, const char *archivo)
+{
+    FILE* fpunt = fopen(archivo,"w");
+    int i;
+    int tiempoJugador, tiempoComparado;
+    int pos;
+
+    gs->puntuacionJugadorTH.minutos = gs->tiempoJugado.minutos;
+    gs->puntuacionJugadorTH.segundos = gs->tiempoJugado.segundos;
+
+    if(gs->dificultad == NORMAL)
+        strcpy(gs->puntuacionJugadorTH.dificultad, "(NORMAL)");
+    else if(gs->dificultad == DIFICIL)
+        strcpy(gs->puntuacionJugadorTH.dificultad, "(DIFICIL)");
+
+    strcpy(gs->puntuacionJugadorTH.nombre, gs->puntuacionJugador.nombre);
+
+    if (fpunt == NULL)
+        return;
+
+    tiempoJugador = gs->puntuacionJugadorTH.minutos * 60 + gs->puntuacionJugadorTH.segundos;
+
+    pos = (cantidad < 10) ? cantidad : 9;
+
+    for(i = pos; i > 0; i--)
+    {
+        tiempoComparado = gs->puntuacionesTH[i-1].minutos * 60 + gs->puntuacionesTH[i-1].segundos;
+
+        if(tiempoJugador < tiempoComparado)
+            gs->puntuacionesTH[i] = gs->puntuacionesTH[i-1];
+        else 
+            break;
+    }
+
+    gs->puntuacionesTH[i] = gs->puntuacionJugadorTH;
+
+    if(cantidad < 10)
+        cantidad++;
+
+    for(i=0;i<cantidad;i++)
+        fprintf(fpunt, "%s %02d:%02d %s\n",
+                gs->puntuacionesTH[i].nombre,
+                gs->puntuacionesTH[i].minutos,
+                gs->puntuacionesTH[i].segundos,
+                gs->puntuacionesTH[i].dificultad);
+
+    fclose(fpunt);
+}
+
+int carga_puntuacionTH(s_GameState *gs, const char *archivo)
+{
+    FILE* fpunt = fopen(archivo,"r");
+    int cantidad = 0;
+
+    if(fpunt == NULL)
+        return 0;
+
+    while (cantidad < 10 && fscanf(fpunt, "%s %d:%d %s",
+        gs->puntuacionesTH[cantidad].nombre,
+        &gs->puntuacionesTH[cantidad].minutos,
+        &gs->puntuacionesTH[cantidad].segundos,
+        gs->puntuacionesTH[cantidad].dificultad) == 4) 
+    {
+        cantidad++;
+    }
+
+    fclose(fpunt);
+    return cantidad;
 }
 
 void modo_ackerman(s_GameState *gs)
@@ -2314,6 +2695,25 @@ void modo_ackerman(s_GameState *gs)
 
 }
 
+void push_estado_menu(s_GameState *gs, e_EstadoMenu nuevoEstado)
+{
+    if(gs->menu.topePila < 5)
+    {
+        gs->menu.pilaEstados[gs->menu.topePila] = gs->menu.estadoMenu;
+        gs->menu.topePila++;
+    }
+    gs->menu.estadoMenu = nuevoEstado;
+}
+
+void pop_estado_menu(s_GameState *gs)
+{
+    if(gs->menu.topePila > 0)
+    {
+        gs->menu.topePila--;
+        gs->menu.estadoMenu = gs->menu.pilaEstados[gs->menu.topePila];
+    }
+}
+
 void ingresa_nombre(s_GameState *gs, ALLEGRO_EVENT* evento)
 {
     int largoNombre;
@@ -2328,6 +2728,7 @@ void ingresa_nombre(s_GameState *gs, ALLEGRO_EVENT* evento)
                 strcpy(gs->puntuacionJugador.nombre, gs->variables.nombreTemp);
                 gs->variables.ingresandoNombre = false;
                 gs->variables.nombreIngresado = true;
+                gs->input.keyEnter = false;
                 break;
             case ALLEGRO_KEY_BACKSPACE: //Si pulsa BackSpace se borra 1 letra
                 if(largoNombre > 0)
@@ -2345,4 +2746,85 @@ void ingresa_nombre(s_GameState *gs, ALLEGRO_EVENT* evento)
         }
     }
 }
+
+void musica(s_GameState *gs)
+{
+    /*if(gs->pausa)
+    {
+        if(gs->audio.pistaActual != NULL && al_get_audio_stream_playing(gs->audio.pistaActual))
+            al_set_audio_stream_playing(gs->audio.pistaActual, false);
+
+        return;
+    }
+    else
+    {
+        if(gs->audio.pistaActual != NULL && !al_get_audio_stream_playing(gs->audio.pistaActual))
+            al_set_audio_stream_playing(gs->audio.pistaActual, true);
+    }*/
+
+    ALLEGRO_AUDIO_STREAM *pistaActiva = NULL;
+
+    if(gs->titanHembra.activa)
+        gs->audio.gainObjetivo = 0.1f;
+    else if(gs->estadoPantalla == PANTALLA_MENU)
+        gs->audio.gainObjetivo = 0.5f;
+    else 
+        gs->audio.gainObjetivo = 0.05f;
+
+    if(gs->titanHembra.activa)
+        pistaActiva = gs->audio.musica_SWS;
+    else if(gs->estadoPantalla == PANTALLA_MENU)
+        pistaActiva = gs->audio.musica_menu;
+    else if(gs->nivel1Ejecutando)
+        pistaActiva = gs->audio.musica_AOT;
+    else if(gs->modoOleadaEjecutando)
+        pistaActiva = gs->audio.musica_XLTT;
+
+    // ¿Cambió la pista que debería sonar?
+    if(pistaActiva != gs->audio.pistaActual)
+    {
+        // La pista que estaba sonando ahora debe apagarse con fade
+        if(gs->audio.pistaActual != NULL)
+            gs->audio.pistaSaliendo = gs->audio.pistaActual;
+
+        gs->audio.pistaActual = pistaActiva;
+
+        if(pistaActiva != NULL)
+        {
+            al_rewind_audio_stream(pistaActiva);
+            al_set_audio_stream_gain(pistaActiva, 0.0f); // Empieza en silencio
+            al_set_audio_stream_playing(pistaActiva, true);
+        }
+    }
+
+    // ---- Fade IN de la pista actual ----
+    if(gs->audio.pistaActual != NULL)
+    {
+        float gain = al_get_audio_stream_gain(gs->audio.pistaActual);
+        if(gain < gs->audio.gainObjetivo)
+        {
+            gain += gs->audio.velocidadFade;
+            if(gain > gs->audio.gainObjetivo)
+                gain = gs->audio.gainObjetivo;
+            al_set_audio_stream_gain(gs->audio.pistaActual, gain);
+        }
+    }
+
+    // ---- Fade OUT de la pista saliente ----
+    if(gs->audio.pistaSaliendo != NULL)
+    {
+        float gain = al_get_audio_stream_gain(gs->audio.pistaSaliendo);
+        gain -= gs->audio.velocidadFade;
+
+        if(gain <= 0.0f)
+        {
+            al_set_audio_stream_gain(gs->audio.pistaSaliendo, 0.0f);
+            al_set_audio_stream_playing(gs->audio.pistaSaliendo, false);
+            gs->audio.pistaSaliendo = NULL; // Ya terminó de apagarse
+        }
+        else
+            al_set_audio_stream_gain(gs->audio.pistaSaliendo, gain);
+    }
+}
+  
 //================================================//

@@ -19,7 +19,7 @@ void genera_hitbox_arbol(s_GameState *gs, int i, int j);
 void game_init(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display)
 {
     //gs->escala = 1.0f; //Variable que multiplica fondos, elementos, hitbox, etc. Para si en un futuro quiero cambiar de resolucion, redefino la variable y se escala todo.
-    if(gs->nivel1Ejecutando || gs->tutorialEjecutando)
+    if(gs->nivel1Ejecutando || gs->tutorialEjecutando || gs->modoOleadaEjecutando || gs->vsTitanHembraEjecutando)
         gs->estadoPantalla = PANTALLA_JUGANDO;
     else
         gs->estadoPantalla = PANTALLA_MENU;
@@ -30,6 +30,7 @@ void game_init(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display)
     gs->nivelCompletado = false;
     gs->variables.gravedad = 0.8;
     gs->menu.estadoMenu = MAIN;
+    gs->variables.multiplicador = 1;
 
     //Inicializacion de levi
     gs->levi.vida = 50;
@@ -49,16 +50,32 @@ void game_init(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display)
     gs->levi.animacion.velocidadAnim = 12;
     gs->levi.animacion.repetir = true;
 
+    if(gs->modoOleadaEjecutando || gs->vsTitanHembraEjecutando)
+        gs->levi.dash.cantDash = 3;
+
+    //=====================================//
+
     lee_opciones(gs, display);
     actualiza_res(gs, display);
 
     //Inicia fdata
     if(gs->nivel1Ejecutando)
     {
-        if((gs->variables.fdata = fopen("mapa1.txt","r")) == NULL)
+        if(gs->dificultad == NORMAL)
         {
-            printf("Error al abrir el archivo");
-            exit(1);
+            if((gs->variables.fdata = fopen("mapa1.txt","r")) == NULL)
+            {
+                printf("Error al abrir el archivo");
+                exit(1);
+            }
+        }
+        if(gs->dificultad == DIFICIL)
+        {
+            if((gs->variables.fdata = fopen("mapa1Dificil.txt","r")) == NULL)
+            {
+                printf("Error al abrir el archivo");
+                exit(1);
+            }
         }
     }
 
@@ -70,8 +87,47 @@ void game_init(s_GameState *gs, s_Assets *assets, ALLEGRO_DISPLAY *display)
             exit(1);
         }
     }
+
+    else if(gs->modoOleadaEjecutando)
+    {
+        switch(gs->menu.contMapa)
+        {
+            case 0:
+                if((gs->variables.fdata = fopen("oleadaMapa1.txt","r")) == NULL)
+                {
+                    printf("Error al abrir el archivo");
+                    exit(1);
+                }
+                break;
+            case 1:
+                if((gs->variables.fdata = fopen("oleadaMapa2.txt","r")) == NULL)
+                {
+                    printf("Error al abrir el archivo");
+                    exit(1);
+                }
+                break;
+            case 2:
+                printf("Entro: %d\n", gs->menu.contMapa);
+                if((gs->variables.fdata = fopen("oleadaMapa3.txt","r")) == NULL)
+                {
+                    printf("Error al abrir el archivo");
+                    exit(1);
+                }
+                break;
+        }
+        
+    }
+
+    else if(gs->vsTitanHembraEjecutando)
+    {
+        if((gs->variables.fdata = fopen("vsTitanHembra.txt","r")) == NULL)
+        {
+            printf("Error al abrir el archivo");
+            exit(1);
+        }
+    }
     
-    if(gs->nivel1Ejecutando || gs->tutorialEjecutando)
+    if(gs->nivel1Ejecutando || gs->tutorialEjecutando || gs->modoOleadaEjecutando || gs->vsTitanHembraEjecutando)
         mapa(gs, assets);
 
     return;
@@ -159,8 +215,8 @@ void hitbox_init(s_GameState *gs)
     switch(gs->pantalla_actual)
     {
         case 0:
-            gs->pantalla[pA].hitbox[0] = (s_Hitbox){0 , (SCREEN_Y - 66), gs->pantalla[0].ancho*TAM_CELDA + 10, 66, BLANCO}; //Suelo
-            gs->pantalla[pA].hitbox[1] = (s_Hitbox){(-4), (-200), 4, (SCREEN_Y + 200), BLANCO}; //Limite izquierdo de la pantalla
+            gs->pantalla[pA].hitbox[0] = (s_Hitbox){-500 , (SCREEN_Y - 66), gs->pantalla[0].ancho*TAM_CELDA + 800, 66, BLANCO}; //Suelo
+            gs->pantalla[pA].hitbox[1] = (s_Hitbox){(-20), (-200), 4, (SCREEN_Y + 220), BLANCO}; //Limite izquierdo de la pantalla
             gs->pantalla[pA].hitbox[2] = (s_Hitbox){0, (-200), gs->pantalla[0].ancho*TAM_CELDA, 12, BLANCO }; //Limite superior de la pantalla
             gs->pantalla[pA].hitbox[3] = (s_Hitbox){gs->pantalla[0].ancho*TAM_CELDA, (-100), 32, (SCREEN_Y + 100), BLANCO}; //Limite derecho de la pantalla
 
@@ -339,11 +395,15 @@ void genera_titan1(s_GameState *gs, int i, int j)
     if(nE >= MAXENTIDADES)
         return;
 
+    if(gs->dificultad == NORMAL)
+        gs->pantalla[pA].entidades[nE].vida = 700;
+    else if(gs->dificultad == DIFICIL)
+        gs->pantalla[pA].entidades[nE].vida = 2500;
+
     gs->pantalla[pA].entidades[nE].x = j*TAM_CELDA;
     gs->pantalla[pA].entidades[nE].y = i*TAM_CELDA;
     gs->pantalla[pA].entidades[nE].velocidadX = 2;
     gs->pantalla[pA].entidades[nE].velocidadY = 0;
-    gs->pantalla[pA].entidades[nE].vida = 700;
     gs->pantalla[pA].entidades[nE].ataque = 500;
     gs->pantalla[pA].entidades[nE].activo = true;
     gs->pantalla[pA].entidades[nE].viendoDerecha = rand()%2;
@@ -369,11 +429,14 @@ void genera_titan2(s_GameState *gs, int i, int j)
     if(nE >= MAXENTIDADES)
         return;
 
+    if(gs->dificultad == NORMAL)
+        gs->pantalla[pA].entidades[nE].vida = 300;
+    else if(gs->dificultad == DIFICIL)
+        gs->pantalla[pA].entidades[nE].vida = 1500;
     gs->pantalla[pA].entidades[nE].x = j*TAM_CELDA;
     gs->pantalla[pA].entidades[nE].y = i*TAM_CELDA;
     gs->pantalla[pA].entidades[nE].velocidadX = 3;
     gs->pantalla[pA].entidades[nE].velocidadY = 0;
-    gs->pantalla[pA].entidades[nE].vida = 300;
     gs->pantalla[pA].entidades[nE].ataque = 300;
     gs->pantalla[pA].entidades[nE].activo = true;
     gs->pantalla[pA].num_entidades++;
@@ -392,11 +455,17 @@ void genera_titan2(s_GameState *gs, int i, int j)
 
 void genera_titan_hembra(s_GameState *gs, int i, int j)
 {
+    if(gs->dificultad == NORMAL)
+        gs->titanHembra.vida = 50000;
+    else if(gs->dificultad == DIFICIL)
+        gs->titanHembra.vida = 100000;
+
+    gs->titanHembra.vidaMax = gs->titanHembra.vida;
     gs->titanHembra.x = j*TAM_CELDA;
     gs->titanHembra.y = i*TAM_CELDA;
-    gs->titanHembra.vida = 50000;
     gs->titanHembra.velocidadX = 5;
     gs->titanHembra.activa = true;
+    gs->titanHembra.puntuacionDada = false;
     gs->titanHembra.estadoTH = IDLE;
     gs->titanHembra.animacion.cantidadFrames = 4;
     gs->titanHembra.animacion.contadorAnim = 0;
@@ -405,6 +474,7 @@ void genera_titan_hembra(s_GameState *gs, int i, int j)
     gs->titanHembra.animacion.velocidadAnim = 10;
     gs->titanHembra.animacion.repetir = true;
     gs->titanHembra.animacion.rotarAnim = true;
+    gs->titanHembra.cooldownAtaque = 2.5f;
 
 }
 

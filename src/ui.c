@@ -3,13 +3,16 @@
 void dibujar_texto_borde(s_GameState *gs, ALLEGRO_FONT *fuente, ALLEGRO_COLOR colorTexto, ALLEGRO_COLOR colorBorde, float x, float y, int flags, const char *texto, float grosor);
 void transicion(s_GameState *gs, s_Assets *assets);
 void transicion2(s_GameState *gs, s_Assets *assets);
+void efectoSangre(s_GameState *gs, s_Assets *assets);
 void jugando_ui(s_GameState *gs, s_Assets *assets);
 void menu(s_GameState *gs, s_Assets *assets);
-void muestra_puntuaciones(s_GameState *gs, s_Assets *assets);
+void muestra_puntuaciones(s_GameState *gs, s_Assets *assets, const char *archivo);
 void pausa(s_GameState *gs, s_Assets *assets);
 void game_over(s_GameState *gs, s_Assets *assets);
 void dibuja_controles(s_GameState *gs, s_Assets *assets);
 void tutorial(s_GameState *gs, s_Assets *assets);
+void puntuacion(s_GameState *gs, s_Assets *assets);
+void ui_elementos(s_GameState *gs, s_Assets *assets);
 
 //====Funcion principal====//
 void render_ui(s_GameState *gs, s_Assets *assets)
@@ -107,6 +110,26 @@ void menu(s_GameState *gs, s_Assets *assets)
     {
         if(gs->menu.contMenu == 0)
         {
+            if(gs->menu.contDif == 0)
+                strcpy(texto, "DIFICULTAD <NORMAL>");
+            else if(gs->menu.contDif == 1)
+                strcpy(texto, "DIFICULTAD <DIFICIL>");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada2, 0, 0, 1450, 210, 10, 175, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), 140, 180, ALLEGRO_ALIGN_LEFT, texto, 3);
+        }
+
+        else
+        {
+            if(gs->menu.contDif == 0)
+                strcpy(texto, "DIFICULTAD <NORMAL>");
+            else if(gs->menu.contDif == 1)
+                strcpy(texto, "DIFICULTAD <DIFICIL>");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada1, 0, 0, 1450, 210, 10, 175, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 140, 180, ALLEGRO_ALIGN_LEFT, texto, 3);
+        }
+
+        if(gs->menu.contMenu == 1)
+        {
             strcpy(texto, "NIVEL UNO");
             al_draw_scaled_bitmap(assets->assetsPantalla.espada2, 0, 0, 1450, 210, 10, 250, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
             dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), 195, 255, ALLEGRO_ALIGN_LEFT, texto, 3);
@@ -119,18 +142,47 @@ void menu(s_GameState *gs, s_Assets *assets)
             dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 195, 255, ALLEGRO_ALIGN_LEFT, texto, 3);
         }
 
-        if(gs->menu.contMenu == 1)
+        if(gs->menu.contMenu == 2)
+        {
+            strcpy(texto, "MODO OLEADA");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada2, 0, 0, 1450, 210, 10, 325, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), 180, 330, ALLEGRO_ALIGN_LEFT, texto, 3);
+        }
+
+        else
+        {
+            strcpy(texto, "MODO OLEADA");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada1, 0, 0, 1450, 210, 10, 325, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 180, 330, ALLEGRO_ALIGN_LEFT, texto, 3);
+        }
+
+
+        if(gs->menu.contMenu == 3)
+        {
+            strcpy(texto, "VS. TITAN HEMBRA");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada2, 0, 0, 1450, 210, 10, 400, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), 135, 405, ALLEGRO_ALIGN_LEFT, texto, 3);
+        }
+
+        else
+        {
+            strcpy(texto, "VS. TITAN HEMBRA");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada1, 0, 0, 1450, 210, 10, 400, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 135, 405, ALLEGRO_ALIGN_LEFT, texto, 3);
+        }
+
+        if(gs->menu.contMenu == 4)
         {
             strcpy(texto, "TUTORIAL");
-            al_draw_scaled_bitmap(assets->assetsPantalla.espada2, 0, 0, 1450, 210, 10, 325, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
-            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), 195, 330, ALLEGRO_ALIGN_LEFT, texto, 3);
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada2, 0, 0, 1450, 210, 10, 475, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), 195, 480, ALLEGRO_ALIGN_LEFT, texto, 3);
         }
 
         else
         {
             strcpy(texto, "TUTORIAL");
-            al_draw_scaled_bitmap(assets->assetsPantalla.espada1, 0, 0, 1450, 210, 10, 325, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
-            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 195, 330, ALLEGRO_ALIGN_LEFT, texto, 3);
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada1, 0, 0, 1450, 210, 10, 475, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 195, 480, ALLEGRO_ALIGN_LEFT, texto, 3);
         }
     }
 
@@ -176,26 +228,111 @@ void menu(s_GameState *gs, s_Assets *assets)
     }
 
     else if(gs->menu.estadoMenu == RANKING)
-        muestra_puntuaciones(gs, assets);
+    {
+        if(gs->menu.contMenu == 0)
+        {
+            strcpy(texto, "R. NIVEL UNO");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada2, 0, 0, 1450, 210, 10, 250, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), 145, 255, ALLEGRO_ALIGN_LEFT, texto, 3);
+        }
+
+        else
+        {
+            strcpy(texto, "R. NIVEL UNO");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada1, 0, 0, 1450, 210, 10, 250, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 145, 255, ALLEGRO_ALIGN_LEFT, texto, 3);
+        }
+
+        if(gs->menu.contMenu == 1)
+        {
+            strcpy(texto, "R. MODO OLEADA");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada2, 0, 0, 1450, 210, 10, 325, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), 145, 330, ALLEGRO_ALIGN_LEFT, texto, 3);
+        }
+
+        else
+        {
+            strcpy(texto, "R. MODO OLEADA");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada1, 0, 0, 1450, 210, 10, 325, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 145, 330, ALLEGRO_ALIGN_LEFT, texto, 3);
+        }
+
+        if(gs->menu.contMenu == 2)
+        {
+            strcpy(texto, "R. VS TITAN HEMBRA");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada2, 0, 0, 1450, 210, 10, 400, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), 145, 405, ALLEGRO_ALIGN_LEFT, texto, 3);
+        }
+
+        else
+        {
+            strcpy(texto, "R. VS TITAN HEMBRA");
+            al_draw_scaled_bitmap(assets->assetsPantalla.espada1, 0, 0, 1450, 210, 10, 400, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 145, 405, ALLEGRO_ALIGN_LEFT, texto, 3);
+        }
+    }
+
+    else if(gs->menu.estadoMenu == RANKINGNIVEL1)
+        muestra_puntuaciones(gs, assets, "rankingNivel1.txt");
+
+    else if(gs->menu.estadoMenu == RANKINGOLEADA)
+        muestra_puntuaciones(gs, assets, "rankingModoOleada.txt");
+
+    else if(gs->menu.estadoMenu == RANKINGVSTITANHEMBRA)
+        muestra_puntuaciones(gs, assets, "rankingVsTitanHembra.txt");
+
+    else if(gs->menu.estadoMenu == OLEADA)
+    {
+        switch(gs->menu.contMapa)
+        {
+            case 0:
+                strcpy(texto, "MAPA <UNO>");  
+                break;
+            case 1:
+                strcpy(texto, "MAPA <DOS>");  
+                break;
+            case 2:
+                strcpy(texto, "MAPA <TRES>");  
+                break;
+        }
+
+        al_draw_scaled_bitmap(assets->assetsPantalla.espada2, 0, 0, 1450, 210, 10, 325, 1450*0.25, 210*0.25, ALLEGRO_ALIGN_LEFT);
+        dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), 195, 330, ALLEGRO_ALIGN_LEFT, texto, 3);
+
+        al_draw_scaled_bitmap(assets->assetsPantalla.minMapas, 1500*gs->menu.contMapa, 0, 1500, 900, SCREEN_X - 740, (SCREEN_Y - 200)/2 - 100, 1500*0.4, 900*0.4, 0);
+    }
 
     if(gs->variables.ingresandoNombre)
     {
         strcpy(texto, "INGRESA TU NOMBRE:");
-        dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 30, 405, ALLEGRO_ALIGN_LEFT, texto, 3);
-        dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 235, 405, ALLEGRO_ALIGN_LEFT, gs->variables.nombreTemp, 3);
+        dibujar_texto_borde(gs, assets->biggestThingsFont18, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 30, 125, ALLEGRO_ALIGN_LEFT, texto, 3);
+        dibujar_texto_borde(gs, assets->biggestThingsFont18, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 255, 125, ALLEGRO_ALIGN_LEFT, gs->variables.nombreTemp, 3);
     }
 
 }
 
-void muestra_puntuaciones(s_GameState *gs, s_Assets *assets)
+void muestra_puntuaciones(s_GameState *gs, s_Assets *assets, const char *archivo)
 {
-    int cantidad = carga_puntuacion(gs), i;
+    int cantidad, i;
     char texto[50];
+
+    if(gs->menu.estadoMenu == RANKINGVSTITANHEMBRA)
+        cantidad = carga_puntuacionTH(gs, archivo);
+    else
+        cantidad = carga_puntuacion(gs, archivo);
 
     for(i=0;i<cantidad;i++)
     {
-        sprintf(texto, "%s: %d", gs->puntuaciones[i].nombre, gs->puntuaciones[i].puntuacion);
-        dibujar_texto_borde(gs, assets->minimalistTemplateFont50, BLANCO, al_map_rgb(0, 0, 0), 30, 50 + 50*i, ALLEGRO_ALIGN_LEFT, texto, 3);
+        if(gs->menu.estadoMenu == RANKINGVSTITANHEMBRA)
+        {
+            sprintf(texto, "%s: %02d:%02d %s", gs->puntuacionesTH[i].nombre, gs->puntuacionesTH[i].minutos, gs->puntuacionesTH[i].segundos, gs->puntuacionesTH[i].dificultad);
+            dibujar_texto_borde(gs, assets->biggestThingsFont25, BLANCO, al_map_rgb(0, 0, 0), 30, 50 + 50*i, ALLEGRO_ALIGN_LEFT, texto, 3);
+        }
+        else
+        {
+            sprintf(texto, "%s: %d %s", gs->puntuaciones[i].nombre, gs->puntuaciones[i].puntuacion, gs->puntuaciones[i].dificultad);
+            dibujar_texto_borde(gs, assets->biggestThingsFont25, BLANCO, al_map_rgb(0, 0, 0), 30, 50 + 50*i, ALLEGRO_ALIGN_LEFT, texto, 3);
+        }
     }
 }
 
@@ -321,18 +458,18 @@ void pausa(s_GameState *gs, s_Assets *assets)
 
 void dibuja_controles(s_GameState *gs, s_Assets *assets)
 {
-    dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 50, 0, "A: MOVER HACIA LA IZQUIERDA", 3);
-    dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 100, 0, "D: MOVER HACIA LA DERECHA", 3);
-    dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 150, 0, "LSHIFT: CORRER", 3);
-    dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 200, 0, "SPACE: SALTAR", 3);
-    dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 250, 0, "CLICK IZQ: ATAQUE BASICO", 3);
-    dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 300, 0, "CLICK DER: EQUIPO DE MANIOBRAS / ODM", 3);
-    dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 350, 0, "F: DASH", 3);
-    dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 400, 0, "1 (CON EQUIPO DE MANIOBRAS): HABILIDAD 1", 3);
-    dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 450, 0, "2 (CON EQUIPO DE MANIOBRAS): HABILIDAD 2", 3);
-    dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 500, 0, "3 : RECARGAR GAS", 3);
-    dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 550, 0, "C : PARRY / DESVIAR ATAQUE", 3);
-    dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 600, 0, "X : MODO ACKERMAN", 3);
+    dibujar_texto_borde(gs, assets->biggestThingsFont18, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 50, 0, "A: MOVER HACIA LA IZQUIERDA", 3);
+    dibujar_texto_borde(gs, assets->biggestThingsFont18, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 100, 0, "D: MOVER HACIA LA DERECHA", 3);
+    dibujar_texto_borde(gs, assets->biggestThingsFont18, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 150, 0, "LSHIFT: CORRER", 3);
+    dibujar_texto_borde(gs, assets->biggestThingsFont18, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 200, 0, "SPACE: SALTAR", 3);
+    dibujar_texto_borde(gs, assets->biggestThingsFont18, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 250, 0, "CLICK IZQ: ATAQUE BASICO", 3);
+    dibujar_texto_borde(gs, assets->biggestThingsFont18, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 300, 0, "CLICK DER: EQUIPO DE MANIOBRAS / ODM", 3);
+    dibujar_texto_borde(gs, assets->biggestThingsFont18, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 350, 0, "F: DASH", 3);
+    dibujar_texto_borde(gs, assets->biggestThingsFont18, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 400, 0, "1 (CON EQUIPO DE MANIOBRAS): HABILIDAD 1", 3);
+    dibujar_texto_borde(gs, assets->biggestThingsFont18, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 450, 0, "2 (CON EQUIPO DE MANIOBRAS): HABILIDAD 2", 3);
+    dibujar_texto_borde(gs, assets->biggestThingsFont18, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 500, 0, "3 : RECARGAR GAS", 3);
+    dibujar_texto_borde(gs, assets->biggestThingsFont18, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 550, 0, "C : PARRY / DESVIAR ATAQUE", 3);
+    dibujar_texto_borde(gs, assets->biggestThingsFont18, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 800, 600, 0, "X : MODO ACKERMAN", 3);
 
 }
 
@@ -340,9 +477,21 @@ void jugando_ui(s_GameState *gs, s_Assets *assets)
 {
     char texto[20];
 
+    if(gs->animaciones.efectoSangre.activo)
+        efectoSangre(gs, assets);
+
     sprintf(texto, "%02d: %02d", gs->tiempoJugado.minutos, gs->tiempoJugado.segundos);
-    al_draw_text(assets->minimalistTemplateFont50, al_map_rgb(220, 220, 220), (SCREEN_X-100), 10, 0, texto); 
-    al_draw_text(assets->shingekiFont30,al_map_rgb(220, 220, 220), SCREEN_X/2, 0, ALLEGRO_ALIGN_CENTER, "Attack on Titan");
+    al_draw_text(assets->biggestThingsFont18, al_map_rgb(220, 220, 220), (SCREEN_X-80), 10, 0, texto); 
+
+    dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(220, 220, 220), al_map_rgb(0, 0, 0), SCREEN_X/2, 0, ALLEGRO_ALIGN_CENTER, "Code No Kyojin", 2);
+
+    if(gs->dificultad == NORMAL)
+        dibujar_texto_borde(gs, assets->shingekiFont20, al_map_rgb(230, 230, 230), al_map_rgb(0, 0, 0), SCREEN_X/2, 40, ALLEGRO_ALIGN_CENTER, "NORMAL", 2);
+    else if(gs->dificultad == DIFICIL)
+        dibujar_texto_borde(gs, assets->shingekiFont20, al_map_rgb(255, 0, 0), al_map_rgb(0, 0, 0), SCREEN_X/2, 40, ALLEGRO_ALIGN_CENTER, "DIFICIL", 2);
+
+
+    ui_elementos(gs, assets);
 
     //============Escudos=============//
 
@@ -350,7 +499,7 @@ void jugando_ui(s_GameState *gs, s_Assets *assets)
         al_get_bitmap_width(assets->assetsPantalla.escudoLegion), al_get_bitmap_height(assets->assetsPantalla.escudoLegion), 0);
 
     sprintf(texto, "x%d", gs->levi.inventario.escudos);
-    dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), (SCREEN_X -30), 55, ALLEGRO_ALIGN_RIGHT, texto, 1.5);
+    dibujar_texto_borde(gs, assets->biggestThingsFont18, al_map_rgb(255,255,255), al_map_rgb(0,0,0), (SCREEN_X -30), 55, ALLEGRO_ALIGN_RIGHT, texto, 1.5);
 
 
     //==================Hud=====================//
@@ -363,7 +512,7 @@ void jugando_ui(s_GameState *gs, s_Assets *assets)
         7 , 240 , al_get_bitmap_width(assets->assetsPantalla.galonGas) * 0.045, al_get_bitmap_height(assets->assetsPantalla.galonGas) * 0.045, 0);
 
     sprintf(texto, "x%d", gs->levi.inventario.gasODM);
-    dibujar_texto_borde(gs, assets->minimalistTemplateFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 57, 265, ALLEGRO_ALIGN_LEFT, texto, 1.5);
+    dibujar_texto_borde(gs, assets->biggestThingsFont12, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 57, 265, ALLEGRO_ALIGN_LEFT, texto, 1.5);
 
     if(gs->levi.cooldownHabilidad1 <= 0)
         al_draw_scaled_bitmap(assets->assetsPantalla.habilidades[0], 0, 0, 120, 80, 5, 297, 120*0.62, 80*0.62, 0);
@@ -371,7 +520,7 @@ void jugando_ui(s_GameState *gs, s_Assets *assets)
     {
         al_draw_scaled_bitmap(assets->assetsPantalla.habilidades[1], 0, 0, 120, 80, 5, 297, 120*0.62, 80*0.62, 0);
         sprintf(texto, "%.1f", gs->levi.cooldownHabilidad1);
-        dibujar_texto_borde(gs, assets->minimalistTemplateFont40, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 28, 305, ALLEGRO_ALIGN_LEFT, texto, 1.5);
+        dibujar_texto_borde(gs, assets->biggestThingsFont17, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 28, 305, ALLEGRO_ALIGN_LEFT, texto, 1.5);
     }
 
     if(gs->levi.cooldownHabilidad2 <= 0)
@@ -380,30 +529,27 @@ void jugando_ui(s_GameState *gs, s_Assets *assets)
     {
         al_draw_scaled_bitmap(assets->assetsPantalla.habilidades[3], 0, 0, 120, 80, 5, 355, 120*0.62, 80*0.62, 0);
         sprintf(texto, "%.1f", gs->levi.cooldownHabilidad2);
-        dibujar_texto_borde(gs, assets->minimalistTemplateFont40, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 28, 363, ALLEGRO_ALIGN_LEFT, texto, 1.5);
+        dibujar_texto_borde(gs, assets->biggestThingsFont17, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 28, 363, ALLEGRO_ALIGN_LEFT, texto, 1.5);
     }
 
     if(gs->levi.dash.cantDash > 0)
     {
         al_draw_scaled_bitmap(assets->assetsPantalla.habilidades[4], 0, 0, 120, 80, 5, 413, 120*0.62, 80*0.62, 0);
         sprintf(texto, "x%d", gs->levi.dash.cantDash);
-        dibujar_texto_borde(gs, assets->minimalistTemplateFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 57, 450, ALLEGRO_ALIGN_LEFT, texto, 1.5);
+        dibujar_texto_borde(gs, assets->biggestThingsFont12, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 57, 450, ALLEGRO_ALIGN_LEFT, texto, 1.5);
         sprintf(texto, "%d/2", gs->levi.dash.flagDash);
-        dibujar_texto_borde(gs, assets->minimalistTemplateFont25, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 10, 453, ALLEGRO_ALIGN_LEFT, texto, 1.5);
+        dibujar_texto_borde(gs, assets->biggestThingsFont10, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 10, 453, ALLEGRO_ALIGN_LEFT, texto, 1.5);
     }
     else if(gs->levi.dash.cantDash <= 0)
     {
         al_draw_scaled_bitmap(assets->assetsPantalla.habilidades[5], 0, 0, 120, 80, 5, 413, 120*0.62, 80*0.62, 0);
         sprintf(texto, "x%d", gs->levi.dash.cantDash);
-        dibujar_texto_borde(gs, assets->minimalistTemplateFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 57, 450, ALLEGRO_ALIGN_LEFT, texto, 1.5);
+        dibujar_texto_borde(gs, assets->biggestThingsFont12, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 57, 450, ALLEGRO_ALIGN_LEFT, texto, 1.5);
         sprintf(texto, "%d/2", gs->levi.dash.flagDash);
-        dibujar_texto_borde(gs, assets->minimalistTemplateFont25, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 10, 453, ALLEGRO_ALIGN_LEFT, texto, 1.5);
+        dibujar_texto_borde(gs, assets->biggestThingsFont10, al_map_rgb(255,255,255), al_map_rgb(0,0,0), 10, 453, ALLEGRO_ALIGN_LEFT, texto, 1.5);
     }
 
     //============================//
-
-     sprintf(texto, "Puntuacion: %d", gs->levi.puntuacion);
-        dibujar_texto_borde(gs, assets->minimalistTemplateFont40, al_map_rgb(230, 225, 210), al_map_rgb(0,0,0), 20, 100, ALLEGRO_ALIGN_LEFT, texto, 2);
 
     al_draw_scaled_bitmap(assets->assetsPantalla.marcoVida, 0, 0, al_get_bitmap_width(assets->assetsPantalla.marcoVida), al_get_bitmap_height(assets->assetsPantalla.marcoVida),
         10, 20, al_get_bitmap_width(assets->assetsPantalla.marcoVida) * 0.1f, al_get_bitmap_height(assets->assetsPantalla.marcoVida) * 0.15f, 0);
@@ -429,24 +575,46 @@ void jugando_ui(s_GameState *gs, s_Assets *assets)
 
     if(gs->levi.agarrado)
     {
+        float anchoDest = 2172/7.0f;
+        float altoDest = 724/7.0f;
+
+        al_draw_scaled_bitmap(assets->assetsPantalla.cuadroTexto, 0, 0, 2172, 724, 
+            SCREEN_X/2 - anchoDest/2.0f, 122, anchoDest, altoDest, 0);
+
         if(gs->variables.agarradoPorTitan1)
-            sprintf(texto, "PRESIONA ESPACIO: %d/10", gs->levi.contSoltarse);
+            sprintf(texto, "PRESIONA CLICK IZQ: %d/10", gs->levi.contSoltarse);
         else
-            sprintf(texto, "PRESIONA ESPACIO: %d/5", gs->levi.contSoltarse);
-        dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255, 0 ,0), al_map_rgb(0, 0, 0), SCREEN_X/2, 200, 
-            ALLEGRO_ALIGN_CENTER, texto, 2); 
+            sprintf(texto, "PRESIONA CLICK IZQ: %d/5", gs->levi.contSoltarse);
+        dibujar_texto_borde(gs, assets->biggestThingsFont18, al_map_rgb(245, 250, 255), al_map_rgb(0, 0, 0), SCREEN_X/2, 154, 
+            ALLEGRO_ALIGN_CENTER, texto, 3); 
     }
 
     if(gs->titanHembra.activa)
     {
-        al_draw_line(315, 57, 965, 57, al_map_rgb(0, 0, 0), 10);
+        al_draw_line(315, 75, 965, 75, al_map_rgb(0, 0, 0), 10);
 
-        if(gs->titanHembra.vida > 25000)
-            al_draw_line(315, 57, (gs->titanHembra.vida * 0.013) + 320, 57, al_map_rgb(219, 68, 107), 10);
-        else 
-            al_draw_line(315, 57, (gs->titanHembra.vida * 0.013) + 315, 57, al_map_rgb(138, 180, 214), 10);
-        al_draw_scaled_bitmap(assets->assetsPantalla.cabezaTH, 0, 0, 33, 33, (gs->titanHembra.vida * 0.013) + 310, 40, 33, 33, 0);
+        if(!gs->titanHembra.fase2Activa)
+        {
+            if(gs->dificultad == NORMAL)
+                al_draw_line(315, 75, (gs->titanHembra.vida * 0.013) + 320, 75, al_map_rgb(219, 68, 107), 10);
+            else if(gs->dificultad == DIFICIL)
+                al_draw_line(315, 75, (gs->titanHembra.vida * (0.013/2)) + 320, 75, al_map_rgb(219, 68, 107), 10);
+        }
+        else
+        { 
+            if(gs->dificultad == NORMAL)
+                al_draw_line(315, 75, (gs->titanHembra.vida * 0.013) + 315, 75, al_map_rgb(138, 180, 214), 10);
+            else if(gs->dificultad == DIFICIL)
+                al_draw_line(315, 75, (gs->titanHembra.vida * (0.013/2)) + 315, 75, al_map_rgb(138, 180, 214), 10);
+        }
+        if(gs->dificultad == NORMAL)
+            al_draw_scaled_bitmap(assets->assetsPantalla.cabezaTH, 0, 0, 33, 33, (gs->titanHembra.vida * 0.013) + 310, 58, 33, 33, 0);
+        else if(gs->dificultad == DIFICIL)
+            al_draw_scaled_bitmap(assets->assetsPantalla.cabezaTH, 0, 0, 33, 33, (gs->titanHembra.vida * (0.013/2)) + 310, 58, 33, 33, 0);
+
     }
+
+    puntuacion(gs, assets);
 
     //==============================//
 
@@ -462,6 +630,7 @@ void jugando_ui(s_GameState *gs, s_Assets *assets)
     if(gs->tutorialEjecutando)
         tutorial(gs, assets);
 
+
 }
 
 void dibujar_texto_borde(s_GameState *gs, ALLEGRO_FONT *fuente, ALLEGRO_COLOR colorTexto, ALLEGRO_COLOR colorBorde, float x, float y, int flags, const char *texto, float grosor) 
@@ -472,6 +641,7 @@ void dibujar_texto_borde(s_GameState *gs, ALLEGRO_FONT *fuente, ALLEGRO_COLOR co
     al_draw_text(fuente, colorBorde, x, (y + grosor), flags, texto);
 
     al_draw_text(fuente, colorTexto, x, y, flags, texto);
+    al_draw_text(fuente, colorTexto, x + 0.5f, y, flags, texto);
 
 }
 
@@ -498,48 +668,70 @@ void game_over(s_GameState *gs, s_Assets *assets)
 
     if(gs->levi.vida <= 0)
     {
+        sprintf(texto, "Puntuacion: %d", gs->levi.puntuacion);
+        dibujar_texto_borde(gs, assets->biggestThingsFont25, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 450, ALLEGRO_ALIGN_CENTER, texto, 3);
+
         if(gs->contOpcionesGO == 0)
         {
-            strcpy(texto, "REINTENTAR");
-            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), SCREEN_X/2, 500, ALLEGRO_ALIGN_CENTER, texto, 3);
+            if(gs->modoOleadaEjecutando)
+            {
+                sprintf(texto, "REINTENTAR");
+                dibujar_texto_borde(gs, assets->biggestThingsFont18, al_map_rgb(255,0,0), al_map_rgb(0,0,0), SCREEN_X/2, 525, ALLEGRO_ALIGN_CENTER, texto, 3);
+            }
+            else
+            {
+                strcpy(texto, "REINTENTAR");
+                dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), SCREEN_X/2, 525, ALLEGRO_ALIGN_CENTER, texto, 3);
+            }
         }
 
         else
         {
-            strcpy(texto, "REINTENTAR");
-            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 500, ALLEGRO_ALIGN_CENTER, texto, 3);
+            if(gs->modoOleadaEjecutando)
+            {
+                sprintf(texto, "REINTENTAR");
+                dibujar_texto_borde(gs, assets->biggestThingsFont18, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 525, ALLEGRO_ALIGN_CENTER, texto, 3);
+            }
+            else
+            {
+                strcpy(texto, "REINTENTAR");
+                dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 525, ALLEGRO_ALIGN_CENTER, texto, 3);
+            }
         }
 
         if(gs->contOpcionesGO == 1)
         {
             strcpy(texto, "VOLVER AL MENU PRINCIPAL");
-            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), SCREEN_X/2, 575, ALLEGRO_ALIGN_CENTER, texto, 3);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), SCREEN_X/2, 600, ALLEGRO_ALIGN_CENTER, texto, 3);
         }
 
         else
         {
             strcpy(texto, "VOLVER AL MENU PRINCIPAL");
-            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 575, ALLEGRO_ALIGN_CENTER, texto, 3);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 600, ALLEGRO_ALIGN_CENTER, texto, 3);
         }
     }
     else if(gs->nivelCompletado)
     {
         strcpy(texto, "GANASTE!!");
-        dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 500, ALLEGRO_ALIGN_CENTER, texto, 3);
+        dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 450, ALLEGRO_ALIGN_CENTER, texto, 3);
 
-        sprintf(texto, "PUNTUACION: %d", gs->puntuacionJugador.puntuacion);
-        dibujar_texto_borde(gs, assets->minimalistTemplateFont50, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 575, ALLEGRO_ALIGN_CENTER, texto, 3);
+        if(gs->vsTitanHembraEjecutando)
+            sprintf(texto, "TIEMPO: %02d:%02d", gs->tiempoJugado.minutos, gs->tiempoJugado.segundos);
+        else
+            sprintf(texto, "PUNTUACION: %d", gs->puntuacionJugador.puntuacion);
 
-       if(gs->contOpcionesGO == 0)
+        dibujar_texto_borde(gs, assets->biggestThingsFont18, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 525, ALLEGRO_ALIGN_CENTER, texto, 3);
+
+        if(gs->contOpcionesGO == 0)
         {
             strcpy(texto, "VOLVER AL MENU PRINCIPAL");
-            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), SCREEN_X/2, 650, ALLEGRO_ALIGN_CENTER, texto, 3);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,0,0), al_map_rgb(0,0,0), SCREEN_X/2, 600, ALLEGRO_ALIGN_CENTER, texto, 3);
         }
-
         else
         {
             strcpy(texto, "VOLVER AL MENU PRINCIPAL");
-            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 650, ALLEGRO_ALIGN_CENTER, texto, 3);
+            dibujar_texto_borde(gs, assets->shingekiFont30, al_map_rgb(255,255,255), al_map_rgb(0,0,0), SCREEN_X/2, 600, ALLEGRO_ALIGN_CENTER, texto, 3);
         } 
     }
 }
@@ -602,4 +794,60 @@ void tutorial(s_GameState *gs, s_Assets *assets)
             break;
     }
     
+}
+
+void puntuacion(s_GameState *gs, s_Assets *assets)
+{
+    char texto[20];
+    ALLEGRO_COLOR color;
+
+    switch(gs->variables.multiplicador)
+    {
+        case 1:
+            color = al_map_rgb(230, 225, 210);
+            break;
+        case 2:
+            color = al_map_rgb(255, 230, 120);
+            break;
+        case 3:
+            color = al_map_rgb(255, 180, 60);
+            break;
+        case 4: 
+            color = al_map_rgb(255, 100, 40);
+            break;
+        case 5:
+            color = al_map_rgb(220, 20, 20);
+            break;
+    }
+
+    sprintf(texto, "Puntuacion x%d: %d", gs->variables.multiplicador, gs->levi.puntuacion);
+    dibujar_texto_borde(gs, assets->biggestThingsFont17, color, al_map_rgb(0,0,0), 20, 100, ALLEGRO_ALIGN_LEFT, texto, 2);
+
+    if(gs->variables.multiplicador < 5)
+    {
+        sprintf(texto, "%d/%d - %.1f", gs->variables.flagPunt, gs->variables.multiplicador + 1, gs->variables.contPunt);
+        dibujar_texto_borde(gs, assets->biggestThingsFont17, color, al_map_rgb(0,0,0), SCREEN_X - 20, 100, ALLEGRO_ALIGN_RIGHT, texto, 2);
+    }
+    else 
+    {
+        sprintf(texto, "%.1f", gs->variables.contPunt);
+        dibujar_texto_borde(gs, assets->biggestThingsFont17, color, al_map_rgb(0,0,0), SCREEN_X - 30, 100, ALLEGRO_ALIGN_RIGHT, texto, 2);
+    }
+}
+
+void efectoSangre(s_GameState *gs, s_Assets *assets)
+{
+    int frameX = gs->animaciones.efectoSangre.frameActual*1280;
+
+    al_draw_bitmap_region(assets->assetsPantalla.efectoSangre, frameX, 0, 1280, 720, 0, 0, 0);
+}
+
+void ui_elementos(s_GameState *gs, s_Assets *assets)
+{
+    int pA = gs->pantalla_actual, i;
+
+    for(i = 0; i < gs->pantalla[pA].num_elementos; i++)
+        if(colision(gs, gs->levi.hitbox, gs->pantalla[pA].elementos[i].hitbox) && gs->pantalla[pA].elementos[i].tipo == 4)
+            al_draw_scaled_bitmap(assets->assetsPantalla.e_Icon, 0, 0, 1312, 1199, gs->pantalla[pA].elementos[i].hitbox.x + gs->pantalla[pA].elementos[i].hitbox.ancho/2.0f - (1312/12.0f)/2.0f - gs->camara.x, 
+                gs->pantalla[pA].elementos[i].hitbox.y - 120, 1312/12.0f, 1199/12.0f, 0);
 }

@@ -1,10 +1,10 @@
-lompo 51015
-granpene 43095
-kuronami 39225
-lOMPO\ 37315
-lompo 34015
-rucksito 32375
-lompo 30850
-luka 28275
-e 26800
-e 7600
+asd 311550 (DIFICIL)
+luka 155461 (DIFICIL)
+luka 132895 (NORMAL)
+paullo 64200 (NORMAL)
+lompo 51015 (NORMAL)
+a 43880 (NORMAL)
+kuronami 39225 (NORMAL)
+lompo 37315 (NORMAL)
+lompo 34015 (NORMAL)
+rucksito 32375 (NORMAL)

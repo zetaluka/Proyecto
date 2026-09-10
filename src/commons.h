@@ -53,6 +53,10 @@ typedef struct
     ALLEGRO_BITMAP* fondo_titan_colosal;
     ALLEGRO_BITMAP* fondo_bosque;
     ALLEGRO_BITMAP* fondo_menu;
+    ALLEGRO_BITMAP* fondo_ol1;
+    ALLEGRO_BITMAP* fondo_ol2;
+    ALLEGRO_BITMAP* fondo_ol3;
+    ALLEGRO_BITMAP* minMapas;
     ALLEGRO_BITMAP* marcoVida;
     ALLEGRO_BITMAP* galonGas;
     ALLEGRO_BITMAP* grieta;
@@ -67,6 +71,7 @@ typedef struct
     ALLEGRO_BITMAP* dashSB[14];
     ALLEGRO_BITMAP* transicion;
     ALLEGRO_BITMAP* transicion2;
+    ALLEGRO_BITMAP* efectoSangre;
     ALLEGRO_BITMAP* imgGameOver;
     ALLEGRO_BITMAP* espada1;
     ALLEGRO_BITMAP* espada2;
@@ -74,6 +79,8 @@ typedef struct
     ALLEGRO_BITMAP* habilidadesHud;
     ALLEGRO_BITMAP* habilidades[6];
     ALLEGRO_BITMAP* cabezaTH;
+    ALLEGRO_BITMAP* e_Icon;
+    ALLEGRO_BITMAP* cuadroTexto;
 
 } s_AssetsPantalla;
 
@@ -99,10 +106,11 @@ typedef struct{
 
     ALLEGRO_FONT* shingekiFont30;
     ALLEGRO_FONT* shingekiFont20;
-    ALLEGRO_FONT* minimalistTemplateFont50; 
-    ALLEGRO_FONT* minimalistTemplateFont40;    
-    ALLEGRO_FONT* minimalistTemplateFont25;
-    ALLEGRO_FONT* minimalistTemplateFont30;
+    ALLEGRO_FONT* biggestThingsFont25;
+    ALLEGRO_FONT* biggestThingsFont18;
+    ALLEGRO_FONT* biggestThingsFont17;
+    ALLEGRO_FONT* biggestThingsFont10;
+    ALLEGRO_FONT* biggestThingsFont12;
 
     s_AssetsPantalla assetsPantalla;
     s_LeviSprites levi;
@@ -180,8 +188,23 @@ typedef struct
 {
     ALLEGRO_SAMPLE* sfx_odm;
     ALLEGRO_SAMPLE* sfx_attack;
-    ALLEGRO_AUDIO_STREAM *musica_menu;
+    ALLEGRO_SAMPLE* sfx_attack2;
+    ALLEGRO_SAMPLE* sfx_dash;
+    ALLEGRO_SAMPLE* sfx_habilidad1;
+    ALLEGRO_SAMPLE* sfx_habilidad2;
+    ALLEGRO_SAMPLE* sfx_muerteTitan;
+    ALLEGRO_SAMPLE* sfx_menu;
+    ALLEGRO_SAMPLE* sfx_salto;
+    ALLEGRO_AUDIO_STREAM* musica_menu;
+    ALLEGRO_AUDIO_STREAM* musica_AOT;
+    ALLEGRO_AUDIO_STREAM* musica_XLTT;
+    ALLEGRO_AUDIO_STREAM* musica_SWS;
     float cdSfxAttack;
+
+    ALLEGRO_AUDIO_STREAM* pistaActual;    
+    ALLEGRO_AUDIO_STREAM* pistaSaliendo;  
+    float gainObjetivo;                   
+    float velocidadFade;                  
 } s_Audio;
 
 
@@ -249,6 +272,7 @@ typedef enum{
     LEVANTANDOSE,
     PATADA,
     SPAWN,
+    MUERTE,
 
 } e_EstadoTitan;
 
@@ -293,6 +317,7 @@ typedef struct
     bool activo;
     bool enganchadoODM;
     bool frameActivacion;
+    bool muriendo;
 } s_Entidades;
 
 typedef struct
@@ -330,6 +355,7 @@ typedef enum{
 typedef struct 
 {
     int vida;
+    int vidaMax;
     int casoMovimiento;
     int casoAtaque;
     float cdCasoMovimiento;
@@ -339,6 +365,7 @@ typedef struct
     float velocidadY;
     float tiempoAtaqueActivo;
     float cooldownAtaque;
+    bool retrocediendo;
     bool segundoGolpe;
     bool fase2Activa;
     bool atacando;
@@ -347,6 +374,7 @@ typedef struct
     bool THQuieta;
     bool nucaCubierta;
     bool ataqueHecho;
+    bool puntuacionDada;
     s_AnimacionTitanes animacion;
     s_Hitbox hitbox;
     s_Hitbox hitboxAtaque1;
@@ -405,9 +433,9 @@ typedef struct
     int viendoDerecha;
     int contSoltarse;
     int puntuacion;
-    int vida;
     int contModoAckerman;
     int aumentaMA;
+    int vida;
     float tiempoInvulnerabilidad;
     float gravedad;
     float cooldownAtaque;
@@ -436,6 +464,8 @@ typedef struct
     bool levi_vuelo;
     bool ataqueHecho;
     bool parryRecompensa;
+    bool habilidad1Reiniciada;
+    bool habilidad2Reiniciada;  
     s_Inventario inventario;
     s_Dash dash;
     s_ODM ODM;
@@ -468,6 +498,10 @@ typedef enum{
     RANKING,
     OPCIONES,
     CONTROLES,
+    OLEADA,
+    RANKINGOLEADA,
+    RANKINGNIVEL1,
+    RANKINGVSTITANHEMBRA,
     SALIR
 } e_EstadoMenu;
 
@@ -502,11 +536,15 @@ typedef struct
     int carga_pantalla;
     int screenX;
     int screenY;
+    int multiplicador;
+    int flagPunt;
     float cooldownHitbox;
     float gravedad;
+    float contPunt;
     char nombreTemp[40];
     s_Posiciones grietas[5];
     FILE *fdata;
+    bool resetPunt;
     bool nombreIngresado;
     bool ingresandoNombre;
     bool agarradoPorTitan1;
@@ -528,6 +566,7 @@ typedef struct
 typedef struct 
 {
     char nombre[50];
+    char dificultad[20];
     int puntuacion;
 } s_Puntuacion;
 
@@ -536,6 +575,8 @@ typedef struct
     s_Animacion gas[MAXGAS];
     s_Animacion transicion;
     s_Animacion transicion2;
+    s_Animacion efectoSangre;
+    s_Animacion ol1;
     int contGas;
     int contGasDS;
     bool cambioPantallaHecho;
@@ -545,6 +586,10 @@ typedef struct
 typedef struct 
 {
     int contMenu;
+    int contMapa;
+    int contDif;
+    int topePila;
+    e_EstadoMenu pilaEstados[5];
     e_EstadoMenu estadoMenu;
     e_EstadoMenu estadoMenuAnterior;
     
@@ -556,6 +601,24 @@ typedef struct{
     bool requisitoCumplido;
 
 } s_Tutorial;
+
+typedef struct{
+    int cdSpawn;
+    float contCdSpawn;
+} s_ModoOleada;
+
+typedef enum{
+    NORMAL,
+    DIFICIL,
+} e_Dificultad;
+
+typedef struct 
+{
+    char nombre[20];
+    char dificultad[10]; 
+    int minutos;
+    int segundos;
+} s_PuntuacionTH;
 
 //====s_GameState====//
 typedef struct {
@@ -575,11 +638,17 @@ typedef struct {
     s_Menu menuPausa;
     s_Tutorial tutorial;
     s_Audio audio;
+    s_ModoOleada oleada;
+    s_PuntuacionTH puntuacionesTH[10];
+    s_PuntuacionTH puntuacionJugadorTH;
+    e_Dificultad dificultad;
     int contOpcionesGO;  
     int pantalla_actual;
     int nivel; 
     float escala;
     bool pausa;
+    bool vsTitanHembraEjecutando;
+    bool modoOleadaEjecutando;
     bool tutorialEjecutando;
     bool nivel1Ejecutando;
     bool pantallaCompleta;
@@ -608,7 +677,9 @@ void actualiza_res(s_GameState *gs, ALLEGRO_DISPLAY *display);
 void guarda_opciones(s_GameState *gs);
 void lee_opciones(s_GameState *gs, ALLEGRO_DISPLAY *display);
 void ingresa_nombre(s_GameState *gs, ALLEGRO_EVENT* evento);
-int carga_puntuacion(s_GameState *gs);
+void parry(s_GameState *gs);
+int carga_puntuacion(s_GameState *gs, const char *archivo);
+int carga_puntuacionTH(s_GameState *gs, const char *archivo);
 int carga_sfx(s_GameState *gs);
 bool colision(s_GameState *gs, s_Hitbox h1, s_Hitbox h2);
 
